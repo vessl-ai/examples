@@ -67,9 +67,9 @@ def set_train_cfg():
     config.DATALOADER.NUM_WORKERS = 2
     config.MODEL.WEIGHTS = model_zoo.get_checkpoint_url("COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml")
     config.SOLVER.IMS_PER_BATCH = 2
-    config.SOLVER.BASE_LR = float(os.getenv('LEARNING_RATE'))
-    config.SOLVER.MAX_ITER = int(os.getenv('EPOCHS'))
-    config.MODEL.ROI_HEADS.BATCH_SIZE_PER_IMAGE = int(os.getenv('BATCH_SIZE'))
+    config.SOLVER.BASE_LR = float(os.getenv('LEARNING_RATE', 0.00025))
+    config.SOLVER.MAX_ITER = int(os.getenv('EPOCHS', 300))
+    config.MODEL.ROI_HEADS.BATCH_SIZE_PER_IMAGE = int(os.getenv('BATCH_SIZE', 128))
     config.MODEL.ROI_HEADS.NUM_CLASSES = 1
     return config
 

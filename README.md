@@ -11,3 +11,9 @@ python mnist/pytorch/main.py --save-model
 ```bash
 python mnist/keras/main.py --save-model
 ```
+
+## Detectron2
+Run Detectron2 example:
+```bash
+pip install -r detectron2/requirements.txt && python detectron2/main.py
+```
