@@ -6,7 +6,7 @@ import numpy as np
 
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
-from savvihub.keras import SavviCallback
+from savvihub.keras import SavviHubCallback
 
 from keras.utils.np_utils import to_categorical
 from keras.models import Sequential
@@ -109,7 +109,7 @@ if __name__ == '__main__':
     history = model.fit(train_data, train_label,
                         batch_size=args.batch_size, epochs=args.epochs,
                         validation_data=(val_data, val_label), verbose=2,
-                        callbacks=[SavviCallback()])
+                        callbacks=[SavviHubCallback()])
 
     test_pred = model.predict(test_data)
     test_pred_class = one_hot_to_class(test_pred, 1)
