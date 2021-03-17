@@ -104,7 +104,7 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Streamlit MNIST Demo')
-    parser.add_argument('--app-path', type=str, default='examples/detectron2/app.py', help='source code path')
+    parser.add_argument('--app-path', type=str, default='/work/examples/detectron2/app.py', help='source code path')
     parser.add_argument('--test-path', type=str, default='/input', help='test dataset path')
     parser.add_argument('--model-path', type=str, default='/input/model_final.pth', help='model path')
     args = parser.parse_args()
