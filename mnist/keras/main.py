@@ -1,6 +1,7 @@
 import argparse
 import os
-
+import numpy as np
+import pandas as pd
 import tensorflow as tf
 from savvihub.keras import SavviHubCallback
 from sklearn.model_selection import train_test_split
@@ -10,6 +11,20 @@ from tensorflow.python.client import device_lib
 def get_available_gpus():
     local_device_protos = device_lib.list_local_devices()
     return [x.name for x in local_device_protos if x.device_type == 'GPU']
+
+
+def load_data(data_dir, filename):
+    data_path = os.path.join(data_dir, filename)
+    raw_data = pd.read_csv(data_path, dtype=np.float32)
+    return raw_data
+
+
+def preprocess(raw_data):
+    label = raw_data["label"]
+    data = raw_data.drop(labels=["label"], axis=1)
+    data = data / 255.0
+    data = data.values.reshape(-1, 28, 28, 1)
+    return label, data
 
 
 def create_model():
@@ -44,10 +59,23 @@ if __name__ == '__main__':
                         help='For Saving the current Model')
     args = parser.parse_args()
 
-    print(get_available_gpus())
+    print(f'Available GPUs: {get_available_gpus()}')
 
-    (x_train, y_train), (x_test, y_test) = tf.keras.datasets.mnist.load_data()
-    x_train, x_test = x_train / 255.0, x_test / 255.0
+    use_mount_dataset = False
+    if os.path.exists(os.path.join(args.input_path, "train.csv")) and os.path.exists(
+            os.path.join(args.input_path, 'test.csv')):
+        use_mount_dataset = True
+
+    if use_mount_dataset:
+        print('Mount dataset found!')
+        train_df = load_data(args.input_path, "train.csv")
+        test_df = load_data(args.input_path, 'test.csv')
+        y_train, x_train = preprocess(train_df)
+        y_test, x_test = preprocess(test_df)
+    else:
+        print('Mount dataset not found! Use keras dataset instead.')
+        (x_train, y_train), (x_test, y_test) = tf.keras.datasets.mnist.load_data()
+        x_train, x_test = x_train / 255.0, x_test / 255.0
 
     random_seed = 7
     x_train, x_val, y_train, y_val = train_test_split(
