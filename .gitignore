@@ -2,3 +2,4 @@
 .savvihub/
 .ipynb_checkpoints/
 input/
+.DS_Store
