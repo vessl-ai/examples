@@ -94,7 +94,11 @@ if __name__ == '__main__':
               batch_size=args.batch_size,
               validation_data=(x_val, y_val),
               epochs=args.epochs,
-              callbacks=[SavviHubCallback()])
+              callbacks=[SavviHubCallback(
+                  data_type='image',
+                  validation_data=(x_val, y_val),
+                  num_images=5,
+              )])
 
     model.evaluate(x_test, y_test, verbose=2)
 
