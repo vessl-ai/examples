@@ -119,7 +119,7 @@ if __name__ == '__main__':
                         help='number of epochs to train (default: 1)')
     parser.add_argument('--save-model', action='store_true', default=False,
                         help='For saving the current model')
-    parser.add_argument('--save-image', action='store_true', default=True,
+    parser.add_argument('--save-image', action='store_true', default=False,
                         help='For saving the images')
     args = parser.parse_args()
 
