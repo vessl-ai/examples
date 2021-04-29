@@ -73,7 +73,7 @@ def train(model, device, train_loader, optimizer, epoch):
     )
 
 
-def test(model, device, test_loader):
+def test(model, device, test_loader, save_image):
     model.eval()
     test_loss = 0
     correct = 0
@@ -94,9 +94,10 @@ def test(model, device, test_loader):
         test_loss, correct, len(test_loader.dataset),
         100. * correct / len(test_loader.dataset)))
 
-    savvihub.log({
-        "Examples": test_images,
-    })
+    if save_image:
+        savvihub.log({
+            "Examples": test_images,
+        })
 
 
 def save(model, path):
@@ -117,7 +118,9 @@ if __name__ == '__main__':
     parser.add_argument('--epochs', type=int, default=10, metavar='N',
                         help='number of epochs to train (default: 1)')
     parser.add_argument('--save-model', action='store_true', default=False,
-                        help='For Saving the current Model')
+                        help='For saving the current model')
+    parser.add_argument('--save-image', action='store_true', default=True,
+                        help='For saving the images')
     args = parser.parse_args()
 
     train_df = load_data(args.input_path, "train.csv")
@@ -154,7 +157,7 @@ if __name__ == '__main__':
 
     for epoch in range(0, args.epochs):
         train(model, device, train_loader, optimizer, epoch)
-        test(model, device, test_loader)
+        test(model, device, test_loader, args.save_image)
         scheduler.step()
 
     if args.save_model:
