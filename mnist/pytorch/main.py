@@ -187,7 +187,7 @@ if __name__ == '__main__':
         start_epoch, best_accuracy = load_checkpoint(checkpoint_file_path)
     else:
         print("=> No checkpoint has found! train from scratch")
-        start_epoch, best_accuracy = torch.FloatTensor([0])
+        start_epoch, best_accuracy = 0, torch.FloatTensor([0])
         if not os.path.exists(args.checkpoint_path):
             print(f" [*] Make directories : {args.checkpoint_path}")
             os.makedirs(args.checkpoint_path)
