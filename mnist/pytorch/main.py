@@ -51,7 +51,31 @@ def preprocess(raw_data):
     return label, data
 
 
-def train(model, device, train_loader, optimizer, epoch):
+def get_dataloader(data, label, batch_size, shuffle):
+    dataset = torch.utils.data.TensorDataset(
+        torch.from_numpy(data).unsqueeze(1), torch.from_numpy(label).type(torch.LongTensor))
+    return torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=shuffle)
+
+def load_checkpoint(checkpoint_file_path):
+    print(f"=> Loading checkpoint '{checkpoint_file_path}' ...")
+    if device == 'cuda':
+        checkpoint = torch.load(checkpoint_file_path)
+    else:
+        checkpoint = torch.load(checkpoint_file_path, map_location=lambda storage, loc: storage)
+    model.load_state_dict(checkpoint.get('state_dict'))
+    print(f"=> Loaded checkpoint (trained for {checkpoint.get('epoch')} epochs)")
+    return checkpoint.get('epoch'), checkpoint.get('best_accuracy')
+
+
+def save_checkpoint(state, is_best, filename):
+    if is_best:
+        print("=> Saving a new best")
+        torch.save(state, filename)
+    else:
+        print("=> Validation Accuracy did not improve")
+
+
+def train(model, device, train_loader, optimizer, epoch, start_epoch):
     model.train()
     loss = 0
     for batch_idx, (data, label) in enumerate(train_loader):
@@ -66,9 +90,9 @@ def train(model, device, train_loader, optimizer, epoch):
                 epoch, batch_idx * len(data), len(train_loader.dataset),
                 100. * batch_idx / len(train_loader), loss.item()))
 
-    # Logging to Savvihub
+    # Logging loss metrics to SavviHub
     savvihub.log(
-        step=epoch,
+        step=epoch + start_epoch,
         row={'loss': loss.item()}
     )
 
@@ -89,15 +113,17 @@ def test(model, device, test_loader, save_image):
                 data[0], caption="Pred: {} Truth: {}".format(pred[0].item(), target[0])))
 
     test_loss /= len(test_loader.dataset)
+    test_accuracy = 100. * correct / len(test_loader.dataset)
 
     print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
-        test_loss, correct, len(test_loader.dataset),
-        100. * correct / len(test_loader.dataset)))
+        test_loss, correct, len(test_loader.dataset), test_accuracy))
 
     if save_image:
         savvihub.log({
             "Examples": test_images,
         })
+
+    return test_accuracy
 
 
 def save(model, path):
@@ -111,8 +137,12 @@ def save(model, path):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='PyTorch MNIST Example')
-    parser.add_argument('--input-path', type=str, default='/input', help='input dataset path')
-    parser.add_argument('--output-path', type=str, default='/output', help='output files path')
+    parser.add_argument('--input-path', type=str, default='/input',
+                        help='input dataset path')
+    parser.add_argument('--output-path', type=str, default='/output',
+                        help='output files path')
+    parser.add_argument('--checkpoint-path', type=str, default='/output/checkpoint',
+                        help='checkpoint path')
     parser.add_argument('--batch-size', type=int, default=128, metavar='N',
                         help='input batch size for training (default: 128)')
     parser.add_argument('--epochs', type=int, default=10, metavar='N',
@@ -123,15 +153,18 @@ if __name__ == '__main__':
                         help='For saving the images')
     args = parser.parse_args()
 
+    # Load data from input
     train_df = load_data(args.input_path, "train.csv")
     test_df = load_data(args.input_path, 'test.csv')
 
+    # Preprocess input data
     train_label, train_data = preprocess(train_df)
     test_label, test_data = preprocess(test_df)
 
     print(f'The shape of train data: {train_data.shape}')
     print(f'The shape of test data: {test_data.shape}')
 
+    # Validate device
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f'Device: {device}')
     print(f'Device count: {torch.cuda.device_count()}')
@@ -141,23 +174,38 @@ if __name__ == '__main__':
     if torch.cuda.device_count() > 1:
         model = nn.DataParallel(model)
 
-    train_data = torch.from_numpy(train_data).unsqueeze(1)
-    train_label = torch.from_numpy(train_label).type(torch.LongTensor)
-    test_data = torch.from_numpy(test_data).unsqueeze(1)
-    test_label = torch.from_numpy(test_label).type(torch.LongTensor)
-
-    train_dataset = torch.utils.data.TensorDataset(train_data, train_label)
-    test_dataset = torch.utils.data.TensorDataset(test_data, test_label)
-
-    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True)
-    test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False)
+    # Prepare dataloader
+    train_dataloader = get_dataloader(train_data, train_label, args.batch_size, True)
+    test_dataloader = get_dataloader(test_data, test_label, args.batch_size, False)
 
     optimizer = optim.Adadelta(model.parameters(), lr=1.0)
     scheduler = StepLR(optimizer, step_size=1, gamma=0.7)
 
+    # Load checkpoint if exists
+    checkpoint_file_path = os.path.join(args.checkpoint_path, 'checkpoints.pt')
+    if os.path.exists(args.checkpoint_path) and os.path.isfile(checkpoint_file_path):
+        start_epoch, best_accuracy = load_checkpoint(checkpoint_file_path)
+    else:
+        print("=> No checkpoint has found! train from scratch")
+        start_epoch, best_accuracy = torch.FloatTensor([0])
+        if not os.path.exists(args.checkpoint_path):
+            print(f" [*] Make directories : {args.checkpoint_path}")
+            os.makedirs(args.checkpoint_path)
+
     for epoch in range(0, args.epochs):
-        train(model, device, train_loader, optimizer, epoch)
-        test(model, device, test_loader, args.save_image)
+        train(model, device, train_dataloader, optimizer, epoch)
+        test_accuracy = test(model, device, test_dataloader, args.save_image)
+
+        # Save the best checkpoint
+        test_accuracy = torch.FloatTensor([test_accuracy])
+        is_best = bool(test_accuracy.numpy() > best_accuracy.numpy())
+        best_accuracy = torch.FloatTensor(max(test_accuracy.numpy(), best_accuracy.numpy()))
+        save_checkpoint({
+            'epoch': start_epoch + epoch,
+            'state_dict': model.state_dict(),
+            'best_accuracy': best_accuracy,
+        }, is_best, checkpoint_file_path)
+
         scheduler.step()
 
     if args.save_model:
