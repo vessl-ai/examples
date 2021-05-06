@@ -1,1 +1,4 @@
 savvihub
+numpy
+pandas
+torch

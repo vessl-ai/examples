@@ -87,12 +87,12 @@ def train(model, device, train_loader, optimizer, epoch, start_epoch):
         optimizer.step()
         if batch_idx % 128 == 0:
             print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
-                epoch, batch_idx * len(data), len(train_loader.dataset),
+                epoch + 1, batch_idx * len(data), len(train_loader.dataset),
                 100. * batch_idx / len(train_loader), loss.item()))
 
     # Logging loss metrics to SavviHub
     savvihub.log(
-        step=epoch + start_epoch,
+        step=epoch + start_epoch + 1,
         row={'loss': loss.item()}
     )
 
@@ -192,7 +192,7 @@ if __name__ == '__main__':
             print(f" [*] Make directories : {args.checkpoint_path}")
             os.makedirs(args.checkpoint_path)
 
-    for epoch in range(0, args.epochs):
+    for epoch in range(args.epochs):
         train(model, device, train_dataloader, optimizer, epoch, start_epoch)
         test_accuracy = test(model, device, test_dataloader, args.save_image)
 
@@ -201,7 +201,7 @@ if __name__ == '__main__':
         is_best = bool(test_accuracy.numpy() > best_accuracy.numpy())
         best_accuracy = torch.FloatTensor(max(test_accuracy.numpy(), best_accuracy.numpy()))
         save_checkpoint({
-            'epoch': start_epoch + epoch,
+            'epoch': start_epoch + epoch + 1,
             'state_dict': model.state_dict(),
             'best_accuracy': best_accuracy,
         }, is_best, checkpoint_file_path)
