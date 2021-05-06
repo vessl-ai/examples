@@ -193,7 +193,7 @@ if __name__ == '__main__':
             os.makedirs(args.checkpoint_path)
 
     for epoch in range(0, args.epochs):
-        train(model, device, train_dataloader, optimizer, epoch)
+        train(model, device, train_dataloader, optimizer, epoch, start_epoch)
         test_accuracy = test(model, device, test_dataloader, args.save_image)
 
         # Save the best checkpoint
