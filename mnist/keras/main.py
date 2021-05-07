@@ -24,7 +24,7 @@ def preprocess(raw_data):
     label = raw_data["label"].to_numpy()
     data = raw_data.drop(labels=["label"], axis=1)
     data = data / 255.0
-    data = data.values.reshape(-1, 28, 28, 1)
+    data = data.values.reshape(-1, 28, 28)
     return label, data
 
 
