@@ -1,0 +1,6 @@
+savvihub
+scikit-learn
+numpy
+pandas
+tensorflow
+keras

@@ -9,13 +9,13 @@ Run MNIST example and save model:
   2. Mount the dataset to `/input` at the experiment create form.
 * Command
   ```bash
-  pip install -r mnist/requirements.txt && python mnist/pytorch/main.py --save-model
+  pip install -r mnist/pytorch/requirements.txt && python mnist/pytorch/main.py --save-model
   ```
 2. Keras
 * No dataset needed.
 * Command
   ```bash
-  pip install -r mnist/requirements.txt && python mnist/keras/main.py --save-model
+  pip install -r mnist/keras/requirements.txt && python mnist/keras/main.py --save-model
   ```
 
 ## Detectron2
