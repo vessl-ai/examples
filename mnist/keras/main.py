@@ -20,6 +20,10 @@ def load_data(data_dir, filename):
     return raw_data
 
 
+def parse_epoch(file_path):
+    return int(os.path.splitext(os.path.basename(file_path))[0].split('-')[1])
+
+
 def preprocess(raw_data):
     label = raw_data["label"].to_numpy()
     data = raw_data.drop(labels=["label"], axis=1)
@@ -60,6 +64,8 @@ if __name__ == '__main__':
                         help='number of epochs to train (default: 1)')
     parser.add_argument('--save-model', action='store_true', default=False,
                         help='For Saving the current Model')
+    parser.add_argument('--save-image', action='store_true', default=False,
+                        help='For saving the images')
     args = parser.parse_args()
 
     print(f'=> Available GPUs: {get_available_gpus()}')
@@ -88,14 +94,28 @@ if __name__ == '__main__':
     print(model.summary())
 
     # Load checkpoint if exists
-    checkpoint_file_path = os.path.join(args.checkpoint_path, 'checkpoints.hdf5')
-    if os.path.exists(args.checkpoint_path) and os.path.isfile(checkpoint_file_path):
-        print(f"=> Loading checkpoint '{checkpoint_file_path}' ...")
-        model.load_weights(checkpoint_file_path)
+    checkpoint_path = os.path.join(args.checkpoint_path, 'checkpoints-{epoch:04d}.ckpt')
+    checkpoint_dir = os.path.dirname(checkpoint_path)
+    if os.path.exists(checkpoint_dir) and len(os.listdir(checkpoint_dir)) > 0:
+        latest = tf.train.latest_checkpoint(checkpoint_dir)
+        print(f"=> Loading checkpoint '{latest}' ...")
+        model.load_weights(latest)
+        start_epoch = parse_epoch(latest)
+        print(f'start_epoch:{start_epoch}')
     else:
+        start_epoch = 0
         if not os.path.exists(args.checkpoint_path):
             print(f" [*] Make directories : {args.checkpoint_path}")
             os.makedirs(args.checkpoint_path)
+
+    checkpoint_callback = ModelCheckpoint(
+        checkpoint_path,
+        monitor='val_accuracy',
+        verbose=1,
+        save_weights_only=True,
+        save_best_only=True,
+        mode='max',
+    )
 
     # Compile model
     loss_fn = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
@@ -103,17 +123,20 @@ if __name__ == '__main__':
                   loss=loss_fn,
                   metrics=['accuracy'])
 
-    # Prepare checkpoint
-    checkpoint_file_path = os.path.join(args.checkpoint_path, 'checkpoints.hdf5')
-    checkpoint_callback = ModelCheckpoint(
-        checkpoint_file_path, monitor='val_accuracy', verbose=1, save_best_only=True, mode='max')
+    model.save_weights(checkpoint_path.format(epoch=0))
 
     model.fit(x_train, y_train,
               batch_size=args.batch_size,
               validation_data=(x_val, y_val),
               epochs=args.epochs,
               callbacks=[
-                  SavviHubCallback(data_type='image', validation_data=(x_val, y_val), num_images=5),
+                  SavviHubCallback(
+                      data_type='image',
+                      validation_data=(x_val, y_val),
+                      num_images=5,
+                      start_epoch=start_epoch,
+                      save_image=args.save_image,
+                  ),
                   checkpoint_callback,
               ])
 
