@@ -64,6 +64,8 @@ if __name__ == '__main__':
                         help='number of epochs to train (default: 1)')
     parser.add_argument('--save-model', action='store_true', default=False,
                         help='For Saving the current Model')
+    parser.add_argument('--save-model-freq', type=int, default=5,
+                        help='Save model frequency')
     parser.add_argument('--save-image', action='store_true', default=False,
                         help='For saving the images')
     args = parser.parse_args()
@@ -113,8 +115,8 @@ if __name__ == '__main__':
         monitor='val_accuracy',
         verbose=1,
         save_weights_only=True,
-        save_best_only=True,
         mode='max',
+        save_freq=args.save_model_freq,
     )
 
     # Compile model
