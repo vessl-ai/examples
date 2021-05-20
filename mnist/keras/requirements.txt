@@ -1,4 +1,4 @@
-savvihub
+savvihub==0.0.101
 scikit-learn
 numpy
 pandas
