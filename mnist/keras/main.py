@@ -58,10 +58,6 @@ if __name__ == '__main__':
                         help='output files path')
     parser.add_argument('--checkpoint-path', type=str, default='/output/checkpoint',
                         help='checkpoint file path')
-    parser.add_argument('--batch-size', type=int, default=128, metavar='N',
-                        help='input batch size for training (default: 128)')
-    parser.add_argument('--epochs', type=int, default=10, metavar='N',
-                        help='number of epochs to train (default: 10)')
     parser.add_argument('--save-model', action='store_true', default=False,
                         help='For Saving the current Model')
     parser.add_argument('--save-model-freq', type=int, default=640,
@@ -69,6 +65,10 @@ if __name__ == '__main__':
     parser.add_argument('--save-image', action='store_true', default=False,
                         help='For saving the images')
     args = parser.parse_args()
+
+    epochs = int(os.environ.get('epochs', 10))
+    batch_size = int(os.environ.get('batch_size', 128))
+    optimizer = str(os.environ.get('optimizer', 'adam'))
 
     print(f'=> Available GPUs: {get_available_gpus()}')
 
@@ -121,16 +121,16 @@ if __name__ == '__main__':
 
     # Compile model
     loss_fn = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
-    model.compile(optimizer='adam',
+    model.compile(optimizer=optimizer,
                   loss=loss_fn,
                   metrics=['accuracy'])
 
     model.save_weights(checkpoint_path.format(epoch=0))
 
     model.fit(x_train, y_train,
-              batch_size=args.batch_size,
+              batch_size=batch_size,
               validation_data=(x_val, y_val),
-              epochs=args.epochs,
+              epochs=epochs,
               callbacks=[
                   SavviHubCallback(
                       data_type='image',

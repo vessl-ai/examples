@@ -56,6 +56,7 @@ def get_dataloader(data, label, batch_size, shuffle):
         torch.from_numpy(data).unsqueeze(1), torch.from_numpy(label).type(torch.LongTensor))
     return torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=shuffle)
 
+
 def load_checkpoint(checkpoint_file_path):
     print(f"=> Loading checkpoint '{checkpoint_file_path}' ...")
     if device == 'cuda':
@@ -143,15 +144,16 @@ if __name__ == '__main__':
                         help='output files path')
     parser.add_argument('--checkpoint-path', type=str, default='/output/checkpoint',
                         help='checkpoint path')
-    parser.add_argument('--batch-size', type=int, default=128, metavar='N',
-                        help='input batch size for training (default: 128)')
-    parser.add_argument('--epochs', type=int, default=10, metavar='N',
-                        help='number of epochs to train (default: 1)')
     parser.add_argument('--save-model', action='store_true', default=False,
                         help='For saving the current model')
     parser.add_argument('--save-image', action='store_true', default=False,
                         help='For saving the images')
     args = parser.parse_args()
+
+    epochs = int(os.environ.get('epochs', 10))
+    batch_size = int(os.environ.get('batch_size', 128))
+    optimizer = str(os.environ.get('optimizer', 'adam'))
+    learning_rate = float(os.environ.get('learning_rate', 0.01))
 
     # Load data from input
     train_df = load_data(args.input_path, "train.csv")
@@ -175,10 +177,15 @@ if __name__ == '__main__':
         model = nn.DataParallel(model)
 
     # Prepare dataloader
-    train_dataloader = get_dataloader(train_data, train_label, args.batch_size, True)
-    test_dataloader = get_dataloader(test_data, test_label, args.batch_size, False)
+    train_dataloader = get_dataloader(train_data, train_label, batch_size, True)
+    test_dataloader = get_dataloader(test_data, test_label, batch_size, False)
 
-    optimizer = optim.Adadelta(model.parameters(), lr=1.0)
+    if optimizer == "adam":
+        optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+    elif optimizer == "sgd":
+        optimizer = optim.SGD(model.parameters(), lr=learning_rate)
+    else:
+        optimizer = optim.Adadelta(model.parameters(), lr=learning_rate)
     scheduler = StepLR(optimizer, step_size=1, gamma=0.7)
 
     # Load checkpoint if exists
@@ -192,7 +199,7 @@ if __name__ == '__main__':
             print(f" [*] Make directories : {args.checkpoint_path}")
             os.makedirs(args.checkpoint_path)
 
-    for epoch in range(args.epochs):
+    for epoch in range(epochs):
         train(model, device, train_dataloader, optimizer, epoch, start_epoch)
         test_accuracy = test(model, device, test_dataloader, args.save_image)
 
