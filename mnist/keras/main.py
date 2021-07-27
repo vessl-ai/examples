@@ -3,6 +3,7 @@ import os
 import numpy as np
 import pandas as pd
 import tensorflow as tf
+from tensorflow import keras
 from savvihub.keras import SavviHubCallback
 from keras.callbacks import ModelCheckpoint
 from sklearn.model_selection import train_test_split
@@ -69,6 +70,7 @@ if __name__ == '__main__':
     epochs = int(os.environ.get('epochs', 10))
     batch_size = int(os.environ.get('batch_size', 128))
     optimizer = str(os.environ.get('optimizer', 'adam'))
+    learning_rate = float(os.environ.get('learning_rate', 0.01))
 
     print(f'=> Available GPUs: {get_available_gpus()}')
 
@@ -120,8 +122,15 @@ if __name__ == '__main__':
     )
 
     # Compile model
+    if optimizer == "adam":
+        opt = keras.optimizers.Adam(learning_rate=learning_rate)
+    elif optimizer == "sgd":
+        opt = keras.optimizers.SGD(learning_rate=learning_rate)
+    else:
+        opt = keras.optimizers.Adadelta(learning_rate=learning_rate)
+
     loss_fn = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
-    model.compile(optimizer=optimizer,
+    model.compile(optimizer=opt,
                   loss=loss_fn,
                   metrics=['accuracy'])
 

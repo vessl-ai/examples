@@ -29,6 +29,7 @@ Run MNIST example and save model:
   epochs
   optimizer
   batch_size
+  learning_rate
   ```
 
 ## Detectron2
