@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 from tensorflow import keras
-from savvihub.integration.keras import ExperimentCallback
+from savvihub.keras import SavviHubCallback
 from keras.callbacks import ModelCheckpoint
 from sklearn.model_selection import train_test_split
 from tensorflow.python.client import device_lib
@@ -141,7 +141,7 @@ if __name__ == '__main__':
               validation_data=(x_val, y_val),
               epochs=epochs,
               callbacks=[
-                  ExperimentCallback(
+                  SavviHubCallback(
                       data_type='image',
                       validation_data=(x_val, y_val),
                       num_images=5,
