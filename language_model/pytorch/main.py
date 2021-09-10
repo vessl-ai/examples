@@ -41,6 +41,7 @@ def train(model_type, model, corpus, train_data, batch_size, bptt, clip, log_int
     # Turn on training mode which enables dropout.
     model.train()
     total_loss = 0.
+    train_loss = 0.
     start_time = time.time()
     ntokens = len(corpus.dictionary)
     if model_type != 'Transformer':
@@ -65,6 +66,7 @@ def train(model_type, model, corpus, train_data, batch_size, bptt, clip, log_int
             p.data.add_(p.grad, alpha=-lr)
 
         total_loss += loss.item()
+        train_loss += loss.item()
 
         if batch % log_interval == 0 and batch > 0:
             cur_loss = total_loss / log_interval
@@ -78,10 +80,11 @@ def train(model_type, model, corpus, train_data, batch_size, bptt, clip, log_int
         if dry_run:
             break
 
-    # Logging loss metrics to SavviHub
+    # Logging metrics to SavviHub
+    loss = train_loss / (len(train_data) // bptt)
     savvihub.log(
         step=epoch,
-        row={'loss': total_loss, 'ppl': math.exp(total_loss)}
+        row={'loss': loss, 'ppl': math.exp(loss)}
     )
 
 
@@ -191,7 +194,7 @@ if __name__ == '__main__':
                                          val_loss, val_ppl))
         print('-' * 89)
 
-        # Logging loss metrics to SavviHub
+        # Logging metrics to SavviHub
         savvihub.log(
             step=epoch,
             row={'val_loss': val_loss, 'val_ppl': val_ppl}
