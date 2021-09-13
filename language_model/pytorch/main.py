@@ -113,7 +113,8 @@ def save(model, path):
         print(f" [*] Make directories : {path}")
         os.makedirs(path)
     artifact_path = os.path.join(path, "model.pt")
-    torch.save(model.state_dict(), artifact_path)
+    with open(artifact_path, 'wb') as f:
+        torch.save(model, f)
     print(f" [*] Saved model in : {artifact_path}")
 
 
