@@ -8,3 +8,6 @@ Run Detectron2 example on SavviHub:
   ```bash
   pip install -r detectron2/requirements.txt && python detectron2/main.py
   ```
+### Troubleshooting
+* `nvcc fatal   : Unsupported gpu architecture 'compute_86'`
+  * Refer to https://github.com/facebookresearch/detectron2/issues/149#issuecomment-737039021
