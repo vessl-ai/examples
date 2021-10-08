@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 from tensorflow import keras
-from savvihub.integration.keras import ExperimentCallback
+from vessl.integration.keras import ExperimentCallback
 from keras.callbacks import ModelCheckpoint
 from sklearn.model_selection import train_test_split
 from tensorflow.python.client import device_lib

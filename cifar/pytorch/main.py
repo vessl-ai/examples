@@ -1,6 +1,6 @@
 import argparse
 import os
-import savvihub
+import vessl
 
 import numpy as np
 import torch
@@ -86,8 +86,8 @@ def train(model, device, train_dataloader, optimizer, epoch, start_epoch):
                 epoch + 1, batch_idx * len(data), len(train_dataloader.dataset),
                 100. * batch_idx / len(train_dataloader), loss.item()))
 
-    # Logging loss metrics to SavviHub
-    savvihub.log(
+    # Logging loss metrics to Vessl
+    vessl.log(
         step=epoch + start_epoch + 1,
         row={'loss': loss.item()}
     )
@@ -115,8 +115,8 @@ def valid(model, device, val_dataloader, start_epoch):
     print('\nValid set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
         val_loss, correct, len(val_dataloader.dataset), val_accuracy))
 
-    # Logging loss metrics to SavviHub
-    savvihub.log(
+    # Logging loss metrics to Vessl
+    vessl.log(
         step=epoch + start_epoch + 1,
         row={'val_loss': val_loss, 'val_accuracy': val_accuracy}
     )

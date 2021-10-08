@@ -4,7 +4,7 @@ setup_logger()
 
 import numpy as np
 import os, json, cv2
-import savvihub
+import vessl
 
 from detectron2 import model_zoo
 from detectron2.engine import DefaultTrainer, HookBase
@@ -15,9 +15,9 @@ from detectron2.evaluation import COCOEvaluator, inference_on_dataset
 from detectron2.data import build_detection_test_loader
 
 
-class SavviHubHook(HookBase):
+class VesslHubHook(HookBase):
     def after_step(self):
-        savvihub.log(step=self.trainer.iter, row={'loss': self.trainer.storage.history('total_loss').latest()})
+        vessl.log(step=self.trainer.iter, row={'loss': self.trainer.storage.history('total_loss').latest()})
 
 
 def get_balloon_dicts(img_dir):
@@ -85,7 +85,7 @@ if __name__ == '__main__':
     os.makedirs(cfg.OUTPUT_DIR, exist_ok=True)
     trainer = DefaultTrainer(cfg)
     trainer.resume_or_load(resume=False)
-    after_step_hook = SavviHubHook()
+    after_step_hook = VesslHubHook()
     trainer.register_hooks([after_step_hook])
     trainer.train()
 

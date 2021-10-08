@@ -1,5 +1,5 @@
-# SavviHub examples
-This repository contains [SavviHub](https://savvihub.com/) examples. If you want to learn more about SavviHub please follow the [quick start documentation](https://docs.savvihub.com/quick-start).
+# Vessl examples
+This repository contains [Vessl](https://www.vessl.ai/) examples. If you want to learn more about Vessl please follow the [quick start documentation](https://docs.savvihub.com/quick-start).
 
 ## Examples
 

@@ -6,7 +6,7 @@ import os
 import torch
 import torch.nn as nn
 import torch.onnx
-import savvihub
+import vessl
 
 import data
 import model
@@ -80,9 +80,9 @@ def train(model_type, model, corpus, train_data, batch_size, bptt, clip, log_int
         if dry_run:
             break
 
-    # Logging metrics to SavviHub
+    # Logging metrics to Vessl
     loss = train_loss / (len(train_data) // bptt)
-    savvihub.log(
+    vessl.log(
         step=epoch,
         row={'loss': loss, 'ppl': math.exp(loss)}
     )
@@ -195,8 +195,8 @@ if __name__ == '__main__':
                                          val_loss, val_ppl))
         print('-' * 89)
 
-        # Logging metrics to SavviHub
-        savvihub.log(
+        # Logging metrics to Vessl
+        vessl.log(
             step=epoch,
             row={'val_loss': val_loss, 'val_ppl': val_ppl}
         )

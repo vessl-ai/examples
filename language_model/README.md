@@ -1,5 +1,5 @@
 # Language model
-Run language model example on SavviHub:
+Run language model example on Vessl:
 ## PyTorch
 * Dataset mount
   1. Create a new dataset with a public S3 bucket directory `s3://savvihub-public-apne2/wikitext-2`.

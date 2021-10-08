@@ -1,4 +1,4 @@
-savvihub
+vessl
 numpy
 pandas
 torch

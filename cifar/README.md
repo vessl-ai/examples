@@ -1,5 +1,5 @@
 # CIFAR
-Run CIFAR example on SavviHub:
+Run CIFAR example on Vessl:
 
 ## PyTorch
 * Start Command
