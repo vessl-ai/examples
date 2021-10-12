@@ -6,7 +6,7 @@ Run language model example on Vessl:
   2. Mount the dataset to `/input` at the experiment create form.
 * Start Command
   ```bash
-  pip install -r language_model/pytorch/requirements.txt && python language_model/pytorch/main.py
+  pip install -r examples/language_model/pytorch/requirements.txt && python examples/language_model/pytorch/main.py
   ```
 * Environment variables
   ```bash

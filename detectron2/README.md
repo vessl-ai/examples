@@ -6,7 +6,7 @@ Run Detectron2 example on Vessl:
   2. Mount the dataset to `/input/balloon` at the experiment create form.
 * Start Command
   ```bash
-  pip install -r detectron2/requirements.txt && python detectron2/main.py
+  pip install -r examples/detectron2/requirements.txt && python examples/detectron2/main.py
   ```
 ### Troubleshooting
 * `nvcc fatal   : Unsupported gpu architecture 'compute_86'`

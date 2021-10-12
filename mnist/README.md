@@ -6,7 +6,7 @@ Run MNIST example on Vessl:
   2. Mount the dataset to `/input` at the experiment create form.
 * Start Command
   ```bash
-  pip install -r mnist/pytorch/requirements.txt && python mnist/pytorch/main.py --save-model --save-image
+  pip install -r examples/mnist/pytorch/requirements.txt && python examples/mnist/pytorch/main.py --save-model --save-image
   ```
 * Environment variables
   ```bash
@@ -19,7 +19,7 @@ Run MNIST example on Vessl:
 * No dataset needed.
 * Start Command
   ```bash
-  pip install -r mnist/keras/requirements.txt && python mnist/keras/main.py --save-model --save-image
+  pip install -r examples/mnist/keras/requirements.txt && python examples/mnist/keras/main.py --save-model --save-image
   ```
 * Environment variables
   ```bash
