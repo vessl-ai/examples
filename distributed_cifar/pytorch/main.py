@@ -44,10 +44,11 @@ def main():
     parser.add_argument("--local_rank", type=int,
                         help="Local rank. Necessary for using the torch.distributed.launch utility.")
     parser.add_argument("--backend", type=str, help="Distributed backend (NCCL or gloo)", default="nccl")
-    parser.add_argument("--num_epochs", type=int, help="Number of training epochs.", default=30)
+    parser.add_argument("--num_epochs", type=int, help="Number of training epochs.", default=10)
     parser.add_argument("--batch_size", type=int, help="Training batch size for one process.",
                         default=128)
-    parser.add_argument("--learning_rate", type=float, help="Learning rate.", default=0.001)
+    parser.add_argument("--learning_rate", type=float, help="Learning rate.", default=0.1)
+    parser.add_argument("--accum_iter", type=int, help="Number of accumulate batches iteration", default=32)
     parser.add_argument("--random_seed", type=int, help="Random seed.", default=0)
     parser.add_argument("--model_dir", type=str, help="Directory for saving models.", default="/output")
     parser.add_argument("--model_filename", type=str, help="Model filename.", default="resnet_distributed.pth")
@@ -100,7 +101,6 @@ def main():
     optimizer = optim.SGD(ddp_model.parameters(), lr=args.learning_rate, momentum=0.9, weight_decay=1e-5)
 
     durations = []
-    accum_iter = 32
     for epoch in range(args.num_epochs):
         print(f"Local Rank: {args.local_rank} Epoch: {epoch}, training started.")
         loss = 0.
@@ -109,11 +109,11 @@ def main():
         ddp_model.train()
 
         for batch_idx, (inputs, labels) in enumerate(train_dataloader):
-            if (batch_idx + 1) % accum_iter == 0:
+            if (batch_idx + 1) % args.accum_iter == 0:
                 # Sync model params in every accu_iter
                 inputs, labels = inputs.to(device), labels.to(device)
                 outputs = ddp_model(inputs)
-                loss = criterion(outputs, labels) / accum_iter
+                loss = criterion(outputs, labels) / args.accum_iter
                 loss.backward()
                 optimizer.step()
                 optimizer.zero_grad()
@@ -122,7 +122,7 @@ def main():
                 with ddp_model.no_sync():
                     inputs, labels = inputs.to(device), labels.to(device)
                     outputs = ddp_model(inputs)
-                    loss = criterion(outputs, labels) / accum_iter
+                    loss = criterion(outputs, labels) / args.accum_iter
                     loss.backward()
 
         end = time.time()
