@@ -1,7 +1,7 @@
 # Distributed CIFAR
 Run Distributed CIFAR example on Vessl:
 * Dataset mount
-  1. Create a new dataset with a public S3 bucket directory `https://savvihub-public-apne2.s3.ap-northeast-2.amazonaws.com/cifar-10`.
+  1. Create a new dataset with a public S3 bucket directory `s3://savvihub-public-apne2/cifar-10`.
   2. Mount the dataset to `/input` at the experiment create form.
 
 ## PyTorch
