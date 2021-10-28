@@ -13,7 +13,7 @@ Run MNIST example on Vessl:
   epochs
   optimizer
   batch_size
-  learnig_rate
+  learning_rate
   ```
 ## Keras
 * No dataset needed.
