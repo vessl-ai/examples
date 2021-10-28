@@ -7,18 +7,17 @@ Run Distributed CIFAR example on Vessl:
 ## PyTorch
 * Start Command
   ```bash
-  python -m torch.distributed.launch  \
-    --nproc_per_node=1  \
-    --nnodes=2  \
+  python -m torch.distributed.launch \
+    --nnodes=$NUM_WORKERS \
+    --nproc_per_node=$NUM_GPUS_PER_WORKER \
     --node_rank=$RANK \
     --master_addr=$MASTER_ADDR \
     --master_port=$MASTER_PORT \
     examples/distributed_cifar/pytorch/main.py
   ```
-  * User-defined options
-    * `--nproc_per_node`: the number of GPUs per node
-    * `--nnodes`: the number of nodes
   * Vessl-defined options
+    * `--nnodes`: vessl will automatically set `$NUM_WORKERS` as an environment variable
+    * `--nproc_per_node`: vessl will automatically set `$NUM_GPUS_PER_WORKER` as an environment variable
     * `--node_rank`: vessl will automatically set `$RANK` as an environment variable
     * `--master_addr`: vessl will automatically set `$MASTER_ADDR` as an environment variable
     * `--master_port`: vessl will automatically set `$MASTER_PORT` as an environment variable
