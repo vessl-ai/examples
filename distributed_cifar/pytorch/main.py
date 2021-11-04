@@ -140,7 +140,7 @@ def main():
             # Logging to vessl
             vessl.log(
                 step=epoch,
-                row={'accuracy': accuracy, 'loss': loss, 'elapsed': duration},
+                payload={'accuracy': accuracy, 'loss': loss, 'elapsed': duration},
             )
 
     print(f"Total training time: {sum(durations):.2f}s")

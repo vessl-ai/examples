@@ -84,7 +84,7 @@ def train(model_type, model, corpus, train_data, batch_size, bptt, clip, log_int
     loss = train_loss / (len(train_data) // bptt)
     vessl.log(
         step=epoch,
-        row={'loss': loss, 'ppl': math.exp(loss)}
+        payload={'loss': loss, 'ppl': math.exp(loss)}
     )
 
 
@@ -198,7 +198,7 @@ if __name__ == '__main__':
         # Logging metrics to Vessl
         vessl.log(
             step=epoch,
-            row={'val_loss': val_loss, 'val_ppl': val_ppl}
+            payload={'val_loss': val_loss, 'val_ppl': val_ppl}
         )
 
         # Save the model if the validation loss is the best we've seen so far.

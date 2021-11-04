@@ -17,7 +17,7 @@ from detectron2.data import build_detection_test_loader
 
 class VesslHubHook(HookBase):
     def after_step(self):
-        vessl.log(step=self.trainer.iter, row={'loss': self.trainer.storage.history('total_loss').latest()})
+        vessl.log(step=self.trainer.iter, payload={'loss': self.trainer.storage.history('total_loss').latest()})
 
 
 def get_balloon_dicts(img_dir):

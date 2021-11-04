@@ -94,7 +94,7 @@ def train(model, device, train_loader, optimizer, epoch, start_epoch):
     # Logging loss metrics to Vessl
     vessl.log(
         step=epoch + start_epoch + 1,
-        row={'loss': loss.item()}
+        payload={'loss': loss.item()}
     )
 
 

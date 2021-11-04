@@ -89,7 +89,7 @@ def train(model, device, train_dataloader, optimizer, epoch, start_epoch):
     # Logging loss metrics to Vessl
     vessl.log(
         step=epoch + start_epoch + 1,
-        row={'loss': loss.item()}
+        payload={'loss': loss.item()}
     )
 
 
@@ -118,7 +118,7 @@ def valid(model, device, val_dataloader, start_epoch):
     # Logging loss metrics to Vessl
     vessl.log(
         step=epoch + start_epoch + 1,
-        row={'val_loss': val_loss, 'val_accuracy': val_accuracy}
+        payload={'val_loss': val_loss, 'val_accuracy': val_accuracy}
     )
 
     return val_accuracy
