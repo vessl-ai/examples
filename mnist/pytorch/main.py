@@ -11,6 +11,9 @@ from torch import optim
 from torch.optim.lr_scheduler import StepLR
 
 
+vessl.init()
+
+
 class Net(nn.Module):
     def __init__(self):
         super(Net, self).__init__()
