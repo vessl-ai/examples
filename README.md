@@ -1,5 +1,5 @@
-# Vessl examples
-This repository contains [Vessl](https://www.vessl.ai/) examples. If you want to learn more about Vessl please follow the [quick start documentation](https://docs.savvihub.com/quick-start).
+# VESSL examples
+This repository contains [VESSL](https://www.vessl.ai/) examples. If you want to learn more about VESSL please follow the [quick start documentation](https://docs.savvihub.com/quick-start).
 
 ## Examples
 
