@@ -1,15 +1,14 @@
 import argparse
 import os
-import vessl
 
 import numpy as np
 import pandas as pd
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import vessl
 from torch import optim
 from torch.optim.lr_scheduler import StepLR
-
 
 vessl.init()
 
