@@ -1,13 +1,17 @@
 import argparse
 import os
+
 import numpy as np
 import pandas as pd
 import tensorflow as tf
-from tensorflow import keras
-from vessl.integration.keras import ExperimentCallback
+import vessl
 from keras.callbacks import ModelCheckpoint
 from sklearn.model_selection import train_test_split
+from tensorflow import keras
 from tensorflow.python.client import device_lib
+from vessl.integration.keras import ExperimentCallback
+
+vessl.init()
 
 
 def get_available_gpus():
