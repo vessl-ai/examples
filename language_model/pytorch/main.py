@@ -74,13 +74,13 @@ def train(model_type, model, corpus, train_data, batch_size, bptt, clip, log_int
 
             try:
                 ppl = math.exp(cur_loss)
+                print('| epoch {:3d} | {:5d}/{:5d} batches | lr {:02.2f} | ms/batch {:5.2f} | '
+                      'loss {:5.2f} | ppl {:8.2f}'.format(
+                    epoch, batch, len(train_data) // bptt, lr,
+                                  elapsed * 1000 / log_interval, cur_loss, ppl))
             except OverflowError:
-                ppl = float('inf')
+                continue
 
-            print('| epoch {:3d} | {:5d}/{:5d} batches | lr {:02.2f} | ms/batch {:5.2f} | '
-                  'loss {:5.2f} | ppl {:8.2f}'.format(
-                epoch, batch, len(train_data) // bptt, lr,
-                              elapsed * 1000 / log_interval, cur_loss, ppl))
             total_loss = 0
             start_time = time.time()
         if dry_run:
@@ -88,10 +88,15 @@ def train(model_type, model, corpus, train_data, batch_size, bptt, clip, log_int
 
     # Logging metrics to Vessl
     loss = train_loss / (len(train_data) // bptt)
-    vessl.log(
-        step=epoch,
-        payload={'loss': loss, 'ppl': math.exp(loss)}
-    )
+
+    try:
+        ppl = math.exp(loss)
+        vessl.log(
+            step=epoch,
+            payload={'loss': loss, 'ppl': ppl}
+        )
+    except OverflowError:
+        return
 
 
 def evaluate(model_type, model, corpus, data_source, bptt):
@@ -194,18 +199,22 @@ if __name__ == '__main__':
         epoch_start_time = time.time()
         train(model_type, model, corpus, train_data, batch_size, args.bptt, clip, args.log_interval, args.dry_run, epoch)
         val_loss = evaluate(model_type, model, corpus, val_data, args.bptt)
-        val_ppl = math.exp(val_loss)
-        print('-' * 89)
-        print('| end of epoch {:3d} | time: {:5.2f}s | valid loss {:5.2f} | '
-              'valid ppl {:8.2f}'.format(epoch, (time.time() - epoch_start_time),
-                                         val_loss, val_ppl))
-        print('-' * 89)
 
-        # Logging metrics to Vessl
-        vessl.log(
-            step=epoch,
-            payload={'val_loss': val_loss, 'val_ppl': val_ppl}
-        )
+        try:
+            val_ppl = math.exp(val_loss)
+            print('-' * 89)
+            print('| end of epoch {:3d} | time: {:5.2f}s | valid loss {:5.2f} | '
+                  'valid ppl {:8.2f}'.format(epoch, (time.time() - epoch_start_time),
+                                             val_loss, val_ppl))
+            print('-' * 89)
+
+            # Logging metrics to Vessl
+            vessl.log(
+                step=epoch,
+                payload={'val_loss': val_loss, 'val_ppl': val_ppl}
+            )
+        except OverflowError:
+            continue
 
         # Save the model if the validation loss is the best we've seen so far.
         if not best_val_loss or val_loss < best_val_loss:
