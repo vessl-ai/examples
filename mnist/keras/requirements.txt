@@ -1,4 +1,4 @@
-vessl
+vessl[media]
 scikit-learn
 numpy
 pandas
