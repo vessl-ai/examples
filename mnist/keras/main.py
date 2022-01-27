@@ -61,6 +61,8 @@ if __name__ == '__main__':
                         help='input dataset path')
     parser.add_argument('--output-path', type=str, default='/output',
                         help='output files path')
+    parser.add_argument('--epochs', type=int, default=10,
+                        help='the number of training iterations')
     parser.add_argument('--checkpoint-path', type=str, default='/output/checkpoint',
                         help='checkpoint file path')
     parser.add_argument('--save-model', action='store_true', default=False,
@@ -71,7 +73,6 @@ if __name__ == '__main__':
                         help='For saving the images')
     args = parser.parse_args()
 
-    epochs = int(os.environ.get('epochs', 10))
     batch_size = int(os.environ.get('batch_size', 128))
     optimizer = str(os.environ.get('optimizer', 'adam'))
     learning_rate = float(os.environ.get('learning_rate', 0.01))
