@@ -63,19 +63,21 @@ if __name__ == '__main__':
                         help='output files path')
     parser.add_argument('--epochs', type=int, default=10,
                         help='the number of training iterations')
+    parser.add_argument('--batch-size', type=int, default=128,
+                        help='batch size of training')
+    parser.add_argument('--optimizer', type=str, default='adam',
+                        help='optimizer for training')
+    parser.add_argument('--learning-rate', type=float, default=0.01,
+                        help='learning rate for training')
     parser.add_argument('--checkpoint-path', type=str, default='/output/checkpoint',
                         help='checkpoint file path')
     parser.add_argument('--save-model', action='store_true', default=False,
-                        help='For Saving the current Model')
+                        help='save the current model')
     parser.add_argument('--save-model-freq', type=int, default=640,
-                        help='Save model frequency')
+                        help='save model frequency')
     parser.add_argument('--save-image', action='store_true', default=False,
-                        help='For saving the images')
+                        help='save the images')
     args = parser.parse_args()
-
-    batch_size = int(os.environ.get('batch_size', 128))
-    optimizer = str(os.environ.get('optimizer', 'adam'))
-    learning_rate = float(os.environ.get('learning_rate', 0.01))
 
     print(f'=> Available GPUs: {get_available_gpus()}')
 
@@ -127,12 +129,12 @@ if __name__ == '__main__':
     )
 
     # Compile model
-    if optimizer == "adam":
-        opt = keras.optimizers.Adam(learning_rate=learning_rate)
-    elif optimizer == "sgd":
-        opt = keras.optimizers.SGD(learning_rate=learning_rate)
+    if args.optimizer == "adam":
+        opt = keras.optimizers.Adam(learning_rate=args.learning_rate)
+    elif args.optimizer == "sgd":
+        opt = keras.optimizers.SGD(learning_rate=args.learning_rate)
     else:
-        opt = keras.optimizers.Adadelta(learning_rate=learning_rate)
+        opt = keras.optimizers.Adadelta(learning_rate=args.learning_rate)
 
     loss_fn = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
     model.compile(optimizer=opt,
@@ -142,9 +144,9 @@ if __name__ == '__main__':
     model.save_weights(checkpoint_path.format(epoch=0))
 
     model.fit(x_train, y_train,
-              batch_size=batch_size,
+              batch_size=args.batch_size,
               validation_data=(x_val, y_val),
-              epochs=epochs,
+              epochs=args.epochs,
               callbacks=[
                   ExperimentCallback(
                       data_type='image',
