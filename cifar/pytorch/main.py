@@ -2,7 +2,6 @@ import argparse
 import os
 import vessl
 
-import numpy as np
 import torch
 import torchvision
 import torchvision.transforms as transforms
@@ -156,17 +155,21 @@ if __name__ == '__main__':
                         help='output files path')
     parser.add_argument('--checkpoint-path', type=str, default='/output/checkpoint',
                         help='checkpoint path')
+    parser.add_argument('--l1', type=int, default=2,
+                        help='the number of first layer')
+    parser.add_argument('--l2', type=int, default=2,
+                        help='the number of second layer')
+    parser.add_argument('--lr', type=float, default=0.01,
+                        help='learning rate for training')
+    parser.add_argument('--batch-size', type=int, default=128,
+                        help='batch size for training')
+    parser.add_argument('--epochs', type=int, default=10,
+                        help='the number of training iterations')
     parser.add_argument('--save-model', action='store_true', default=False,
                         help='For saving the current model')
     parser.add_argument('--save-image', action='store_true', default=False,
                         help='For saving the images')
     args = parser.parse_args()
-
-    l1 = int(os.environ.get('l1', 2 ** np.random.randint(2, 9)))
-    l2 = int(os.environ.get('l2', 2 ** np.random.randint(2, 9)))
-    lr = float(os.environ.get('lr', 0.01))
-    batch_size = int(os.environ.get('batch_size', 128))
-    epochs = int(os.environ.get('epochs', 10))
 
     # Load data from input
     train_data, test_data = load_data(args.input_path)
@@ -180,18 +183,18 @@ if __name__ == '__main__':
     print(f'The number of test set: {len(test_data)}')
 
     # Prepare dataloader
-    train_dataloader = get_dataloader(train_subset, batch_size, True, 8)
-    val_dataloader = get_dataloader(val_subset, batch_size, True, 8)
+    train_dataloader = get_dataloader(train_subset, args.batch_size, True, 8)
+    val_dataloader = get_dataloader(val_subset, args.batch_size, True, 8)
 
     # Validate device
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f'Device: {device}')
     print(f'Device count: {torch.cuda.device_count()}')
 
-    model = Net(l1, l2).to(device)
+    model = Net(args.l1, args.l2).to(device)
 
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.SGD(model.parameters(), lr=lr, momentum=0.9)
+    optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=0.9)
 
     # Load checkpoint if exists
     checkpoint_file_path = os.path.join(args.checkpoint_path, 'checkpoints.pt')
@@ -204,7 +207,7 @@ if __name__ == '__main__':
             print(f" [*] Make directories : {args.checkpoint_path}")
             os.makedirs(args.checkpoint_path)
 
-    for epoch in range(epochs):
+    for epoch in range(args.epochs):
         train(model, device, train_dataloader, optimizer, epoch, start_epoch)
         val_accuracy = valid(model, device, val_dataloader, start_epoch)
 

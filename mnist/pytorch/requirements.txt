@@ -1,4 +1,4 @@
-vessl
+vessl[media]
 numpy
 pandas
 torch
