@@ -144,6 +144,14 @@ if __name__ == '__main__':
                         help='input dataset path')
     parser.add_argument('--output-path', type=str, default='/output',
                         help='output files path')
+    parser.add_argument('--epochs', type=int, default=10,
+                        help='the number of training iterations')
+    parser.add_argument('--batch-size', type=int, default=128,
+                        help='batch size of training')
+    parser.add_argument('--optimizer', type=str, default='adam',
+                        help='optimizer for training')
+    parser.add_argument('--learning-rate', type=float, default=0.01,
+                        help='learning rate for training')
     parser.add_argument('--checkpoint-path', type=str, default='/output/checkpoint',
                         help='checkpoint path')
     parser.add_argument('--save-model', action='store_true', default=False,
@@ -151,11 +159,6 @@ if __name__ == '__main__':
     parser.add_argument('--save-image', action='store_true', default=False,
                         help='For saving the images')
     args = parser.parse_args()
-
-    epochs = int(os.environ.get('epochs', 10))
-    batch_size = int(os.environ.get('batch_size', 128))
-    optimizer = str(os.environ.get('optimizer', 'adam'))
-    learning_rate = float(os.environ.get('learning_rate', 0.01))
 
     # Load data from input
     train_df = load_data(args.input_path, "train.csv")
@@ -179,15 +182,15 @@ if __name__ == '__main__':
         model = nn.DataParallel(model)
 
     # Prepare dataloader
-    train_dataloader = get_dataloader(train_data, train_label, batch_size, True)
-    test_dataloader = get_dataloader(test_data, test_label, batch_size, False)
+    train_dataloader = get_dataloader(train_data, train_label, args.batch_size, True)
+    test_dataloader = get_dataloader(test_data, test_label, args.batch_size, False)
 
-    if optimizer == "adam":
-        optimizer = optim.Adam(model.parameters(), lr=learning_rate)
-    elif optimizer == "sgd":
-        optimizer = optim.SGD(model.parameters(), lr=learning_rate)
+    if args.optimizer == "adam":
+        optimizer = optim.Adam(model.parameters(), lr=args.learning_rate)
+    elif args.optimizer == "sgd":
+        optimizer = optim.SGD(model.parameters(), lr=args.learning_rate)
     else:
-        optimizer = optim.Adadelta(model.parameters(), lr=learning_rate)
+        optimizer = optim.Adadelta(model.parameters(), lr=args.learning_rate)
     scheduler = StepLR(optimizer, step_size=1, gamma=0.7)
 
     # Load checkpoint if exists
@@ -201,7 +204,7 @@ if __name__ == '__main__':
             print(f" [*] Make directories : {args.checkpoint_path}")
             os.makedirs(args.checkpoint_path)
 
-    for epoch in range(epochs):
+    for epoch in range(args.epochs):
         train(model, device, train_dataloader, optimizer, epoch, start_epoch)
         test_accuracy = test(model, device, test_dataloader, args.save_image)
 
