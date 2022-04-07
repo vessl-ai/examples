@@ -1,11 +1,11 @@
 # VESSL examples
-This repository contains [VESSL](https://www.vessl.ai/) examples. If you want to learn more about VESSL please follow the [quick start documentation](https://docs.savvihub.com/quick-start).
+This repository contains [VESSL](https://www.vessl.ai/) examples. If you want to learn more about VESSL please follow the [quick start documentation](https://docs.vessl.ai/getting-started/quickstart).
 
 ## Use hyperparameters on VESSL
 [Hyperparameters](https://docs.vessl.ai/user-guide/experiment/creating-an-experiment#hyperparameters) are automatically add to the container as [environment variables](https://kubernetes.io/docs/tasks/inject-data-application/define-environment-variable-container/) with the given key and value. If you want to use them at runtime, then append them to the [start command](https://docs.vessl.ai/user-guide/experiment/creating-an-experiment#start-command) as follows.
 ```bash
 # Add learning_rate as a hyperparameter
-python main.py --learning-rate $learning_rate 
+python main.py --learning-rate $learning_rate
 ```
 
 You can now take the desired type of argument in Python script at runtime.
