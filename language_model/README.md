@@ -3,7 +3,7 @@ Run language model example on [VESSL](https://vessl.ai):
 > Noted that you should add [hyperparameters](../README.md) as arguments to the start command
 ## PyTorch
 ### Dataset mount
-  1. Create a new dataset with a public S3 bucket directory `s3://savvihub-public-apne2/wikitext-2`.
+  1. Create a new dataset with a public S3 bucket directory `s3://vessl-public-apne2/wikitext-2`.
   2. Mount the dataset to `/input` at the experiment create form.
 ### Start Command
   ```bash

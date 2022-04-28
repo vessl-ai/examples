@@ -2,7 +2,7 @@
 
 Run Detectron2 example on [VESSL](https://vessl.ai):
 ### Dataset mount
-  1. Create a new dataset with a public S3 bucket directory `s3://savvihub-public-apne2/detectron2`.
+  1. Create a new dataset with a public S3 bucket directory `s3://vessl-public-apne2/detectron2`.
   2. Mount the dataset to `/input/balloon` at the experiment create form.
 ### Start Command
   ```bash
