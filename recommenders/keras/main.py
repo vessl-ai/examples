@@ -186,7 +186,7 @@ if __name__ == '__main__':
         dnn_hidden_units=DNN_HIDDEN_UNITS,
         dnn_dropout=DNN_DROPOUT,
         dnn_batch_norm=(DNN_BATCH_NORM == 1),
-        log_every_n_iter=max(1, STEPS // 10),  # log 10 times
+        log_every_n_iter=max(1, STEPS),  # log 10 times
         save_checkpoints_steps=save_checkpoints_steps,
         seed=RANDOM_SEED
     )
