@@ -33,7 +33,6 @@ TOP_K = 10
 RANKING_METRICS = [
     evaluator.ndcg_at_k.__name__,
     evaluator.precision_at_k.__name__,
-    evaluator.logloss.__name__,
 ]
 RATING_METRICS = [
     evaluator.rmse.__name__,
