@@ -259,13 +259,14 @@ if __name__ == '__main__':
             "Try other optimizers, smaller batch size and/or smaller learning rate."
         )
 
-    exported_path = tf_utils.export_model(
-        model=model,
-        train_input_fn=train_fn,
-        eval_input_fn=tf_utils.pandas_input_fn(
-            df=test, y_col=RATING_COL
-        ),
-        tf_feat_cols=wide_columns + deep_columns,
-        base_dir=args.output_path
-    )
-    print("Model exported to", str(exported_path))
+    if args.save_model:
+        exported_path = tf_utils.export_model(
+            model=model,
+            train_input_fn=train_fn,
+            eval_input_fn=tf_utils.pandas_input_fn(
+                df=test, y_col=RATING_COL
+            ),
+            tf_feat_cols=wide_columns + deep_columns,
+            base_dir=args.output_path
+        )
+        print("Model exported to", str(exported_path))
