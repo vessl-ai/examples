@@ -33,6 +33,7 @@ TOP_K = 10
 RANKING_METRICS = [
     evaluator.ndcg_at_k.__name__,
     evaluator.precision_at_k.__name__,
+    evaluator.logloss.__name__,
 ]
 RATING_METRICS = [
     evaluator.rmse.__name__,
@@ -186,8 +187,8 @@ if __name__ == '__main__':
         dnn_hidden_units=DNN_HIDDEN_UNITS,
         dnn_dropout=DNN_DROPOUT,
         dnn_batch_norm=(DNN_BATCH_NORM == 1),
-        log_every_n_iter=max(1, STEPS),  # log 10 times
-        save_checkpoints_steps=save_checkpoints_steps,
+        log_every_n_iter=STEPS,
+        save_checkpoints_steps=STEPS,
         seed=RANDOM_SEED
     )
 
@@ -222,7 +223,7 @@ if __name__ == '__main__':
                         true_df=test,
                         y_col=RATING_COL,
                         eval_df=ranking_pool if metrics == RANKING_METRICS else test.drop(RATING_COL, axis=1),
-                        every_n_iter=save_checkpoints_steps,
+                        every_n_iter=STEPS,
                         model_dir=model_dir,
                         eval_fns=[evaluator.metrics[m] for m in metrics],
                         **({**cols, 'k': TOP_K} if metrics == RANKING_METRICS else cols)
