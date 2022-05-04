@@ -186,7 +186,7 @@ if __name__ == '__main__':
         dnn_hidden_units=DNN_HIDDEN_UNITS,
         dnn_dropout=DNN_DROPOUT,
         dnn_batch_norm=(DNN_BATCH_NORM == 1),
-        log_every_n_iter=STEPS // 100,
+        log_every_n_iter=STEPS // 10,
         save_checkpoints_steps=save_checkpoints_steps,
         seed=RANDOM_SEED
     )
@@ -222,7 +222,7 @@ if __name__ == '__main__':
                         true_df=test,
                         y_col=RATING_COL,
                         eval_df=ranking_pool if metrics == RANKING_METRICS else test.drop(RATING_COL, axis=1),
-                        every_n_iter=STEPS // 100,
+                        every_n_iter=save_checkpoints_steps,
                         model_dir=model_dir,
                         eval_fns=[evaluator.metrics[m] for m in metrics],
                         **({**cols, 'k': TOP_K} if metrics == RANKING_METRICS else cols)
