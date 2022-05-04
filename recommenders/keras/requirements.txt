@@ -1,1 +1,1 @@
-recommenders
+recommenders==1.1.0
