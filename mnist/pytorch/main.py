@@ -9,6 +9,7 @@ import torch.nn.functional as F
 import vessl
 from torch import optim
 from torch.optim.lr_scheduler import StepLR
+from torchvision import datasets, transforms
 
 vessl.init()
 
@@ -93,7 +94,7 @@ def train(model, device, train_loader, optimizer, epoch, start_epoch):
                 epoch + 1, batch_idx * len(data), len(train_loader.dataset),
                 100. * batch_idx / len(train_loader), loss.item()))
 
-    # Logging loss metrics to Vessl
+    # Logging loss metrics to VESSL
     vessl.log(
         step=epoch + start_epoch + 1,
         payload={'loss': loss.item()}
@@ -158,17 +159,6 @@ if __name__ == '__main__':
     optimizer = str(os.environ.get('optimizer', 'adam'))
     learning_rate = float(os.environ.get('learning_rate', 0.01))
 
-    # Load data from input
-    train_df = load_data(args.input_path, "train.csv")
-    test_df = load_data(args.input_path, 'test.csv')
-
-    # Preprocess input data
-    train_label, train_data = preprocess(train_df)
-    test_label, test_data = preprocess(test_df)
-
-    print(f'The shape of train data: {train_data.shape}')
-    print(f'The shape of test data: {test_data.shape}')
-
     # Validate device
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f'Device: {device}')
@@ -179,9 +169,36 @@ if __name__ == '__main__':
     if torch.cuda.device_count() > 1:
         model = nn.DataParallel(model)
 
-    # Prepare dataloader
-    train_dataloader = get_dataloader(train_data, train_label, batch_size, True)
-    test_dataloader = get_dataloader(test_data, test_label, batch_size, False)
+    # Load dataset
+    use_mount_dataset = False
+    if os.path.exists(os.path.join(args.input_path, "train.csv")) and \
+            os.path.exists(os.path.join(args.input_path, 'test.csv')):
+        use_mount_dataset = True
+
+    if use_mount_dataset:
+        print('=> Mount dataset found!')
+        train_df = load_data(args.input_path, "train.csv")
+        test_df = load_data(args.input_path, 'test.csv')
+        y_train, x_train = preprocess(train_df)
+        y_test, x_test = preprocess(test_df)
+
+        # Prepare dataloader
+        train_dataloader = get_dataloader(train_data, train_label, batch_size, True)
+        test_dataloader = get_dataloader(test_data, test_label, batch_size, False)
+    else:
+        print('=> Mount dataset not found! Use torchvision dataset instead.')
+        transform=transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize((0.1307,), (0.3081,))
+        ])
+        train_dataset = datasets.MNIST(args.input_path, train=True, download=True,
+                       transform=transform)
+        test_dataset = datasets.MNIST(args.input_path, train=False,
+                       transform=transform)
+
+        # Prepare dataloader
+        train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size)
+        test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size)
 
     if optimizer == "adam":
         optimizer = optim.Adam(model.parameters(), lr=learning_rate)
