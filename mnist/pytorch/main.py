@@ -157,7 +157,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # hyperparameters
-    epochs = int(os.environ.get('epochs', 10))
+    epochs = int(os.environ.get('epochs', 5))
     batch_size = int(os.environ.get('batch_size', 128))
     optimizer = str(os.environ.get('optimizer', 'adadelta'))
     learning_rate = float(os.environ.get('learning_rate', 0.1))

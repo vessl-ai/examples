@@ -11,7 +11,7 @@ Run MNIST example on [VESSL](https://vessl.ai):
   ```
 ### Hyperparameters
 ```bash
-epochs # [defaults: 10]
+epochs # [defaults: 5]
 optimizer # adadelta, sgd [defaults: adadelta]
 batch_size # [defaults: 128]
 learning_rate # [defaults: 0.1]
