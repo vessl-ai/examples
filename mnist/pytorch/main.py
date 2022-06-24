@@ -17,19 +17,17 @@ vessl.init()
 class Net(nn.Module):
     def __init__(self):
         super(Net, self).__init__()
-        self.conv1 = nn.Conv2d(1, 32, 3, 1)
-        self.conv2 = nn.Conv2d(32, 64, 3, 1)
+        self.conv = nn.Conv2d(1, 32, 3, 1)
         self.relu = nn.ReLU()
         self.pool = nn.MaxPool2d(2)
         self.drop1 = nn.Dropout2d(0.25)
         self.drop2 = nn.Dropout2d(0.5)
-        self.fc1 = nn.Linear(9216, 128)
+        self.fc1 = nn.Linear(5408, 128)
         self.fc2 = nn.Linear(128, 10)
         self.softmax = nn.LogSoftmax(1)
 
     def forward(self, x):
-        x = self.relu(self.conv1(x))
-        x = self.relu(self.conv2(x))
+        x = self.relu(self.conv(x))
         x = self.pool(x)
         x = self.drop1(x)
         x = torch.flatten(x, 1)
@@ -156,8 +154,8 @@ if __name__ == '__main__':
     # hyperparameters
     epochs = int(os.environ.get('epochs', 10))
     batch_size = int(os.environ.get('batch_size', 128))
-    optimizer = str(os.environ.get('optimizer', 'adam'))
-    learning_rate = float(os.environ.get('learning_rate', 0.01))
+    optimizer = str(os.environ.get('optimizer', 'adadelta'))
+    learning_rate = float(os.environ.get('learning_rate', 1))
 
     # Validate device
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -183,26 +181,30 @@ if __name__ == '__main__':
         y_test, x_test = preprocess(test_df)
 
         # Prepare dataloader
-        train_dataloader = get_dataloader(train_data, train_label, batch_size, True)
-        test_dataloader = get_dataloader(test_data, test_label, batch_size, False)
+        train_dataloader = get_dataloader(x_train, y_train, batch_size, True)
+        test_dataloader = get_dataloader(x_test, y_test, batch_size, False)
     else:
         print('=> Mount dataset not found! Use torchvision dataset instead.')
-        transform=transforms.Compose([
+
+        train_kwargs = {'batch_size': batch_size}
+        test_kwargs = {'batch_size': batch_size}
+
+        transform = transforms.Compose([
             transforms.ToTensor(),
             transforms.Normalize((0.1307,), (0.3081,))
         ])
         train_dataset = datasets.MNIST(args.input_path, train=True, download=True,
-                       transform=transform)
+                                       transform=transform)
         test_dataset = datasets.MNIST(args.input_path, train=False,
-                       transform=transform)
+                                      transform=transform)
 
         # Prepare dataloader
-        train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size)
-        test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size)
+        train_dataloader = torch.utils.data.DataLoader(
+            train_dataset, **train_kwargs)
+        test_dataloader = torch.utils.data.DataLoader(
+            test_dataset, **test_kwargs)
 
-    if optimizer == "adam":
-        optimizer = optim.Adam(model.parameters(), lr=learning_rate)
-    elif optimizer == "sgd":
+    if optimizer == "sgd":
         optimizer = optim.SGD(model.parameters(), lr=learning_rate)
     else:
         optimizer = optim.Adadelta(model.parameters(), lr=learning_rate)
@@ -210,7 +212,8 @@ if __name__ == '__main__':
 
     # Load checkpoint if exists
     checkpoint_file_path = os.path.join(args.checkpoint_path, 'checkpoints.pt')
-    if os.path.exists(args.checkpoint_path) and os.path.isfile(checkpoint_file_path):
+    if os.path.exists(args.checkpoint_path) and \
+            os.path.isfile(checkpoint_file_path):
         start_epoch, best_accuracy = load_checkpoint(checkpoint_file_path)
     else:
         print("=> No checkpoint has been found! Train from scratch.")
@@ -226,7 +229,8 @@ if __name__ == '__main__':
         # Save the best checkpoint
         test_accuracy = torch.FloatTensor([test_accuracy])
         is_best = bool(test_accuracy.numpy() > best_accuracy.numpy())
-        best_accuracy = torch.FloatTensor(max(test_accuracy.numpy(), best_accuracy.numpy()))
+        best_accuracy = torch.FloatTensor(
+            max(test_accuracy.numpy(), best_accuracy.numpy()))
         save_checkpoint({
             'epoch': start_epoch + epoch + 1,
             'state_dict': model.state_dict(),
