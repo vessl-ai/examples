@@ -121,6 +121,9 @@ def test(model, device, test_loader, save_image):
 
     print('  Test set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)'.format(
         test_loss, correct, len(test_loader.dataset), test_accuracy))
+    vessl.log(
+        payload={'test_loss': test_loss, 'test_accuracy': test_accuracy}
+    )
 
     if save_image:
         vessl.log({
