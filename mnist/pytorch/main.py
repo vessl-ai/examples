@@ -112,7 +112,7 @@ def test(model, device, test_loader, save_image):
             test_loss += F.nll_loss(output, target, reduction='sum').item()
             pred = output.argmax(dim=1, keepdim=True)
             correct += pred.eq(target.view_as(pred)).sum().item()
-            random_i = random.choice([0, len(data)-1])
+            random_i = random.randint(0, len(data)-1)
             test_images.append(vessl.Image(
                 data[random_i], caption="Pred: {} Truth: {}".format(pred[random_i].item(), target[random_i])))
 
@@ -160,7 +160,7 @@ if __name__ == '__main__':
     epochs = int(os.environ.get('epochs', 10))
     batch_size = int(os.environ.get('batch_size', 128))
     optimizer = str(os.environ.get('optimizer', 'adadelta'))
-    learning_rate = float(os.environ.get('learning_rate', 1))
+    learning_rate = float(os.environ.get('learning_rate', 0.1))
 
     # Validate device
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

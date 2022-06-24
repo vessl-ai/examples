@@ -14,7 +14,7 @@ Run MNIST example on [VESSL](https://vessl.ai):
 epochs # [defaults: 10]
 optimizer # adadelta, sgd [defaults: adadelta]
 batch_size # [defaults: 128]
-learning_rate # [defaults: 1]
+learning_rate # [defaults: 0.1]
 ```
 
 ## Keras
