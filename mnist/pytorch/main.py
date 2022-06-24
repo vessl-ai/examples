@@ -1,5 +1,6 @@
 import argparse
 import os
+import random
 
 import numpy as np
 import pandas as pd
@@ -88,7 +89,7 @@ def train(model, device, train_loader, optimizer, epoch, start_epoch):
         loss.backward()
         optimizer.step()
         if batch_idx % 128 == 0:
-            print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
+            print('Train Epoch: {} [{}/{} ({:.0f}%)]  Loss: {:.6f}'.format(
                 epoch + 1, batch_idx * len(data), len(train_loader.dataset),
                 100. * batch_idx / len(train_loader), loss.item()))
 
@@ -111,13 +112,14 @@ def test(model, device, test_loader, save_image):
             test_loss += F.nll_loss(output, target, reduction='sum').item()
             pred = output.argmax(dim=1, keepdim=True)
             correct += pred.eq(target.view_as(pred)).sum().item()
+            random_i = random.choice([0, len(data)-1])
             test_images.append(vessl.Image(
-                data[0], caption="Pred: {} Truth: {}".format(pred[0].item(), target[0])))
+                data[random_i], caption="Pred: {} Truth: {}".format(pred[random_i].item(), target[random_i])))
 
     test_loss /= len(test_loader.dataset)
     test_accuracy = 100. * correct / len(test_loader.dataset)
 
-    print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
+    print('  Test set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)'.format(
         test_loss, correct, len(test_loader.dataset), test_accuracy))
 
     if save_image:
