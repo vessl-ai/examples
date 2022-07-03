@@ -1,6 +1,7 @@
 # MNIST
 Run MNIST example on [VESSL](https://vessl.ai):
 > Noted that you should add [hyperparameters](../README.md) as arguments to the start command
+
 ## PyTorch
 ### Dataset mount
   1. Create a new dataset with a public S3 bucket directory `s3://vessl-public-apne2/mnist`.
