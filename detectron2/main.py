@@ -71,6 +71,7 @@ def set_train_cfg():
     config.SOLVER.MAX_ITER = int(os.getenv('EPOCHS', 300))
     config.MODEL.ROI_HEADS.BATCH_SIZE_PER_IMAGE = int(os.getenv('BATCH_SIZE', 128))
     config.MODEL.ROI_HEADS.NUM_CLASSES = 1
+    config.OUTPUT_DIR= "/output"
     return config
 
 
