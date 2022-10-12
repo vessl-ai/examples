@@ -21,7 +21,7 @@ setup_logger()
 class VesslHook(HookBase):
     def after_step(self):
         latest = self.trainer.storage.latest()
-        for k, v in latest:
+        for k, v in latest.items():
             vessl.log(step=v[1], payload={k: v[0]})
 
 
