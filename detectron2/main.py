@@ -20,18 +20,9 @@ setup_logger()
 
 class VesslHook(HookBase):
     def after_step(self):
-        histories = self.trainer.storage.histories()
         latest = self.trainer.storage.latest()
-        print("histories:", histories, ", type:", type(histories))
-        print("latest:", latest, ", type:", type(latest))
-        for history in histories:
-            print("history:", history, ", type:", type(history))
-        # for history in :
-        #     for k, v in history.items():
-        #         vessl.log(
-        #             step=self.trainer.iter,
-        #             payload={k: v.latest()}
-        #         )
+        for k, v in latest:
+            vessl.log(step=v[1], payload={k: v[0]})
 
 
 def get_balloon_dicts(img_dir):
