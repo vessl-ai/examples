@@ -26,7 +26,7 @@ class VesslHook(HookBase):
             'total_loss',
             'fast_rcnn/cls_accuracy',
             'fast_rcnn/false_negative',
-            'fast_rcnn/fg_cls_accuracy'
+            'fast_rcnn/fg_cls_accuracy',
             'mask_rcnn/accuracy',
             'mask_rcnn/false_positive',
             'mask_rcnn/false_negative',
@@ -36,7 +36,7 @@ class VesslHook(HookBase):
             vessl.log(
                 step=self.trainer.iter,
                 payload={
-                    metric: self.trainer.storage.history('total_loss').latest(),
+                    metric: self.trainer.storage.history(metric).latest(),
                 }
             )
 
