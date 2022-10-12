@@ -20,9 +20,25 @@ setup_logger()
 
 class VesslHook(HookBase):
     def after_step(self):
-        latest = self.trainer.storage.latest()
-        for k, v in latest.items():
-            vessl.log(step=v[1], payload={k: v[0]})
+        logging_metrics = [
+            'loss_cls',
+            'loss_mask',
+            'total_loss',
+            'fast_rcnn/cls_accuracy',
+            'fast_rcnn/false_negative',
+            'fast_rcnn/fg_cls_accuracy'
+            'mask_rcnn/accuracy',
+            'mask_rcnn/false_positive',
+            'mask_rcnn/false_negative',
+        ]
+
+        for metric in logging_metrics:
+            vessl.log(
+                step=self.trainer.iter,
+                payload={
+                    metric: self.trainer.storage.history('total_loss').latest(),
+                }
+            )
 
 
 def get_balloon_dicts(img_dir):
@@ -100,7 +116,7 @@ if __name__ == '__main__':
     cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.7
     predictor = DefaultPredictor(cfg)
     dataset_dicts = get_balloon_dicts("/input/balloon/val")
-    for d in random.sample(dataset_dicts, 3):
+    for d in random.sample(dataset_dicts, 9):
         im = cv2.imread(d["file_name"])
         outputs = predictor(im)
         v = Visualizer(
