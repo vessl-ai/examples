@@ -20,12 +20,18 @@ setup_logger()
 
 class VesslHook(HookBase):
     def after_step(self):
-        for history in self.trainer.storage.histories():
-            for k, v in history.items():
-                vessl.log(
-                    step=self.trainer.iter,
-                    payload={k: v.latest()}
-                )
+        histories = self.trainer.storage.histories()
+        latest = self.trainer.storage.latest()
+        print("histories:", histories, ", type:", type(histories))
+        print("latest:", latest, ", type:", type(latest))
+        for history in histories:
+            print("history:", history, ", type:", type(history))
+        # for history in :
+        #     for k, v in history.items():
+        #         vessl.log(
+        #             step=self.trainer.iter,
+        #             payload={k: v.latest()}
+        #         )
 
 
 def get_balloon_dicts(img_dir):
@@ -79,7 +85,7 @@ def set_train_cfg():
     config.SOLVER.MAX_ITER = int(os.getenv('EPOCHS', 300))
     config.MODEL.ROI_HEADS.BATCH_SIZE_PER_IMAGE = int(os.getenv('BATCH_SIZE', 128))
     config.MODEL.ROI_HEADS.NUM_CLASSES = 1
-    config.OUTPUT_DIR= "/output"
+    config.OUTPUT_DIR = "/output"
     return config
 
 
