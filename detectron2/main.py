@@ -1,23 +1,44 @@
+import cv2
+import json
+import os
+import random
+
+import numpy as np
+import vessl
+from detectron2 import model_zoo
+from detectron2.config import get_cfg
+from detectron2.data import MetadataCatalog, DatasetCatalog
+from detectron2.data import build_detection_test_loader
+from detectron2.engine import DefaultTrainer, HookBase, DefaultPredictor
+from detectron2.evaluation import COCOEvaluator, inference_on_dataset
+from detectron2.structures import BoxMode
 from detectron2.utils.logger import setup_logger
+from detectron2.utils.visualizer import Visualizer, ColorMode
 
 setup_logger()
 
-import numpy as np
-import os, json, cv2
-import vessl
 
-from detectron2 import model_zoo
-from detectron2.engine import DefaultTrainer, HookBase
-from detectron2.config import get_cfg
-from detectron2.data import MetadataCatalog, DatasetCatalog
-from detectron2.structures import BoxMode
-from detectron2.evaluation import COCOEvaluator, inference_on_dataset
-from detectron2.data import build_detection_test_loader
-
-
-class VesslHubHook(HookBase):
+class VesslHook(HookBase):
     def after_step(self):
-        vessl.log(step=self.trainer.iter, payload={'loss': self.trainer.storage.history('total_loss').latest()})
+        logging_metrics = [
+            'loss_cls',
+            'loss_mask',
+            'total_loss',
+            'fast_rcnn/cls_accuracy',
+            'fast_rcnn/false_negative',
+            'fast_rcnn/fg_cls_accuracy',
+            'mask_rcnn/accuracy',
+            'mask_rcnn/false_positive',
+            'mask_rcnn/false_negative',
+        ]
+
+        for metric in logging_metrics:
+            vessl.log(
+                step=self.trainer.iter,
+                payload={
+                    metric: self.trainer.storage.history(metric).latest(),
+                }
+            )
 
 
 def get_balloon_dicts(img_dir):
@@ -71,7 +92,7 @@ def set_train_cfg():
     config.SOLVER.MAX_ITER = int(os.getenv('EPOCHS', 300))
     config.MODEL.ROI_HEADS.BATCH_SIZE_PER_IMAGE = int(os.getenv('BATCH_SIZE', 128))
     config.MODEL.ROI_HEADS.NUM_CLASSES = 1
-    config.OUTPUT_DIR= "/output"
+    config.OUTPUT_DIR = "/output"
     return config
 
 
@@ -80,16 +101,40 @@ if __name__ == '__main__':
         DatasetCatalog.register("/input/balloon_" + d, lambda d=d: get_balloon_dicts("/input/balloon/" + d))
         MetadataCatalog.get("/input/balloon_" + d).set(thing_classes=["balloon"])
 
+    # Train
     balloon_metadata = MetadataCatalog.get("balloon_train")
-
     cfg = set_train_cfg()
     os.makedirs(cfg.OUTPUT_DIR, exist_ok=True)
     trainer = DefaultTrainer(cfg)
     trainer.resume_or_load(resume=False)
-    after_step_hook = VesslHubHook()
+    after_step_hook = VesslHook()
     trainer.register_hooks([after_step_hook])
     trainer.train()
 
-    evaluator = COCOEvaluator("/input/balloon_val", cfg, False, output_dir="/output/")
+    # Inference
+    cfg.MODEL.WEIGHTS = os.path.join(cfg.OUTPUT_DIR, "model_final.pth")
+    cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.7
+    predictor = DefaultPredictor(cfg)
+    dataset_dicts = get_balloon_dicts("/input/balloon/val")
+    for d in random.sample(dataset_dicts, 9):
+        im = cv2.imread(d["file_name"])
+        outputs = predictor(im)
+        v = Visualizer(
+            im[:, :, ::-1],
+            metadata=balloon_metadata,
+            scale=0.5,
+            instance_mode=ColorMode.IMAGE_BW
+        )
+        out = v.draw_instance_predictions(outputs["instances"].to("cpu"))
+        image = out.get_image()[:, :, ::-1]
+        vessl.log(
+            payload={"inference-image": [
+                vessl.Image(data=image, caption=d["file_name"])
+            ]}
+        )
+
+    # Evaluate
+    evaluator = COCOEvaluator("/input/balloon_val", cfg, False,
+                              output_dir="/output/")
     val_loader = build_detection_test_loader(cfg, "/input/balloon_val")
     print(inference_on_dataset(trainer.model, val_loader, evaluator))
