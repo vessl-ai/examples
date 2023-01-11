@@ -10,3 +10,16 @@ Run recommenders example on [VESSL](https://vessl.ai):
   ```bash
   pip install -r examples/recommenders/keras/requirements.txt && python examples/recommenders/keras/main.py --save-model
   ```
+
+
+## SasRec 
+
+### Dataset mount 
+* Amazon beauty(http://jmcauley.ucsd.edu/data/amazon/index.html) dataset  
+* You can usee VESSL's public S3 dataset `s3://vessl-public-apne2/amazon-ranking/`
+* Mount the dataset to `/input`
+
+### Start Command 
+    '''bash
+    pip install -r examples/recommenders/sasrec/requirements.txt && python examples/recommenders/sasrec/main.py
+    '''
