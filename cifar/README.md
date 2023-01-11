@@ -13,5 +13,5 @@ Run CIFAR example on [VESSL](https://vessl.ai):
   l2 # [default: 2]
   lr # [default: 0.01]
   batch_size # [default: 128]
-  epochs # [default: 10]
+  epochs # [default: 10]                         
   ```
