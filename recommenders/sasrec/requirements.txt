@@ -1,0 +1,7 @@
+argparse
+numpy
+vessl
+pandas
+recommenders[all]
+tensorflow
+tqdm
