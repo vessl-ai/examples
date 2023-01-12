@@ -95,7 +95,7 @@ class SASREC_Vessl(SASREC)  :
         @tf.function(input_signature=train_step_signature)
         def train_step(inp, tar):
             with tf.GradientTape() as tape:
-                pos_logits, neg_logits, loss_mask = self
+                pos_logits, neg_logits, loss_mask = self(inp, training=True)
                 loss = loss_function(pos_logits, neg_logits, loss_mask)
 
             gradients = tape.gradient(loss, self.trainable_variables)
