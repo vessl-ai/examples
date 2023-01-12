@@ -2,6 +2,7 @@ import argparse
 import sys
 import pandas as pd
 import tensorflow as tf
+import feast
 
 from model import *
 
@@ -71,7 +72,6 @@ if __name__ == '__main__':
         "DROPOUT_RATE": 0.2,  # DROPOUT RATE
         "L2_EMB": 0.0,        # L2 REGULARIZATION COEFFICIENT
         "NUM_NEG_TEST": 100,  # NUMBER OF NEGATIVE EXAMPLES PER POSITIVE EXAMPLE
-        "TopK" :  10
     }
 
     # Update hyperparameters for the record to VESSL experiment
@@ -144,9 +144,9 @@ if __name__ == '__main__':
     # Print sample input -> next item prediction
     sample_input = np.random.randint(rec_data.itemnum, size=5) + 1
     predictions = -1 * model.predict_next(input=sample_input)
-    rec_items = predictions.argsort()[:config["TopK"]] + 1
+    rec_items = predictions.argsort()[:10] + 1
 
-    print("top{} item recommendataions are {}".format(config["TopK"], rec_items))
+    print("top10 item recommendataions are {}".format(rec_items))
 
 
 
