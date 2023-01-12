@@ -101,9 +101,6 @@ class SASREC_Vessl(SASREC)  :
             gradients = tape.gradient(loss, self.trainable_variables)
             optimizer.apply_gradients(zip(gradients, self.trainable_variables))
 
-            # vessl.hp.lr = optimizer.learning_rate
-            # vessl.hp.update()
-
             train_loss(loss)
             return loss
 
@@ -200,5 +197,3 @@ class SASREC_Vessl(SASREC)  :
     def save_upload(self, save_path, epoch):
         self.save_weights(str(os.path.join(save_path, 'epoch_{}'.format(epoch))))
         self.load_weights(str(os.path.join(save_path, 'epoch_{}'.format(epoch))))
-        vessl.upload(str(os.path.join(save_path, 'epoch_{}.data-00000-of-00001'.format(epoch))))
-        vessl.upload(str(os.path.join(save_path, 'epoch_{}.index'.format(epoch))))

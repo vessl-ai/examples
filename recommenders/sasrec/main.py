@@ -140,12 +140,15 @@ if __name__ == '__main__':
             evaluate=True
         )
 
-    # Print sample input -> next item prediction
+    # Print sample input -> top10 next item prediction
     sample_input = np.random.randint(rec_data.itemnum, size=5) + 1
     predictions = -1 * model.predict_next(input=sample_input)
-    rec_items = predictions.argsort()[:10] + 1
+    rec_items = predictions.argsort()[:10]
+    result =  {k : v for k, v in zip(rec_items + 1, -1*predictions[rec_items])}
 
-    print("top10 item recommendataions are {}".format(rec_items))
+    print('Recommended item numbers and its similarity scores')
+    for key, value in result.items():
+        print(key, ":", value)
 
 
 
