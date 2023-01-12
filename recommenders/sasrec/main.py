@@ -51,7 +51,7 @@ if __name__ == '__main__':
     parser.add_argument('--evaluate', action='store_true', default=True,
                         help='evaluate during training')
     parser.add_argument('--SEED', type=int, default=2023,
-                        help='Random Seed')g
+                        help='Random Seed')
     parser.add_argument('--num-epochs', type=int, default=1,
                         help="number of training epoch")
     parser.add_argument('--batch-size', type=int, default=128,
@@ -82,7 +82,7 @@ if __name__ == '__main__':
     vessl.hp.update()
 
     # Load data from VESSL dataset
-    df = load_data(args.input_path, "amazon-beauty.csv")
+    df = load_data(args.input_path + '/train', "amazon-beauty.csv")
 
     # Data preprocessing
     df['Timestamp'] = pd.to_datetime(df['Timestamp'], unit='s')
@@ -98,7 +98,7 @@ if __name__ == '__main__':
     df["itemID"] = df["itemID"].apply(lambda x: item_hashing[x])
     df["userID"] = df["userID"].apply(lambda x: user_hashing[x])
 
-    preprocessed_input_data_path = os.path.join(args.input_path, "train", "ratings_Beauty_preprocessed.txt")
+    preprocessed_input_data_path = os.path.join(args.input_path, "ratings_Beauty_preprocessed.txt")
     df.to_csv(preprocessed_input_data_path, index=False, header=False, sep="\t")
 
     # Generate recsystem dataset for training
