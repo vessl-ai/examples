@@ -97,7 +97,7 @@ if __name__ == '__main__':
     df["itemID"] = df["itemID"].apply(lambda x: item_hashing[x])
     df["userID"] = df["userID"].apply(lambda x: user_hashing[x])
 
-    preprocessed_input_data_path = os.path.join(args.input_path, "ratings_Beauty_preprocessed.txt")
+    preprocessed_input_data_path = os.path.join(args.input_path, "train", "ratings_Beauty_preprocessed.txt")
     df.to_csv(preprocessed_input_data_path, index=False, header=False, sep="\t")
 
     # Generate recsystem dataset for training

@@ -2,6 +2,5 @@ argparse
 numpy
 vessl
 pandas
-recommenders[all]
-tensorflow
+recommenders
 tqdm
