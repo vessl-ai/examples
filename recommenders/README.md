@@ -14,6 +14,10 @@ Run recommenders example on [VESSL](https://vessl.ai):
 
 ## SasRec & SSE-PT
 
+### Environments
+* Cuda >= 11.2
+* Python >= 3.7
+
 ### Dataset mount 
 * Amazon beauty(http://jmcauley.ucsd.edu/data/amazon/index.html) dataset  
 * You can use VESSL's public S3 dataset `s3://vessl-public-apne2/amazon-ranking/`
