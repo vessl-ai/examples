@@ -2,7 +2,6 @@ import argparse
 import sys
 import pandas as pd
 import tensorflow as tf
-import feast
 
 from model import *
 
