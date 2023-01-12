@@ -52,7 +52,7 @@ if __name__ == '__main__':
                         help='evaluate during training')
     parser.add_argument('--SEED', type=int, default=2023,
                         help='Random Seed')
-    parser.add_argument('--num-epochs', type=int, default=20,
+    parser.add_argument('--num-epochs', type=int, default=1,
                         help="number of training epoch")
     parser.add_argument('--batch-size', type=int, default=128,
                         help="number of batch size")
@@ -71,6 +71,7 @@ if __name__ == '__main__':
         "DROPOUT_RATE": 0.2,  # DROPOUT RATE
         "L2_EMB": 0.0,        # L2 REGULARIZATION COEFFICIENT
         "NUM_NEG_TEST": 100,  # NUMBER OF NEGATIVE EXAMPLES PER POSITIVE EXAMPLE
+        "TopK" :  10
     }
 
     # Update hyperparameters for the record to VESSL experiment
@@ -142,4 +143,10 @@ if __name__ == '__main__':
 
     # Print sample input -> next item prediction
     sample_input = np.random.randint(rec_data.itemnum, size=5) + 1
-    next_item_predict = model.predict_next(input=sample_input)
+    predictions = -1 * model.predict_next(input=sample_input)
+    rec_items = predictions.argsort()[:config["Topk"]] + 1
+
+    print("top{} item recommendataions are {}".format(config["Topk"], rec_items))
+
+
+

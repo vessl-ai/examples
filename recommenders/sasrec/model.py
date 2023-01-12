@@ -193,9 +193,9 @@ class SASREC_Vessl(SASREC)  :
         test_logits = test_logits[:, -1, :]  # (1, 101)
 
         predictions = np.array(test_logits)[0]
-        item_pred = predictions.argmax() + 1
 
-        return item_pred
+
+        return predictions
 
     def save_upload(self, save_path, epoch):
         self.save_weights(str(os.path.join(save_path, 'epoch_{}'.format(epoch))))
