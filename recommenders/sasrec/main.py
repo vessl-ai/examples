@@ -51,7 +51,7 @@ if __name__ == '__main__':
     parser.add_argument('--evaluate', action='store_true', default=True,
                         help='evaluate during training')
     parser.add_argument('--SEED', type=int, default=2023,
-                        help='Random Seed')
+                        help='Random Seed')g
     parser.add_argument('--num-epochs', type=int, default=1,
                         help="number of training epoch")
     parser.add_argument('--batch-size', type=int, default=128,
@@ -144,9 +144,9 @@ if __name__ == '__main__':
     # Print sample input -> next item prediction
     sample_input = np.random.randint(rec_data.itemnum, size=5) + 1
     predictions = -1 * model.predict_next(input=sample_input)
-    rec_items = predictions.argsort()[:config["Topk"]] + 1
+    rec_items = predictions.argsort()[:config["TopK"]] + 1
 
-    print("top{} item recommendataions are {}".format(config["Topk"], rec_items))
+    print("top{} item recommendataions are {}".format(config["TopK"], rec_items))
 
 
 
