@@ -52,7 +52,7 @@ if __name__ == '__main__':
                         help='evaluate during training')
     parser.add_argument('--SEED', type=int, default=2023,
                         help='Random Seed')
-    parser.add_argument('--num-epochs', type=int, default=1,
+    parser.add_argument('--num-epochs', type=int, default=20,
                         help="number of training epoch")
     parser.add_argument('--batch-size', type=int, default=128,
                         help="number of batch size")
