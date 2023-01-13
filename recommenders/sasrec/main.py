@@ -58,9 +58,10 @@ if __name__ == '__main__':
                         help="number of batch size")
     parser.add_argument('--lr', type=float, default=0.0005,
                         help="learning rate")
-    args = parser.parse_args(args=[])
+    args = parser.parse_args()
 
     env_info()
+
 
     # Set model config
     config = {

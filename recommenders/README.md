@@ -25,5 +25,6 @@ Run recommenders example on [VESSL](https://vessl.ai):
 
 ### Start Command 
   ```bash
-  pip install -r examples/recommenders/sasrec/requirements.txt && python examples/recommenders/sasrec/main.py
+  pip install -r examples/recommenders/sasrec/requirements.txt && python examples/recommenders/sasrec/main.py --lr $lr 
+  --batch_size $batch_size --num_epochs $num_epochs 
   ```
