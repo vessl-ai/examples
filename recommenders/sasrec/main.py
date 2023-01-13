@@ -50,18 +50,9 @@ if __name__ == '__main__':
                         help='output dataset path')
     parser.add_argument('--evaluate', action='store_true', default=True,
                         help='evaluate during training')
-    parser.add_argument('--SEED', type=int, default=2023,
-                        help='Random Seed')
-    parser.add_argument('--num-epochs', type=int, default=20,
-                        help="number of training epoch")
-    parser.add_argument('--batch-size', type=int, default=128,
-                        help="number of batch size")
-    parser.add_argument('--lr', type=float, default=0.0005,
-                        help="learning rate")
     args = parser.parse_args()
 
     env_info()
-
 
     # Set model config
     config = {
@@ -74,12 +65,10 @@ if __name__ == '__main__':
         "NUM_NEG_TEST": 100,  # NUMBER OF NEGATIVE EXAMPLES PER POSITIVE EXAMPLE
     }
 
-    # Update hyperparameters for the record to VESSL experiment
-    vessl.hp.lr = args.lr
-    vessl.hp.batch_size = args.batch_size
-    vessl.hp.num_epochs = args.num_epochs
-    vessl.hp.SEED = args.SEED
-    vessl.hp.update()
+    # Set hyperparameters from environment variables
+    lr = float(os.environ.get('lr', 0.0005))
+    batch_size = int(os.environ.get('batch_size', 64))
+    num_epochs = int(os.environ.get('num_epochs', 20))
 
     # Load data from VESSL dataset
     df = load_data(args.input_path + '/train', "amazon-beauty.csv")
@@ -133,9 +122,9 @@ if __name__ == '__main__':
         t_test = model.train(
             rec_data,
             sampler,
-            num_epochs=args.num_epochs,
-            batch_size=args.batch_size,
-            lr=args.lr,
+            num_epochs=num_epochs,
+            batch_size=batch_size,
+            lr=lr,
             val_epoch=4,
             save_path=args.output_path,
             evaluate=True

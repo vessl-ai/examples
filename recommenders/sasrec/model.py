@@ -38,7 +38,6 @@ class VesslLogger:
 
 
 class SASREC_Vessl(SASREC)  :
-
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
@@ -190,7 +189,6 @@ class SASREC_Vessl(SASREC)  :
         test_logits = test_logits[:, -1, :]  # (1, 101)
 
         predictions = np.array(test_logits)[0]
-
 
         return predictions
 
