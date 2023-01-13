@@ -98,7 +98,7 @@ if __name__ == '__main__':
     rec_data.split()
 
     # Print useful statistics by recommenders
-    num_steps = int(len(rec_data.user_train) / args.batch_size)
+    num_steps = int(len(rec_data.user_train) / batch_size)
     cc = 0.0
     for u in rec_data.user_train:
         cc += len(rec_data.user_train[u])
@@ -110,7 +110,7 @@ if __name__ == '__main__':
         rec_data.user_train,
         rec_data.usernum,
         rec_data.itemnum,
-        batch_size=args.batch_size,
+        batch_size=batch_size,
         maxlen=config.get("MAXLEN"),
         n_workers=2
     )
@@ -136,9 +136,6 @@ if __name__ == '__main__':
     rec_items = predictions.argsort()[:10]
     result =  {k : v for k, v in zip(rec_items + 1, -1*predictions[rec_items])}
 
-    print('Recommended item numbers and its similarity scores')
+    print('Recommended item numbers and their similarity scores')
     for key, value in result.items():
         print(key, ":", value)
-
-
-
