@@ -1,11 +1,14 @@
 import os
 import numpy as np
 import tensorflow as tf
+import pandas as pd
+from io import BytesIO
 import vessl
 
 from recommenders.utils.timer import Timer
 from recommenders.models.sasrec.model import SASREC
-from recommenders.models.sasrec.ssept import SSEPT
+from recommenders.datasets.split_utils import filter_k_core
+from recommenders.models.sasrec.util import SASRecDataSet
 
 from tqdm import tqdm
 
@@ -16,7 +19,7 @@ class VesslLogger:
         """Initializer"""
         self._log = {}
 
-    def log(self, step , metric, value):
+    def log(self, step, metric, value):
         """Log metrics. Each metric's log will be stored in the corresponding list.
         Args:
             metric (str): Metric name.
@@ -37,7 +40,7 @@ class VesslLogger:
         return self._log
 
 
-class SASREC_Vessl(SASREC)  :
+class SASREC_Vessl(SASREC):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
@@ -149,7 +152,7 @@ class SASREC_Vessl(SASREC)  :
                     vessl.upload(str(os.path.join(kwargs['save_path'], 'best')))
 
                 t0.start()
-        self.load_weights(str(os.path.join(kwargs['save_path'] , 'best')))
+        self.load_weights(str(os.path.join(kwargs['save_path'], 'best')))
         return t_test
 
     def predict_next(self, input):
@@ -195,3 +198,91 @@ class SASREC_Vessl(SASREC)  :
     def save_upload(self, save_path, epoch):
         self.save_weights(str(os.path.join(save_path, 'epoch_{}'.format(epoch))))
         self.load_weights(str(os.path.join(save_path, 'epoch_{}'.format(epoch))))
+
+
+class MyRunner(vessl.RunnerBase):
+    @staticmethod
+    def load_model(props, artifacts):
+        model_config = {
+            "MAXLEN": 50,
+            "NUM_BLOCKS": 2,  # NUMBER OF TRANSFORMER BLOCKS
+            "HIDDEN_UNITS": 100,  # NUMBER OF UNITS IN THE ATTENTION CALCULATION
+            "NUM_HEADS": 1,  # NUMBER OF ATTENTION HEADS
+            "DROPOUT_RATE": 0.2,  # DROPOUT RATE
+            "L2_EMB": 0.0,  # L2 REGULARIZATION COEFFICIENT
+            "NUM_NEG_TEST": 100,
+            # NUMBER OF NEGATIVE EXAMPLES PER POSITIVE EXAMPLE
+        }
+
+        model = SASREC_Vessl(
+            item_num=12101,  # should be changed according to data
+            seq_max_len=model_config.get("MAXLEN"),
+            num_blocks=model_config.get("NUM_BLOCKS"),
+            embedding_dim=model_config.get("HIDDEN_UNITS"),
+            attention_dim=model_config.get("HIDDEN_UNITS"),
+            attention_num_heads=model_config.get("NUM_HEADS"),
+            dropout_rate=model_config.get("DROPOUT_RATE"),
+            conv_dims=[100, 100],
+            l2_reg=model_config.get("L2_EMB"),
+            num_neg_test=model_config.get("NUM_NEG_TEST"),
+        )
+
+        model.load_weights('best')
+        return model
+
+    @staticmethod
+    def preprocess_data(data):
+        df = pd.read_csv(BytesIO(data), dtype=np.float32)
+        print("df:", df)
+        df['Timestamp'] = pd.to_datetime(df['Timestamp'], unit='s')
+        df.rename(columns={'UserId': 'userID', 'ProductId': 'itemID'},
+                  inplace=True)
+
+        df = df.sort_values(by=["userID", "Timestamp"]).reset_index().drop(
+            columns=['index', 'Timestamp', 'Rating'])
+        df = filter_k_core(df, 5)
+        item_hashing = {item: idx + 1
+                        for idx, item in
+                        enumerate(df.loc[:, 'itemID'].unique())}
+        user_hashing = {user: idx + 1
+                        for idx, user in
+                        enumerate(df.loc[:, 'userID'].unique())}
+        df["itemID"] = df["itemID"].apply(lambda x: item_hashing[x])
+        df["userID"] = df["userID"].apply(lambda x: user_hashing[x])
+
+        preprocessed_input_data_path = "input_preprocessed.txt"
+        df.to_csv(
+            preprocessed_input_data_path, index=False, header=False, sep="\t")
+        rec_data = SASRecDataSet(
+            filename=preprocessed_input_data_path,
+            col_sep="\t"
+        )
+        return rec_data
+
+    @staticmethod
+    def predict(model, data):
+        print("predict() is called")
+        print("model:", model)
+        return None
+
+    @staticmethod
+    def postprocess_data(data):
+        print("postprocess_data() is called")
+        print("data:", data)
+        return None
+
+
+if __name__ == '__main__':
+    vessl.configure()
+
+    model_repository_name = "sequential-recsys"
+    model_repository = vessl.read_model_repository(
+        repository_name=model_repository_name,
+    )
+
+    vessl.register_model(
+        repository_name=model_repository.name,
+        model_number=34,
+        runner_cls=MyRunner,
+        requirements=["recommenders", "vessl", "keras", "tensorflow"],
+)

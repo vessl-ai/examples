@@ -1,7 +1,5 @@
 import argparse
 import sys
-import pandas as pd
-import tensorflow as tf
 
 from model import *
 

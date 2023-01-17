@@ -51,14 +51,14 @@ def preprocess_original_data(input_path):
 
 
 def plot_confusion_matrix(
-        cm,
-        classes,
-        output_path,
-        filename,
-        save_image,
-        normalize=False,
-        title='Confusion matrix',
-        cmap=plt.cm.Blues,
+    cm,
+    classes,
+    output_path,
+    filename,
+    save_image,
+    normalize=False,
+    title='Confusion matrix',
+    cmap=plt.cm.Blues,
 ):
     if normalize:
         cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
