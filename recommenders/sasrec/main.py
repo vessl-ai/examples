@@ -17,6 +17,7 @@ from tqdm import tqdm
 from io import BytesIO
 
 tf.get_logger().setLevel('ERROR')
+vessl.init()
 
 def env_info():
     print("System version: {}".format(sys.version))
@@ -248,8 +249,8 @@ if __name__ == '__main__':
                         help='output dataset path')
     parser.add_argument('--evaluate', action='store_true', default=True,
                         help='evaluate during training')
-    parser.add_argument('--mode', type=str, default='serving', choices=['train', 'serving'],
-                        help='train or serving')
+    parser.add_argument('--mode', type=str, default='train', choices=['train', 'serving', 'both'],
+                        help='train or serving or both')
     args = parser.parse_args()
 
     env_info()
@@ -301,9 +302,8 @@ if __name__ == '__main__':
     model = get_model(rec_data, config)
 
     # Run train or serving by mode chosen
-    if args.mode == 'train':
+    if args.mode == 'train' or 'both':
         print("train model")
-        vessl.init()
 
         # Print useful statistics by recommenders
         num_steps = int(len(rec_data.user_train) / batch_size)
@@ -346,7 +346,7 @@ if __name__ == '__main__':
         for key, value in result.items():
             print(key, ":", value)
 
-    else:
+    elif args.mode == 'serving' or 'both':
         print("serve model")
         vessl.configure()
 
