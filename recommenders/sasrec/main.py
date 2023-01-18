@@ -18,7 +18,6 @@ from io import BytesIO
 
 tf.get_logger().setLevel('ERROR')
 
-
 def env_info():
     print("System version: {}".format(sys.version))
     print("tensorflow version : {}".format(tf.__version__))
@@ -272,7 +271,7 @@ if __name__ == '__main__':
     num_epochs = int(os.environ.get('num_epochs', 20))
 
     # Load data from VESSL dataset
-    df = load_data(args.input_path + '/train', "amazon_beauty.csv")
+    df = load_data(args.input_path + '/train', "amazon-beauty.csv")
 
     # Data preprocessing
     df['Timestamp'] = pd.to_datetime(df['Timestamp'], unit='s')
