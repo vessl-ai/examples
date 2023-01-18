@@ -249,7 +249,7 @@ class MyRunner(vessl.RunnerBase):
         for key, value in result.items():
             print(key, ":", value)
 
-        output_msg = "buy item{}".format(rec_items[0] + 1)
+        output_msg = "item {}".format(rec_items[0] + 1)
         return output_msg
 
 
@@ -257,6 +257,8 @@ if __name__ == '__main__':
     vessl.configure()
 
     model_repository_name = "sequential-recsys"
+    vessl.create_model_repository(name= model_repository_name)
+
     model_repository = vessl.read_model_repository(
         repository_name=model_repository_name,
     )
