@@ -19,6 +19,7 @@ from io import BytesIO
 tf.get_logger().setLevel('ERROR')
 vessl.init()
 
+
 def env_info():
     print("System version: {}".format(sys.version))
     print("tensorflow version : {}".format(tf.__version__))
@@ -58,7 +59,7 @@ class SASREC_Vessl(SASREC):
         batch_size = kwargs.get("batch_size", 128)
         lr = kwargs.get("learning_rate", 0.001)
         val_epoch = kwargs.get("val_epoch", 5)
-        evaluate = kwargs.get("evaluate" , True)
+        evaluate = kwargs.get("evaluate", True)
 
         num_steps = int(len(dataset.user_train) / batch_size)
 
@@ -119,7 +120,7 @@ class SASREC_Vessl(SASREC):
 
             self.save_upload(kwargs['save_path'], epoch)
 
-            if (epoch % val_epoch == 0 or epoch == num_epochs) and evaluate :
+            if (epoch % val_epoch == 0 or epoch == num_epochs) and evaluate:
                 t0.stop()
                 t1 = t0.interval
                 T += t1
@@ -160,7 +161,7 @@ class SASREC_Vessl(SASREC):
                 break
 
         input_seq = np.array([seq])
-        candidate = np.expand_dims(np.arange(1, self.item_num+1, 1), axis=0)
+        candidate = np.expand_dims(np.arange(1, self.item_num + 1, 1), axis=0)
 
         mask = tf.expand_dims(tf.cast(tf.not_equal(input_seq, 0), tf.float32), -1)
         seq_embeddings, positional_embeddings = self.embedding(input_seq)
@@ -251,18 +252,23 @@ if __name__ == '__main__':
                         help='evaluate during training')
     parser.add_argument('--mode', type=str, default='train', choices=['train', 'serving', 'both'],
                         help='train or serving or both')
+    parser.add_argument('--organization', type=str, default=None,
+                        help='train or serving or both')
     args = parser.parse_args()
+
+    if (args.mode == 'both' or args.mode == 'serving') and args.organization is None:
+        raise ValueError("organization should not be None for serving")
 
     env_info()
 
     # Set model config
     config = {
         "MAXLEN": 50,
-        "NUM_BLOCKS": 2,      # NUMBER OF TRANSFORMER BLOCKS
+        "NUM_BLOCKS": 2,  # NUMBER OF TRANSFORMER BLOCKS
         "HIDDEN_UNITS": 100,  # NUMBER OF UNITS IN THE ATTENTION CALCULATION
-        "NUM_HEADS": 1,      # NUMBER OF ATTENTION HEADS
+        "NUM_HEADS": 1,  # NUMBER OF ATTENTION HEADS
         "DROPOUT_RATE": 0.2,  # DROPOUT RATE
-        "L2_EMB": 0.0,        # L2 REGULARIZATION COEFFICIENT
+        "L2_EMB": 0.0,  # L2 REGULARIZATION COEFFICIENT
         "NUM_NEG_TEST": 100,  # NUMBER OF NEGATIVE EXAMPLES PER POSITIVE EXAMPLE
     }
 
@@ -349,7 +355,11 @@ if __name__ == '__main__':
 
     elif args.mode == 'serving' or args.mode == 'both':
         print("serve model")
-        vessl.configure()
+
+        try:
+            vessl.configure(organization_name=args.organization)
+        except:
+            raise ValueError("No match organization please check organization name")
 
         model_repository_name = "sequential-recsys"
 
