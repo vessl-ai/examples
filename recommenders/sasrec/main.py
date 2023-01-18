@@ -302,7 +302,8 @@ if __name__ == '__main__':
     model = get_model(rec_data, config)
 
     # Run train or serving by mode chosen
-    if args.mode == 'train' or 'both':
+    print(args)
+    if args.mode == 'train' or args.mode == 'both':
         print("train model")
 
         # Print useful statistics by recommenders
@@ -346,7 +347,7 @@ if __name__ == '__main__':
         for key, value in result.items():
             print(key, ":", value)
 
-    elif args.mode == 'serving' or 'both':
+    elif args.mode == 'serving' or args.mode == 'both':
         print("serve model")
         vessl.configure()
 
