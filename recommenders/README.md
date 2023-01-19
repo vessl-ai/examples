@@ -42,7 +42,12 @@ Run recommenders example on [VESSL](https://vessl.ai):
     ```bash
     curl -X POST -H "X-AUTH-KEY:[YOUR-AUTHENTICATION-TOKEN]" -d @input_data.csv https://service-XXXX.apne2-prod1-cluster.savvihub.com
     ```
-* Example output
-  ```bash
-    
-  ```
+  * Example output
+    ```bash
+    item 13  
+    ```
+  * Check 10 recommended items and its similarity scores on CLI
+    ```
+    123 : 1.214 
+    132 : 6.235
+    ```

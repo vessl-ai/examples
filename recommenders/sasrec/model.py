@@ -230,7 +230,7 @@ class MyRunner(vessl.RunnerBase):
             num_neg_test=model_config.get("NUM_NEG_TEST"),
         )
 
-        if os.path.isfile('best'):
+        if os.path.isfile('best.index') and os.path.isfile('best.data-00000-of-00001'):
             model.load_weights('best')
 
         return model
