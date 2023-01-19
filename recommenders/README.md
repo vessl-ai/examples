@@ -44,10 +44,6 @@ Run recommenders example on [VESSL](https://vessl.ai):
     ```
   * Example output
     ```bash
-    item 195  
-    ```
-  * Example recommended items and similarity scores on CLI
-    ```bash
     Recommended item numbers and their similarity scores(not normalized)
     195 : 1.5078533
     686 : 1.4597058 

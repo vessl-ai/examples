@@ -2,13 +2,14 @@ import os
 import numpy as np
 import tensorflow as tf
 import pandas as pd
-from io import BytesIO
 import vessl
+import time
 
 from recommenders.utils.timer import Timer
 from recommenders.models.sasrec.model import SASREC
 from tqdm import tqdm
-
+from io import BytesIO
+from tabulate import tabulate
 
 class VesslLogger:
     """VESSL logger"""
@@ -248,14 +249,18 @@ class MyRunner(vessl.RunnerBase):
     @staticmethod
     def postprocess_data(data):
         predictions = -1 * data
-        rec_items = predictions.argsort()[:10]
-        result = {k: v for k, v in
-                  zip(rec_items + 1, -1 * predictions[rec_items])}
+        rec_items = predictions.argsort()[:5]
 
-        print(
-            'Recommended item numbers and their similarity scores(not normalized)')
-        for key, value in result.items():
-            print(key, ":", value)
+        dic_result = {"Rank" : [i for i in range(1,6)],
+                      "ItemID" : list(rec_items +1),
+                      "Similarity Score" : -1 * predictions[rec_items]
+        }
+        result = pd.DataFrame(dic_result)
+
+        print(tabulate(result, headers='keys', tablefmt='mixed_grid', showindex=False, numalign='left'))
+        print(" ")
+
+        time.sleep(0.5)
 
         output_msg = "item {}".format(rec_items[0] + 1)
         return output_msg
@@ -274,7 +279,7 @@ if __name__ == '__main__':
 
     vessl.register_model(
         repository_name=model_repository.name,
-        model_number=None,
+        model_number=34,
         runner_cls=MyRunner,
-        requirements=["recommenders", "vessl"]
+        requirements=["recommenders", "vessl", "tabulate"]
     )

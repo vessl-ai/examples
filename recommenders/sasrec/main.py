@@ -133,10 +133,17 @@ if __name__ == '__main__':
     # Print sample input -> top10 next item prediction
     sample_input = np.random.randint(rec_data.itemnum, size=5) + 1
     predictions = -1 * model.predict_next(input=sample_input)
-    rec_items = predictions.argsort()[:10]
-    result = {k: v for k, v in zip(rec_items + 1, -1 * predictions[rec_items])}
+    rec_items = predictions.argsort()[:5]
 
-    print("Random sample input :{}".format(sample_input))
-    print('Recommended item numbers and their similarity scores(not normalized) for random sample input')
-    for key, value in result.items():
-        print(key, ":", value)
+    dic_result = {"Rank": [i for i in range(1, 6)],
+                  "ItemID": list(rec_items + 1),
+                  "Similarity Score": -1 * predictions[rec_items]
+                  }
+
+    result = pd.DataFrame(dic_result)
+
+    print(tabulate(result, headers='keys', tablefmt='mixed_grid', showindex=False, numalign='left'))
+
+
+
+

@@ -4,3 +4,4 @@ vessl
 pandas
 recommenders
 tqdm
+tabulate
