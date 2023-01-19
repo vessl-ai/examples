@@ -44,10 +44,11 @@ Run recommenders example on [VESSL](https://vessl.ai):
     ```
   * Example output
     ```bash
-    item 13  
+    item 123  
     ```
   * Check 10 recommended items and its similarity scores on CLI
     ```
     123 : 1.214 
     132 : 6.235
+    ...
     ```

@@ -20,6 +20,7 @@ class VesslLogger:
     def log(self, step, metric, value):
         """Log metrics. Each metric's log will be stored in the corresponding list.
         Args:
+            step (int): step
             metric (str): Metric name.
             value (float): Value.
         """
