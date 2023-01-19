@@ -11,6 +11,7 @@ from tqdm import tqdm
 from io import BytesIO
 from tabulate import tabulate
 
+
 class VesslLogger:
     """VESSL logger"""
 
@@ -251,10 +252,10 @@ class MyRunner(vessl.RunnerBase):
         predictions = -1 * data
         rec_items = predictions.argsort()[:5]
 
-        dic_result = {"Rank" : [i for i in range(1,6)],
-                      "ItemID" : list(rec_items +1),
-                      "Similarity Score" : -1 * predictions[rec_items]
-        }
+        dic_result = {"Rank": [i for i in range(1, 6)],
+                      "ItemID": list(rec_items + 1),
+                      "Similarity Score": -1 * predictions[rec_items]
+                      }
         result = pd.DataFrame(dic_result)
 
         print(tabulate(result, headers='keys', tablefmt='mixed_grid', showindex=False, numalign='left'))
