@@ -1,24 +1,28 @@
 import os
 import numpy as np
 import tensorflow as tf
+import pandas as pd
 import vessl
+import time
 
 from recommenders.utils.timer import Timer
 from recommenders.models.sasrec.model import SASREC
-from recommenders.models.sasrec.ssept import SSEPT
-
 from tqdm import tqdm
+from io import BytesIO
+from tabulate import tabulate
 
 
 class VesslLogger:
     """VESSL logger"""
+
     def __init__(self):
         """Initializer"""
         self._log = {}
 
-    def log(self, step , metric, value):
+    def log(self, step, metric, value):
         """Log metrics. Each metric's log will be stored in the corresponding list.
         Args:
+            step (int): step
             metric (str): Metric name.
             value (float): Value.
         """
@@ -37,7 +41,7 @@ class VesslLogger:
         return self._log
 
 
-class SASREC_Vessl(SASREC)  :
+class SASREC_Vessl(SASREC):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
@@ -47,14 +51,14 @@ class SASREC_Vessl(SASREC)  :
         evaluation on the validation and test dataset and
         for logging training and from source code of recommeders
 
-        :param model: model to train
         :param dataset: dataset
         :param sampler: sampler
         :param kwargs:
         :return:
         """
 
-        if kwargs['save_path'] is not None and not os.path.isdir(kwargs['save_path']):
+        if kwargs['save_path'] is not None and not os.path.isdir(
+                kwargs['save_path']):
             os.mkdir(kwargs['save_path'])
 
         vessllogger = VesslLogger()
@@ -63,7 +67,7 @@ class SASREC_Vessl(SASREC)  :
         batch_size = kwargs.get("batch_size", 128)
         lr = kwargs.get("learning_rate", 0.001)
         val_epoch = kwargs.get("val_epoch", 5)
-        evaluate = kwargs.get("evaluate" , True)
+        evaluate = kwargs.get("evaluate", True)
 
         num_steps = int(len(dataset.user_train) / batch_size)
 
@@ -113,7 +117,8 @@ class SASREC_Vessl(SASREC)  :
 
             train_loss.reset_states()
 
-            for step in tqdm(range(num_steps), total=num_steps, ncols=70, leave=False, unit="b"):
+            for step in tqdm(range(num_steps), total=num_steps, ncols=70,
+                             leave=False, unit="b"):
                 u, seq, pos, neg = sampler.next_batch()
 
                 inputs, target = self.create_combined_dataset(u, seq, pos, neg)
@@ -124,7 +129,7 @@ class SASREC_Vessl(SASREC)  :
 
             self.save_upload(kwargs['save_path'], epoch)
 
-            if (epoch % val_epoch == 0 or epoch == num_epochs) and evaluate :
+            if (epoch % val_epoch == 0 or epoch == num_epochs) and evaluate:
                 t0.stop()
                 t1 = t0.interval
                 T += t1
@@ -145,11 +150,12 @@ class SASREC_Vessl(SASREC)  :
                 if max_ndgc < t_test[1] and kwargs['save_path'] is not None:
                     max_ndgc = t_test[1]
 
-                    self.save_weights(str(os.path.join(kwargs['save_path'], 'best')))
+                    self.save_weights(
+                        str(os.path.join(kwargs['save_path'], 'best')))
                     vessl.upload(str(os.path.join(kwargs['save_path'], 'best')))
 
                 t0.start()
-        self.load_weights(str(os.path.join(kwargs['save_path'] , 'best')))
+        self.load_weights(str(os.path.join(kwargs['save_path'], 'best')))
         return t_test
 
     def predict_next(self, input):
@@ -158,16 +164,17 @@ class SASREC_Vessl(SASREC)  :
         seq = np.zeros([self.seq_max_len], dtype=np.int32)
         idx = self.seq_max_len - 1
         idx -= 1
-        for i in reversed(input):
+        for i in input[::-1]:
             seq[idx] = i
             idx -= 1
             if idx == -1:
                 break
 
         input_seq = np.array([seq])
-        candidate = np.expand_dims(np.arange(1, self.item_num+1, 1), axis=0)
+        candidate = np.expand_dims(np.arange(1, self.item_num + 1, 1), axis=0)
 
-        mask = tf.expand_dims(tf.cast(tf.not_equal(input_seq, 0), tf.float32), -1)
+        mask = tf.expand_dims(tf.cast(tf.not_equal(input_seq, 0), tf.float32),
+                              -1)
         seq_embeddings, positional_embeddings = self.embedding(input_seq)
         seq_embeddings += positional_embeddings
         seq_embeddings *= mask
@@ -193,5 +200,87 @@ class SASREC_Vessl(SASREC)  :
         return predictions
 
     def save_upload(self, save_path, epoch):
-        self.save_weights(str(os.path.join(save_path, 'epoch_{}'.format(epoch))))
-        self.load_weights(str(os.path.join(save_path, 'epoch_{}'.format(epoch))))
+        self.save_weights(
+            str(os.path.join(save_path, 'epoch_{}'.format(epoch))))
+        self.load_weights(
+            str(os.path.join(save_path, 'epoch_{}'.format(epoch))))
+
+
+class MyRunner(vessl.RunnerBase):
+    @staticmethod
+    def load_model(props, artifacts):
+        model_config = {
+            "MAXLEN": 50,
+            "NUM_BLOCKS": 2,  # NUMBER OF TRANSFORMER BLOCKS
+            "HIDDEN_UNITS": 100,  # NUMBER OF UNITS IN THE ATTENTION CALCULATION
+            "NUM_HEADS": 1,  # NUMBER OF ATTENTION HEADS
+            "DROPOUT_RATE": 0.2,  # DROPOUT RATE
+            "L2_EMB": 0.0,  # L2 REGULARIZATION COEFFICIENT
+            "NUM_NEG_TEST": 100,
+            # NUMBER OF NEGATIVE EXAMPLES PER POSITIVE EXAMPLE
+        }
+
+        model = SASREC_Vessl(
+            item_num=12101,  # should be changed according to dataset
+            seq_max_len=model_config.get("MAXLEN"),
+            num_blocks=model_config.get("NUM_BLOCKS"),
+            embedding_dim=model_config.get("HIDDEN_UNITS"),
+            attention_dim=model_config.get("HIDDEN_UNITS"),
+            attention_num_heads=model_config.get("NUM_HEADS"),
+            dropout_rate=model_config.get("DROPOUT_RATE"),
+            conv_dims=[100, 100],
+            l2_reg=model_config.get("L2_EMB"),
+            num_neg_test=model_config.get("NUM_NEG_TEST"),
+        )
+
+        if os.path.isfile('best.index') and os.path.isfile('best.data-00000-of-00001'):
+            model.load_weights('best')
+
+        return model
+
+    @staticmethod
+    def preprocess_data(data):
+        df = np.array(list(map(int, list(pd.read_csv(BytesIO(data)).columns))))
+        return df
+
+    @staticmethod
+    def predict(model, data):
+        return model.predict_next(data)
+
+    @staticmethod
+    def postprocess_data(data):
+        predictions = -1 * data
+        rec_items = predictions.argsort()[:5]
+
+        dic_result = {"Rank": [i for i in range(1, 6)],
+                      "ItemID": list(rec_items + 1),
+                      "Similarity Score": -1 * predictions[rec_items]
+                      }
+        result = pd.DataFrame(dic_result)
+
+        print(tabulate(result, headers='keys', tablefmt='psql', showindex=False, numalign='left'))
+        print(" ")
+
+        time.sleep(0.5)
+
+        output_msg = "item {}".format(rec_items[0] + 1)
+        return output_msg
+
+
+if __name__ == '__main__':
+    vessl.configure()
+
+    model_repository_name = "sequential-recsys"
+
+    vessl.create_model_repository(name=model_repository_name)
+
+    model_repository = vessl.read_model_repository(
+        repository_name=model_repository_name,
+    )
+
+    vessl.register_model(
+        repository_name=model_repository.name,
+        model_number=34,
+        runner_cls=MyRunner,
+        requirements=["recommenders", "vessl", "tabulate"]
+    )

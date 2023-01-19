@@ -1,7 +1,5 @@
 import argparse
 import sys
-import pandas as pd
-import tensorflow as tf
 
 from model import *
 
@@ -57,11 +55,11 @@ if __name__ == '__main__':
     # Set model config
     config = {
         "MAXLEN": 50,
-        "NUM_BLOCKS": 2,      # NUMBER OF TRANSFORMER BLOCKS
+        "NUM_BLOCKS": 2,  # NUMBER OF TRANSFORMER BLOCKS
         "HIDDEN_UNITS": 100,  # NUMBER OF UNITS IN THE ATTENTION CALCULATION
-        "NUM_HEADS": 1,      # NUMBER OF ATTENTION HEADS
+        "NUM_HEADS": 1,  # NUMBER OF ATTENTION HEADS
         "DROPOUT_RATE": 0.2,  # DROPOUT RATE
-        "L2_EMB": 0.0,        # L2 REGULARIZATION COEFFICIENT
+        "L2_EMB": 0.0,  # L2 REGULARIZATION COEFFICIENT
         "NUM_NEG_TEST": 100,  # NUMBER OF NEGATIVE EXAMPLES PER POSITIVE EXAMPLE
     }
 
@@ -87,7 +85,8 @@ if __name__ == '__main__':
     df["itemID"] = df["itemID"].apply(lambda x: item_hashing[x])
     df["userID"] = df["userID"].apply(lambda x: user_hashing[x])
 
-    preprocessed_input_data_path = os.path.join(args.input_path, "ratings_Beauty_preprocessed.txt")
+    preprocessed_input_data_path = os.path.join(
+        args.input_path, "ratings_Beauty_preprocessed.txt")
     df.to_csv(preprocessed_input_data_path, index=False, header=False, sep="\t")
 
     # Generate recsystem dataset for training
@@ -96,6 +95,9 @@ if __name__ == '__main__':
         col_sep="\t"
     )
     rec_data.split()
+
+    # Get model with config
+    model = get_model(rec_data, config)
 
     # Print useful statistics by recommenders
     num_steps = int(len(rec_data.user_train) / batch_size)
@@ -115,9 +117,7 @@ if __name__ == '__main__':
         n_workers=2
     )
 
-    # Get model with config
-    model = get_model(rec_data, config)
-
+    print("train model")
     with Timer() as train_time:
         t_test = model.train(
             rec_data,
@@ -133,9 +133,17 @@ if __name__ == '__main__':
     # Print sample input -> top10 next item prediction
     sample_input = np.random.randint(rec_data.itemnum, size=5) + 1
     predictions = -1 * model.predict_next(input=sample_input)
-    rec_items = predictions.argsort()[:10]
-    result =  {k : v for k, v in zip(rec_items + 1, -1*predictions[rec_items])}
+    rec_items = predictions.argsort()[:5]
 
-    print('Recommended item numbers and their similarity scores')
-    for key, value in result.items():
-        print(key, ":", value)
+    dic_result = {"Rank": [i for i in range(1, 6)],
+                  "ItemID": list(rec_items + 1),
+                  "Similarity Score": -1 * predictions[rec_items]
+                  }
+
+    result = pd.DataFrame(dic_result)
+
+    print(tabulate(result, headers='keys', tablefmt='psql', showindex=False, numalign='left'))
+
+
+
+
