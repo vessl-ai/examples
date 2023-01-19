@@ -258,7 +258,7 @@ class MyRunner(vessl.RunnerBase):
                       }
         result = pd.DataFrame(dic_result)
 
-        print(tabulate(result, headers='keys', tablefmt='mixed_grid', showindex=False, numalign='left'))
+        print(tabulate(result, headers='keys', tablefmt='psql', showindex=False, numalign='left'))
         print(" ")
 
         time.sleep(0.5)
