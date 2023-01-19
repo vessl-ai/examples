@@ -1,6 +1,10 @@
 import argparse
 import sys
+import os
+import vessl
+import tensorflow as tf
 
+from logger import *
 from model import *
 
 from recommenders.utils.timer import Timer
@@ -11,19 +15,16 @@ from recommenders.models.sasrec.util import SASRecDataSet
 tf.get_logger().setLevel('ERROR')
 vessl.init()
 
-
 def env_info():
     print("System version: {}".format(sys.version))
     print("tensorflow version : {}".format(tf.__version__))
     print(tf.config.list_physical_devices('GPU'))
     return
 
-
 def load_data(data_dir, filename):
     data_path = os.path.join(data_dir, filename)
     raw_data = pd.read_csv(data_path)
     return raw_data
-
 
 def get_model(dataset, model_config: dict):
     return SASREC_Vessl(
@@ -55,11 +56,11 @@ if __name__ == '__main__':
     # Set model config
     config = {
         "MAXLEN": 50,
-        "NUM_BLOCKS": 2,      # NUMBER OF TRANSFORMER BLOCKS
+        "NUM_BLOCKS": 2,  # NUMBER OF TRANSFORMER BLOCKS
         "HIDDEN_UNITS": 100,  # NUMBER OF UNITS IN THE ATTENTION CALCULATION
-        "NUM_HEADS": 1,      # NUMBER OF ATTENTION HEADS
+        "NUM_HEADS": 1,  # NUMBER OF ATTENTION HEADS
         "DROPOUT_RATE": 0.2,  # DROPOUT RATE
-        "L2_EMB": 0.0,        # L2 REGULARIZATION COEFFICIENT
+        "L2_EMB": 0.0,  # L2 REGULARIZATION COEFFICIENT
         "NUM_NEG_TEST": 100,  # NUMBER OF NEGATIVE EXAMPLES PER POSITIVE EXAMPLE
     }
 
@@ -95,6 +96,9 @@ if __name__ == '__main__':
     )
     rec_data.split()
 
+    # Get model with config
+    model = get_model(rec_data, config)
+
     # Print useful statistics by recommenders
     num_steps = int(len(rec_data.user_train) / batch_size)
     cc = 0.0
@@ -113,9 +117,7 @@ if __name__ == '__main__':
         n_workers=2
     )
 
-    # Get model with config
-    model = get_model(rec_data, config)
-
+    print("train model")
     with Timer() as train_time:
         t_test = model.train(
             rec_data,
@@ -132,8 +134,11 @@ if __name__ == '__main__':
     sample_input = np.random.randint(rec_data.itemnum, size=5) + 1
     predictions = -1 * model.predict_next(input=sample_input)
     rec_items = predictions.argsort()[:10]
-    result =  {k : v for k, v in zip(rec_items + 1, -1*predictions[rec_items])}
+    result = {k: v for k, v in zip(rec_items + 1, -1 * predictions[rec_items])}
 
-    print('Recommended item numbers and their similarity scores')
+    print("Random sample input :{}".format(sample_input))
+    print('Recommended item numbers and their similarity scores(not normalized) for random sample input')
     for key, value in result.items():
         print(key, ":", value)
+
+

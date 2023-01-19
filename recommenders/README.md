@@ -12,11 +12,11 @@ Run recommenders example on [VESSL](https://vessl.ai):
   ```
 
 
-## SasRec & SSE-PT
+## SasRec
 
 ### Environments
 * Cuda >= 11.2
-* Python >= 3.7
+* Python >= 3.8
 
 ### Dataset mount 
 * Amazon beauty(http://jmcauley.ucsd.edu/data/amazon/index.html) dataset  

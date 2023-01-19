@@ -7,37 +7,7 @@ import vessl
 
 from recommenders.utils.timer import Timer
 from recommenders.models.sasrec.model import SASREC
-from recommenders.datasets.split_utils import filter_k_core
-from recommenders.models.sasrec.util import SASRecDataSet
-
 from tqdm import tqdm
-
-
-class VesslLogger:
-    """VESSL logger"""
-    def __init__(self):
-        """Initializer"""
-        self._log = {}
-
-    def log(self, step, metric, value):
-        """Log metrics. Each metric's log will be stored in the corresponding list.
-        Args:
-            metric (str): Metric name.
-            value (float): Value.
-        """
-        if metric not in self._log:
-            self._log[metric] = []
-        self._log[metric].append(value)
-        vessl.log(step=step, payload={
-            metric: value,
-        })
-
-    def get_log(self):
-        """Getter
-        Returns:
-            dict: Log metrics.
-        """
-        return self._log
 
 
 class SASREC_Vessl(SASREC):
@@ -50,7 +20,6 @@ class SASREC_Vessl(SASREC):
         evaluation on the validation and test dataset and
         for logging training and from source code of recommeders
 
-        :param model: model to train
         :param dataset: dataset
         :param sampler: sampler
         :param kwargs:
@@ -66,7 +35,7 @@ class SASREC_Vessl(SASREC):
         batch_size = kwargs.get("batch_size", 128)
         lr = kwargs.get("learning_rate", 0.001)
         val_epoch = kwargs.get("val_epoch", 5)
-        evaluate = kwargs.get("evaluate" , True)
+        evaluate = kwargs.get("evaluate", True)
 
         num_steps = int(len(dataset.user_train) / batch_size)
 
@@ -127,7 +96,7 @@ class SASREC_Vessl(SASREC):
 
             self.save_upload(kwargs['save_path'], epoch)
 
-            if (epoch % val_epoch == 0 or epoch == num_epochs) and evaluate :
+            if (epoch % val_epoch == 0 or epoch == num_epochs) and evaluate:
                 t0.stop()
                 t1 = t0.interval
                 T += t1
@@ -161,7 +130,7 @@ class SASREC_Vessl(SASREC):
         seq = np.zeros([self.seq_max_len], dtype=np.int32)
         idx = self.seq_max_len - 1
         idx -= 1
-        for i in reversed(input):
+        for i in input[::-1]:
             seq[idx] = i
             idx -= 1
             if idx == -1:
@@ -215,7 +184,7 @@ class MyRunner(vessl.RunnerBase):
         }
 
         model = SASREC_Vessl(
-            item_num=12101,  # should be changed according to data
+            item_num=12101,  # should be changed according to dataset
             seq_max_len=model_config.get("MAXLEN"),
             num_blocks=model_config.get("NUM_BLOCKS"),
             embedding_dim=model_config.get("HIDDEN_UNITS"),
@@ -227,62 +196,50 @@ class MyRunner(vessl.RunnerBase):
             num_neg_test=model_config.get("NUM_NEG_TEST"),
         )
 
-        model.load_weights('best')
+        if os.path.isfile('best') :
+            model.load_weights('best')
+
         return model
 
     @staticmethod
     def preprocess_data(data):
-        df = pd.read_csv(BytesIO(data), dtype=np.float32)
-        print("df:", df)
-        df['Timestamp'] = pd.to_datetime(df['Timestamp'], unit='s')
-        df.rename(columns={'UserId': 'userID', 'ProductId': 'itemID'},
-                  inplace=True)
-
-        df = df.sort_values(by=["userID", "Timestamp"]).reset_index().drop(
-            columns=['index', 'Timestamp', 'Rating'])
-        df = filter_k_core(df, 5)
-        item_hashing = {item: idx + 1
-                        for idx, item in
-                        enumerate(df.loc[:, 'itemID'].unique())}
-        user_hashing = {user: idx + 1
-                        for idx, user in
-                        enumerate(df.loc[:, 'userID'].unique())}
-        df["itemID"] = df["itemID"].apply(lambda x: item_hashing[x])
-        df["userID"] = df["userID"].apply(lambda x: user_hashing[x])
-
-        preprocessed_input_data_path = "input_preprocessed.txt"
-        df.to_csv(
-            preprocessed_input_data_path, index=False, header=False, sep="\t")
-        rec_data = SASRecDataSet(
-            filename=preprocessed_input_data_path,
-            col_sep="\t"
-        )
-        return rec_data
+        df = np.array(list(map(int, list(pd.read_csv(BytesIO(data)).columns))))
+        return df
 
     @staticmethod
     def predict(model, data):
-        print("predict() is called")
-        print("model:", model)
-        return None
+        return model.predict_next(data)
 
     @staticmethod
     def postprocess_data(data):
-        print("postprocess_data() is called")
-        print("data:", data)
-        return None
+        predictions = -1 * data
+        rec_items = predictions.argsort()[:10]
+        result = {k: v for k, v in zip(rec_items + 1, -1 * predictions[rec_items])}
+
+        print('Recommended item numbers and their similarity scores(not normalized)')
+        for key, value in result.items():
+            print(key, ":", value)
+
+        output_msg = "item {}".format(rec_items[0] + 1)
+        return output_msg
 
 
 if __name__ == '__main__':
     vessl.configure()
 
     model_repository_name = "sequential-recsys"
+
+    vessl.create_model_repository(name = model_repository_name)
+
+    vessl.create_model_repository(name= model_repository_name)
+
     model_repository = vessl.read_model_repository(
         repository_name=model_repository_name,
     )
 
     vessl.register_model(
         repository_name=model_repository.name,
-        model_number=34,
+        model_number=None,
         runner_cls=MyRunner,
-        requirements=["recommenders", "vessl", "keras", "tensorflow"],
-)
+        requirements=["recommenders", "vessl"]
+    )
