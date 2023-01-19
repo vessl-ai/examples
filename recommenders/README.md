@@ -37,18 +37,27 @@ Run recommenders example on [VESSL](https://vessl.ai):
 * Example input data
   * Create a csv file (e.g. `input_data.csv`) as follows and curl to the endpoint with authentication token that you can find on the serving page. 
     ```bash
-    [1, 110, 80, 4]
+    [1, 12, 123, 13, 5]
     ```
     ```bash
     curl -X POST -H "X-AUTH-KEY:[YOUR-AUTHENTICATION-TOKEN]" -d @input_data.csv https://service-XXXX.apne2-prod1-cluster.savvihub.com
     ```
   * Example output
     ```bash
-    item 123  
+    item 195  
     ```
-  * Check 10 recommended items and its similarity scores on CLI
-    ```
-    123 : 1.214 
-    132 : 6.235
-    ...
+  * Example recommended items and similarity scores on CLI
+    ```bash
+    Recommended item numbers and their similarity scores(not normalized)
+    195 : 1.5078533
+    686 : 1.4597058 
+    929 : 1.3184035
+    80 : 1.2633942 
+    124 : 1.2385566
+    129 : 1.2012779
+    2155 : 1.1481848
+    596 : 1.1317025
+    746 : 1.1095992
+    2634 : 1.0377761
+    Result: item 195
     ```
