@@ -24,6 +24,12 @@ Run recommenders example on [VESSL](https://vessl.ai):
 * Mount the dataset to `/input` at the experiment create form.
 
 ### Start Command 
+Training
   ```bash
   pip install -r examples/recommenders/sasrec/requirements.txt && python examples/recommenders/sasrec/main.py
   ```
+Registering model(default) for serving
+  ```bash
+  pip install -r examples/recommenders/sasrec/requirements.txt && python examples/recommenders/sasrec/model.py
+  ```
+
