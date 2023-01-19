@@ -24,12 +24,25 @@ Run recommenders example on [VESSL](https://vessl.ai):
 * Mount the dataset to `/input` at the experiment create form.
 
 ### Start Command 
-Training
+#### Training
   ```bash
   pip install -r examples/recommenders/sasrec/requirements.txt && python examples/recommenders/sasrec/main.py
   ```
-Registering model(default) for serving
+#### Registering model(default) for serving
   ```bash
   pip install -r examples/recommenders/sasrec/requirements.txt && python examples/recommenders/sasrec/model.py
   ```
 
+### Serving 
+* Example input data
+  * Create a csv file (e.g. `input_data.csv`) as follows and curl to the endpoint with authentication token that you can find on the serving page. 
+    ```bash
+    [1, 110, 80, 4]
+    ```
+    ```bash
+    curl -X POST -H "X-AUTH-KEY:[YOUR-AUTHENTICATION-TOKEN]" -d @input_data.csv https://service-XXXX.apne2-prod1-cluster.savvihub.com
+    ```
+* Example output
+  ```bash
+    
+  ```

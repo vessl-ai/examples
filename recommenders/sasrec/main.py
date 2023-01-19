@@ -1,10 +1,6 @@
 import argparse
 import sys
-import os
-import vessl
-import tensorflow as tf
 
-from logger import *
 from model import *
 
 from recommenders.utils.timer import Timer
@@ -15,16 +11,19 @@ from recommenders.models.sasrec.util import SASRecDataSet
 tf.get_logger().setLevel('ERROR')
 vessl.init()
 
+
 def env_info():
     print("System version: {}".format(sys.version))
     print("tensorflow version : {}".format(tf.__version__))
     print(tf.config.list_physical_devices('GPU'))
     return
 
+
 def load_data(data_dir, filename):
     data_path = os.path.join(data_dir, filename)
     raw_data = pd.read_csv(data_path)
     return raw_data
+
 
 def get_model(dataset, model_config: dict):
     return SASREC_Vessl(
@@ -86,7 +85,8 @@ if __name__ == '__main__':
     df["itemID"] = df["itemID"].apply(lambda x: item_hashing[x])
     df["userID"] = df["userID"].apply(lambda x: user_hashing[x])
 
-    preprocessed_input_data_path = os.path.join(args.input_path, "ratings_Beauty_preprocessed.txt")
+    preprocessed_input_data_path = os.path.join(
+        args.input_path, "ratings_Beauty_preprocessed.txt")
     df.to_csv(preprocessed_input_data_path, index=False, header=False, sep="\t")
 
     # Generate recsystem dataset for training
@@ -140,5 +140,3 @@ if __name__ == '__main__':
     print('Recommended item numbers and their similarity scores(not normalized) for random sample input')
     for key, value in result.items():
         print(key, ":", value)
-
-

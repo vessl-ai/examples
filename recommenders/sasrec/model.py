@@ -10,6 +10,34 @@ from recommenders.models.sasrec.model import SASREC
 from tqdm import tqdm
 
 
+class VesslLogger:
+    """VESSL logger"""
+
+    def __init__(self):
+        """Initializer"""
+        self._log = {}
+
+    def log(self, step, metric, value):
+        """Log metrics. Each metric's log will be stored in the corresponding list.
+        Args:
+            metric (str): Metric name.
+            value (float): Value.
+        """
+        if metric not in self._log:
+            self._log[metric] = []
+        self._log[metric].append(value)
+        vessl.log(step=step, payload={
+            metric: value,
+        })
+
+    def get_log(self):
+        """Getter
+        Returns:
+            dict: Log metrics.
+        """
+        return self._log
+
+
 class SASREC_Vessl(SASREC):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -26,7 +54,8 @@ class SASREC_Vessl(SASREC):
         :return:
         """
 
-        if kwargs['save_path'] is not None and not os.path.isdir(kwargs['save_path']):
+        if kwargs['save_path'] is not None and not os.path.isdir(
+                kwargs['save_path']):
             os.mkdir(kwargs['save_path'])
 
         vessllogger = VesslLogger()
@@ -85,7 +114,8 @@ class SASREC_Vessl(SASREC):
 
             train_loss.reset_states()
 
-            for step in tqdm(range(num_steps), total=num_steps, ncols=70, leave=False, unit="b"):
+            for step in tqdm(range(num_steps), total=num_steps, ncols=70,
+                             leave=False, unit="b"):
                 u, seq, pos, neg = sampler.next_batch()
 
                 inputs, target = self.create_combined_dataset(u, seq, pos, neg)
@@ -117,7 +147,8 @@ class SASREC_Vessl(SASREC):
                 if max_ndgc < t_test[1] and kwargs['save_path'] is not None:
                     max_ndgc = t_test[1]
 
-                    self.save_weights(str(os.path.join(kwargs['save_path'], 'best')))
+                    self.save_weights(
+                        str(os.path.join(kwargs['save_path'], 'best')))
                     vessl.upload(str(os.path.join(kwargs['save_path'], 'best')))
 
                 t0.start()
@@ -137,9 +168,10 @@ class SASREC_Vessl(SASREC):
                 break
 
         input_seq = np.array([seq])
-        candidate = np.expand_dims(np.arange(1, self.item_num+1, 1), axis=0)
+        candidate = np.expand_dims(np.arange(1, self.item_num + 1, 1), axis=0)
 
-        mask = tf.expand_dims(tf.cast(tf.not_equal(input_seq, 0), tf.float32), -1)
+        mask = tf.expand_dims(tf.cast(tf.not_equal(input_seq, 0), tf.float32),
+                              -1)
         seq_embeddings, positional_embeddings = self.embedding(input_seq)
         seq_embeddings += positional_embeddings
         seq_embeddings *= mask
@@ -165,8 +197,10 @@ class SASREC_Vessl(SASREC):
         return predictions
 
     def save_upload(self, save_path, epoch):
-        self.save_weights(str(os.path.join(save_path, 'epoch_{}'.format(epoch))))
-        self.load_weights(str(os.path.join(save_path, 'epoch_{}'.format(epoch))))
+        self.save_weights(
+            str(os.path.join(save_path, 'epoch_{}'.format(epoch))))
+        self.load_weights(
+            str(os.path.join(save_path, 'epoch_{}'.format(epoch))))
 
 
 class MyRunner(vessl.RunnerBase):
@@ -196,7 +230,7 @@ class MyRunner(vessl.RunnerBase):
             num_neg_test=model_config.get("NUM_NEG_TEST"),
         )
 
-        if os.path.isfile('best') :
+        if os.path.isfile('best'):
             model.load_weights('best')
 
         return model
@@ -214,9 +248,11 @@ class MyRunner(vessl.RunnerBase):
     def postprocess_data(data):
         predictions = -1 * data
         rec_items = predictions.argsort()[:10]
-        result = {k: v for k, v in zip(rec_items + 1, -1 * predictions[rec_items])}
+        result = {k: v for k, v in
+                  zip(rec_items + 1, -1 * predictions[rec_items])}
 
-        print('Recommended item numbers and their similarity scores(not normalized)')
+        print(
+            'Recommended item numbers and their similarity scores(not normalized)')
         for key, value in result.items():
             print(key, ":", value)
 
@@ -229,9 +265,7 @@ if __name__ == '__main__':
 
     model_repository_name = "sequential-recsys"
 
-    vessl.create_model_repository(name = model_repository_name)
-
-    vessl.create_model_repository(name= model_repository_name)
+    vessl.create_model_repository(name=model_repository_name)
 
     model_repository = vessl.read_model_repository(
         repository_name=model_repository_name,
