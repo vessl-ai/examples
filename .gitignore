@@ -5,3 +5,7 @@ input/
 /sample.csv
 /.sample.csv.swp
 /sample.json
+.terraform
+.terraform*
+*.tfvars
+terraform.tfstate
