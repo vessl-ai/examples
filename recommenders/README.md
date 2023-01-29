@@ -33,7 +33,7 @@ Run recommenders example on [VESSL](https://vessl.ai):
   pip install -r examples/recommenders/sasrec/requirements.txt && python examples/recommenders/sasrec/model.py
   ```
 
-### Serving 
+### Serving in VESSL
 * Example input data
   * Create a csv file (e.g. `input_data.csv`) as follows and curl to the endpoint with authentication token that you can find on the serving page. 
     ```bash
@@ -56,3 +56,12 @@ Run recommenders example on [VESSL](https://vessl.ai):
     
     Result: item 195
     ```
+    
+### Serving with Streamlit
+#### Requirements
+* Streamlit
+* Trained model
+  * best.data-00000-of-00001
+  * best.index
+#### HuggingFace Space
+You can run an inference demo in [VESSL HuggingFace Space](https://huggingface.co/spaces/VESSL/recommender) with sample model.
