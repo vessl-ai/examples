@@ -163,7 +163,6 @@ class SASREC_Vessl(SASREC):
         training = False
         seq = np.zeros([self.seq_max_len], dtype=np.int32)
         idx = self.seq_max_len - 1
-        idx -= 1
         for i in input[::-1]:
             seq[idx] = i
             idx -= 1
