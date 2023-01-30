@@ -10,3 +10,5 @@ input/
 *.tfvars
 terraform.tfstate
 *.db
+__pycache__/
+*.bin

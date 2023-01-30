@@ -87,12 +87,25 @@ cd ..
 ## Train and test the model
 Finally, we train the model using a combination of loan data from S3 and our zipcode and credit history features from
 Redshift (which in turn queries S3), and then we test online inference by reading those same features from DynamoDB.
-
 ```bash
 python run.py
 ```
+The script should then output the result of a single loan application
+```bash
+loan rejected!
+```
 
-### Destroy the deployed infrastructure
+## Interactive demo (using Streamlit)
+Once the credit scoring model has been trained it can be used for interactive loa application using Streamlit.
+Simply start the Streamlit application.
+```bash
+streamlit run app.py
+```
+Then navigate to the URL on which Streamlit is being served. You should see a user interface through which 
+loan applications can be made:
+![Streamlit screenshot](asset/streamlit.png)
+
+## Destroy the deployed infrastructure
 ```bash
 cd infra
 terraform destroy 
