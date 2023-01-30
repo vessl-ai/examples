@@ -65,13 +65,6 @@ class CreditScoringModel:
         train_X, train_Y = self._get_training_features(loans)
 
         self.classifier.fit(train_X[sorted(train_X)], train_Y)
-        print("score:", self.classifier.score(train_X[sorted(train_X)], train_Y))
-        # train_size_abs, train_scores, test_scores = learning_curve(self.classifier, train_X[sorted(train_X)], train_Y)
-        # for train_size, cv_train_scores, cv_test_scores in zip(train_size_abs, train_scores, test_scores):
-        #     print(f"{train_size} samples were used to train the model")
-        #     print(f"The average train accuracy is {cv_train_scores.mean():.2f}")
-        #     print(f"The average test accuracy is {cv_test_scores.mean():.2f}")
-
         fig, ax = plt.subplots(1, figsize=(10, 10))
         common_params = {
             "X": train_X[sorted(train_X)],
