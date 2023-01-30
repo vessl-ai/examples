@@ -5,3 +5,4 @@ streamlit==0.88.0
 matplotlib==3.4.3
 shap==0.39.0
 pandas>=1.0.0
+vessl

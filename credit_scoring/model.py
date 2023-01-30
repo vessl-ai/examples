@@ -1,12 +1,17 @@
+import os
 from pathlib import Path
 
 import feast
 import joblib
 import pandas as pd
+import sklearn.metrics
 from sklearn import tree
 from sklearn.exceptions import NotFittedError
 from sklearn.preprocessing import OrdinalEncoder
 from sklearn.utils.validation import check_is_fitted
+from sklearn.model_selection import LearningCurveDisplay
+
+import matplotlib.pyplot as plt
 
 
 class CreditScoringModel:
@@ -60,6 +65,35 @@ class CreditScoringModel:
         train_X, train_Y = self._get_training_features(loans)
 
         self.classifier.fit(train_X[sorted(train_X)], train_Y)
+        print("score:", self.classifier.score(train_X[sorted(train_X)], train_Y))
+        # train_size_abs, train_scores, test_scores = learning_curve(self.classifier, train_X[sorted(train_X)], train_Y)
+        # for train_size, cv_train_scores, cv_test_scores in zip(train_size_abs, train_scores, test_scores):
+        #     print(f"{train_size} samples were used to train the model")
+        #     print(f"The average train accuracy is {cv_train_scores.mean():.2f}")
+        #     print(f"The average test accuracy is {cv_test_scores.mean():.2f}")
+
+        fig, ax = plt.subplots(1, figsize=(10, 10))
+        common_params = {
+            "X": train_X[sorted(train_X)],
+            "y": train_Y,
+            "score_type": "both",
+            "n_jobs": 4,
+            "line_kw": {"marker": "o"},
+            "std_display_style": "fill_between",
+            "score_name": "Accuracy",
+        }
+        LearningCurveDisplay.from_estimator(self.classifier, **common_params, ax=ax)
+        handles, label = ax.get_legend_handles_labels()
+        ax.legend(handles[:2], ["Training Score", "Test Score"])
+        title = f"Learning Curve for {self.classifier.__class__.__name__}"
+        ax.set_title(title)
+        file_path = os.path.join("/output", "learning_curve.png")
+        plt.savefig(file_path)
+
+        vessl.log({
+            "log-image": [vessl.Image(data=file_path, caption=title)],
+        })
+
         joblib.dump(self.classifier, self.model_filename)
 
     def _get_training_features(self, loans):
