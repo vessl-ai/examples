@@ -9,3 +9,4 @@ input/
 .terraform*
 *.tfvars
 terraform.tfstate
+*.db
