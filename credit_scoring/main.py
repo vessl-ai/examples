@@ -21,8 +21,8 @@ if __name__ == '__main__':
     model = CreditScoringModel(args.output_path)
 
     # Train model (using Redshift for zipcode and credit history features)
-    if not model.is_model_trained():
-        model.train(loans)
+    # if not model.is_model_trained():
+    model.train(loans)
 
     # Make online prediction (using DynamoDB for retrieving online features)
     # loan_request = {

@@ -64,7 +64,7 @@ class CreditScoringModel:
     def train(self, loans):
         train_X, train_Y = self._get_training_features(loans)
 
-        self.classifier.fit(train_X[sorted(train_X)], train_Y)
+        # self.classifier.fit(train_X[sorted(train_X)], train_Y)
         fig, ax = plt.subplots(1, figsize=(10, 10))
         common_params = {
             "X": train_X[sorted(train_X)],
@@ -153,10 +153,3 @@ class CreditScoringModel:
             entity_rows=[{"zipcode": zipcode, "dob_ssn": dob_ssn}],
             features=self.feast_features,
         ).to_dict()
-
-    def is_model_trained(self):
-        try:
-            check_is_fitted(self.classifier, "tree_")
-        except NotFittedError:
-            return False
-        return True
