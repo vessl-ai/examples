@@ -1,17 +1,16 @@
 import os
+import vessl
+import matplotlib.pyplot as plt
 from pathlib import Path
 
 import feast
 import joblib
 import pandas as pd
-import sklearn.metrics
 from sklearn import tree
 from sklearn.exceptions import NotFittedError
 from sklearn.preprocessing import OrdinalEncoder
 from sklearn.utils.validation import check_is_fitted
 from sklearn.model_selection import LearningCurveDisplay
-
-import matplotlib.pyplot as plt
 
 
 class CreditScoringModel:
@@ -45,7 +44,7 @@ class CreditScoringModel:
     model_filename = "model.bin"
     encoder_filename = "encoder.bin"
 
-    def __init__(self):
+    def __init__(self, output_path):
         # Load model
         if Path(self.model_filename).exists():
             self.classifier = joblib.load(self.model_filename)
@@ -60,6 +59,7 @@ class CreditScoringModel:
 
         # Set up feature store
         self.fs = feast.FeatureStore(repo_path="feature_repo")
+        self.output_path = output_path
 
     def train(self, loans):
         train_X, train_Y = self._get_training_features(loans)
@@ -80,14 +80,15 @@ class CreditScoringModel:
         ax.legend(handles[:2], ["Training Score", "Test Score"])
         title = f"Learning Curve for {self.classifier.__class__.__name__}"
         ax.set_title(title)
-        file_path = os.path.join("/output", "learning_curve.png")
+        file_path = os.path.join(self.output_path, "learning_curve.png")
         plt.savefig(file_path)
 
         vessl.log({
             "log-image": [vessl.Image(data=file_path, caption=title)],
         })
 
-        joblib.dump(self.classifier, self.model_filename)
+        model_path = os.path.join(self.output_path, self.model_filename)
+        joblib.dump(self.classifier, model_path)
 
     def _get_training_features(self, loans):
         training_df = self.fs.get_historical_features(
@@ -112,7 +113,8 @@ class CreditScoringModel:
 
     def _fit_ordinal_encoder(self, requests):
         self.encoder.fit(requests[self.categorical_features])
-        joblib.dump(self.encoder, self.encoder_filename)
+        encoder_path = os.path.join(self.output_path, self.encoder_filename)
+        joblib.dump(self.encoder, encoder_path)
 
     def _apply_ordinal_encoding(self, requests):
         requests[self.categorical_features] = self.encoder.transform(

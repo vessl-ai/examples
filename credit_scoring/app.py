@@ -11,7 +11,7 @@ from model import CreditScoringModel
 st.set_page_config(layout="wide")
 model = CreditScoringModel()
 if not model.is_model_trained():
-    raise Exception("The credit scoring model has not been trained. Please run run.py.")
+    raise Exception("The credit scoring model has not been trained. Please run main.py.")
 
 
 def get_loan_request():

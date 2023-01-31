@@ -9,12 +9,22 @@
 - Terraform (v1.0 or later)
 - AWS CLI (v2.2 or later)
   - Your aws credentials should be set in `~/.aws/credentials`.
+- Parquet files in S3 ([s3://vessl-public-apne2/credit_scoring/](s3://vessl-public-apne2/credit_scoring/))
+  ```
+  credit_scoring/
+    ├── credit_history/
+    │     └── table.parquet
+    ├── loan_features/
+    │     └── table.parquet
+    └── zipcode_features/
+          └── table.parquet
+  ```
+
 
 ## Setup
 ### Setting up AWS infra (Redshift and S3) with Terraform
 We will deploy the following resources:
 - Redshift cluster
-- S3 bucket: zipcode and credit history parquet files
 - IAM roles and policies: Redshift to access S3
 - Glue catalogs: zipcode features and credit history
 
@@ -34,16 +44,50 @@ export TF_VAR_admin_password="MyAdminPassword1"
 terraform plan
 terraform apply
 ```
-Once your infrastructure is deployed, you should see the following outputs from Terraform
+Once your infrastructure is deployed, you should see the following outputs from Terraform.
 ```bash
 redshift_cluster_identifier = "vessl-credit-scoring-project-redshift-cluster"
 redshift_spectrum_arn = "arn:aws:iam::<Account>:role/s3_spectrum_role"
 credit_history_table = "credit_history"
 zipcode_features_table = "zipcode_features"
 ```
-To have these outputs in env variables, you can source the `env` script
+To have these outputs in env variables, you can source the `env` script.
 ```bash
 (cd .. && source env)
+```
+4. Create a mapping from the Redshift cluster to the external catalog
+```bash
+aws redshift-data execute-statement \
+    --region "${TF_VAR_region}" \
+    --cluster-identifier "${tf_redshift_cluster_identifier}" \
+    --db-user admin \
+    --database dev \
+    --sql "create external schema spectrum from data catalog database 'dev' iam_role '${tf_redshift_spectrum_arn}' create external database if not exists;"
+```
+To see whether the command was successful, please run the following command.
+```bash
+aws redshift-data describe-statement --region ${TF_VAR_region} --id [SET YOUR STATEMENT ID HERE]
+```
+You might find list-statements command useful to find executed statement ids.
+```bash
+aws redshift-data list-statements --region ${TF_VAR_region}
+```
+5. You should now be able to query actual zipcode features by executing the following statement.
+```bash
+aws redshift-data execute-statement \
+    --region "${TF_VAR_region}" \
+    --cluster-identifier "${tf_redshift_cluster_identifier}" \
+    --db-user admin \
+    --database dev \
+    --sql "SELECT * from spectrum.zipcode_features LIMIT 1;"
+```
+which should print out results by running
+```bash
+aws redshift-data describe-statement --region ${TF_VAR_region} --id [SET YOUR STATEMENT ID HERE]
+```
+Return to the root of the credit scoring repository.
+```bash
+cd ..
 ```
 ### Setting up Feast
 Install Feast using pip
@@ -88,7 +132,7 @@ cd ..
 Finally, we train the model using a combination of loan data from S3 and our zipcode and credit history features from
 Redshift (which in turn queries S3), and then we test online inference by reading those same features from DynamoDB.
 ```bash
-python run.py
+python main.py
 ```
 The script should then output the result of a single loan application
 ```bash

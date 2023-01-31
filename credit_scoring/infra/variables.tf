@@ -10,6 +10,12 @@ variable "project_name" {
   description = "The project identifier is used to uniquely namespace resources"
 }
 
+variable "S3_bucket_name" {
+  type = string
+  default = "vessl-public-apne2/credit_scoring/"
+  description = "The S3 bucket name of source data"
+}
+
 variable "database_name" {
   type        = string
   default     = "dev"

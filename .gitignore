@@ -9,6 +9,7 @@ input/
 .terraform*
 *.tfvars
 terraform.tfstate
+terraform.tfstate.backup
 *.db
 __pycache__/
 *.bin
