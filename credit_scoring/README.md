@@ -123,16 +123,13 @@ zipcode_features:
 credit_history:
 100%|███████████████████████████████████████████████████████| 28633/28633 [00:27<00:00, 1043.41it/s]
 ```
-Return to the root of the repository
-```bash
-cd ..
-```
 
 ## Train and test the model
-Finally, we train the model using a combination of loan data from S3 and our zipcode and credit history features from
+Finally, we train the model on VESSL using a combination of loan data from S3 and our zipcode and credit history features from
 Redshift (which in turn queries S3), and then we test online inference by reading those same features from DynamoDB.
+### Start command
 ```bash
-python main.py
+pip install -r examples/credit_scoring/requriements.txt && python examples/credit_scoring/main.py
 ```
 The script should then output the result of a single loan application
 ```bash
