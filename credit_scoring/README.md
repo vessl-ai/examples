@@ -85,9 +85,22 @@ which should print out results by running
 ```bash
 aws redshift-data describe-statement --region ${TF_VAR_region} --id [SET YOUR STATEMENT ID HERE]
 ```
-Return to the root of the credit scoring repository.
+You should have one `ResultsRows` without any error.
 ```bash
-cd ..
+{
+    "ClusterIdentifier": "vessl-credit-scoring-project-redshift-cluster",
+    "CreatedAt": "2023-02-03T19:03:36.334000+09:00",
+    "Duration": 1201593573,
+    "HasResultSet": true,
+    "Id": "37c0cf66-4321-4ab1-83b6-5a84a507556e",
+    "QueryString": "SELECT * from spectrum.zipcode_features LIMIT 1;",
+    "RedshiftPid": 1073758360,
+    "RedshiftQueryId": 326,
+    "ResultRows": 1,
+    "ResultSize": 135,
+    "Status": "FINISHED",
+    "UpdatedAt": "2023-02-03T19:03:38.094000+09:00"
+}
 ```
 ### Setting up Feast
 Install Feast using pip
