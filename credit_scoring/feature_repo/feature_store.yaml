@@ -10,5 +10,5 @@ offline_store:
     region: ${TF_VAR_region}
     user: admin
     database: dev
-    s3_staging_location: s3://${TF_VAR_project_name}-bucket
+    s3_staging_location: s3://vessl-public-apne2/credit_scoring
     iam_role: ${tf_redshift_spectrum_arn}

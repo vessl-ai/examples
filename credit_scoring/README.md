@@ -1,8 +1,8 @@
 #Real-time Credit Scoring with Feast on AWS
 
 ## Summary
-- This example is written on top of [feast-dev/feast-aws-credit-scoring-tutorial](https://github.com/feast-dev/feast-aws-credit-scoring-tutorial).
-- Fixed minor errors and rewrote `feature_repo` to apply updated Feast features.
+- This example is modified from [feast-dev/feast-aws-credit-scoring-tutorial](https://github.com/feast-dev/feast-aws-credit-scoring-tutorial) for a better understanding of how to use Feast with [VESSL](http://vessl.ai/).
+
 ![credit-score-architecture@2x](asset/architecture.png)
 
 ## Requirements
@@ -11,18 +11,20 @@
   - Your aws credentials should be set in `~/.aws/credentials`.
 - Parquet files in S3 ([s3://vessl-public-apne2/credit_scoring/](s3://vessl-public-apne2/credit_scoring/))
   ```
-  credit_scoring/
-    ├── credit_history/
-    │     └── table.parquet
-    ├── loan_features/
-    │     └── table.parquet
-    └── zipcode_features/
-          └── table.parquet
-  ```
+    credit_scoring/
+      ├── credit_history/
+      │     └── table.parquet
+      ├── loan_features/
+      │     └── table.parquet
+      └── zipcode_features/
+            └── table.parquet
+    ```
+  - You can find the source data [here](https://github.com/feast-dev/feast-aws-credit-scoring-tutorial/tree/main/data).
 
 
 ## Setup
-### Setting up AWS infra (Redshift and S3) with Terraform
+### Setting up AWS infra (Redshift and S3) with Terraform 
+> Note that this step should be done before running an experiment on VESSL.
 We will deploy the following resources:
 - Redshift cluster
 - IAM roles and policies: Redshift to access S3
@@ -39,7 +41,7 @@ export TF_VAR_region="ap-northeast-2"
 export TF_VAR_project_name="vessl-credit-scoring-project"
 export TF_VAR_admin_password="MyAdminPassword1"
 ```
-3. Plan and deploy your infrastructure
+3. Plan and deploy infrastructure on your AWS
 ```bash
 terraform plan
 terraform apply
@@ -89,7 +91,7 @@ You should have one `ResultsRows` without any error.
 ```bash
 {
     "ClusterIdentifier": "vessl-credit-scoring-project-redshift-cluster",
-    "CreatedAt": "2023-02-03T19:03:36.334000+09:00",
+    "CreatedAt": "2023-XX-XXT19:03:36.334000+09:00",
     "Duration": 1201593573,
     "HasResultSet": true,
     "Id": "37c0cf66-4321-4ab1-83b6-5a84a507556e",
@@ -99,7 +101,7 @@ You should have one `ResultsRows` without any error.
     "ResultRows": 1,
     "ResultSize": 135,
     "Status": "FINISHED",
-    "UpdatedAt": "2023-02-03T19:03:38.094000+09:00"
+    "UpdatedAt": "2023-XX-XXT19:03:38.094000+09:00"
 }
 ```
 ### Setting up Feast
