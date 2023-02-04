@@ -9,7 +9,10 @@ tf_zipcode_features_table=zipcode_features
 endef
 export ARC_ENV
 
-run: install-feast feast-apply install-requirements train-model
+run: set-env install-feast feast-apply install-requirements train-model
+
+set-env:
+	echo "$$ARC_ENV" >> .env && chmod +x .env && source .env
 
 install-feast:
 	@echo "Installing Feast..."
