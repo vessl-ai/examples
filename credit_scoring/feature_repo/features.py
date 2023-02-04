@@ -8,7 +8,7 @@ from data_sources import *
 from entities import *
 
 zipcode_features = FeatureView(
-    name=os.environ.get("tf_zipcode_features_table"),
+    name="zipcode_features",
     source=zipcode_source,
     entities=[zipcode],
     ttl=timedelta(days=3650),
@@ -23,7 +23,7 @@ zipcode_features = FeatureView(
 )
 
 credit_history = FeatureView(
-    name=os.environ.get("tf_credit_history_table"),
+    name="credit_history",
     source=credit_history_source,
     entities=[dob_ssn],
     ttl=timedelta(days=90),

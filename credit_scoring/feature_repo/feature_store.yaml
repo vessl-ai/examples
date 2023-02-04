@@ -3,11 +3,11 @@ registry: registry.db
 provider: aws
 online_store:
     type: dynamodb
-    region: ${TF_VAR_region}
+    region: ap-northeast-2
 offline_store:
     type: redshift
     cluster_id: ${tf_redshift_cluster_identifier}
-    region: ${TF_VAR_region}
+    region: ap-northeast-2
     user: admin
     database: dev
     s3_staging_location: s3://vessl-public-apne2/credit_scoring
