@@ -1,5 +1,3 @@
-SHELL := /bin/bash
-
 define ARC_ENV
 TF_VAR_region="ap-northeast-2"
 TF_VAR_project_name="vessl-credit-scoring-project"
@@ -14,7 +12,7 @@ export ARC_ENV
 run: set-env install-feast feast-apply install-requirements train-model
 
 set-env:
-	echo "$$ARC_ENV" >> .env && chmod +x .env && source .env
+	echo "$$ARC_ENV" >> .env && chmod +x .env && . .env
 
 install-feast:
 	@echo "Installing Feast..."
