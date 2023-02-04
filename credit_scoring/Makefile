@@ -17,12 +17,12 @@ install-feast:
 
 feast-apply:
 	@echo "Feast apply..."
-	feast -c examples/credit_scoring/feature_repo apply
+	feast -c feature_repo apply
 
 install-requirements:
 	@echo "Installing requirements..."
-	pip install -r examples/credit_scoring/requirements.txt
+	pip install -r requirements.txt
 
 train-model:
 	@echo "Start training..."
-	python examples/credit_scoring/main.py
+	python main.py
