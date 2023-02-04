@@ -1,3 +1,5 @@
+SHELL := /bin/bash
+
 define ARC_ENV
 TF_VAR_region="ap-northeast-2"
 TF_VAR_project_name="vessl-credit-scoring-project"
