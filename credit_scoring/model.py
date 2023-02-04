@@ -58,7 +58,7 @@ class CreditScoringModel:
             self.encoder = OrdinalEncoder()
 
         # Set up feature store
-        self.fs = feast.FeatureStore(repo_path="feature_repo")
+        self.fs = feast.FeatureStore(repo_path="examples/credit_scoring/feature_repo")
         self.output_path = output_path
 
     def train(self, loans):
