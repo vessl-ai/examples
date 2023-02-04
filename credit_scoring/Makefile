@@ -12,9 +12,10 @@ export ARC_ENV
 run: set-env install-feast feast-apply install-requirements train-model
 
 set-env:
-	echo "$$ARC_ENV" >> .env
-	chmod +x .env
-	. .env
+	echo "$$ARC_ENV" >> arc_env
+	chmod +x arc_env
+	. arc_env
+	pwd
 
 install-feast:
 	@echo "Installing Feast..."
