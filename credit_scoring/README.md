@@ -3,7 +3,7 @@
 ## Summary
 - This example is written on top of [feast-dev/feast-aws-credit-scoring-tutorial](https://github.com/feast-dev/feast-aws-credit-scoring-tutorial).
 - Fixed minor errors and rewrote `feature_repo` to apply updated Feast features.
-![credit-score-architecture@2x](https://user-images.githubusercontent.com/6728866/132927464-5c9e9e05-538c-48c5-bc16-94a6d9d7e57b.jpg)
+![credit-score-architecture@2x](asset/architecture.png)
 
 ## Requirements
 - Terraform (v1.0 or later)
