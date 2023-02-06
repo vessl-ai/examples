@@ -32,8 +32,6 @@ class MyFeast:
         "credit_history:bankruptcies",
     ]
 
-    target = "loan_status"
-
     def __init__(self):
         # Set up feature store
         self.fs = feast.FeatureStore(repo_path="feature_repo")
@@ -62,6 +60,7 @@ class CreditScoringModel:
         "state",
         "location_type",
     ]
+    target = "loan_status"
 
     model_filename = "model.bin"
     encoder_filename = "encoder.bin"
