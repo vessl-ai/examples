@@ -13,3 +13,6 @@ terraform.tfstate.backup
 *.db
 __pycache__/
 *.bin
+.vessl-serving/
+vessl.manifest.yaml
+vessl.runner.pkl

@@ -3,7 +3,7 @@ import os
 
 import pandas as pd
 
-from model import CreditScoringModel
+from model import CreditScoringModel, MyFeast
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Credit scoring example')
@@ -18,10 +18,10 @@ if __name__ == '__main__':
     loans = pd.read_parquet(loan_data_path)
 
     # Create model
-    model = CreditScoringModel(args.output_path)
+    fs = MyFeast()
+    model = CreditScoringModel(args.output_path, fs)
 
     # Train model (using Redshift for zipcode and credit history features)
-    # if not model.is_model_trained():
     model.train(loans)
 
     # Make online prediction (using DynamoDB for retrieving online features)

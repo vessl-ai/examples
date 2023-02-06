@@ -269,7 +269,7 @@ class MyRunner(vessl.RunnerBase):
 if __name__ == '__main__':
     vessl.configure()
 
-    model_repository_name = "sequential-recsys"
+    model_repository_name = "YOUR_MODEL_REPOSITORY_NAME"
 
     vessl.create_model_repository(name=model_repository_name)
 
@@ -279,7 +279,6 @@ if __name__ == '__main__':
 
     vessl.register_model(
         repository_name=model_repository.name,
-        model_number=34,
         runner_cls=MyRunner,
         requirements=["recommenders", "vessl", "tabulate"]
     )
