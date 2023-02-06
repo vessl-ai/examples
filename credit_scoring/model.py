@@ -39,22 +39,9 @@ class MyFeast:
         self.fs = feast.FeatureStore(repo_path="feature_repo")
 
     def get_training_features(self, loans):
-        training_df = self.fs.get_historical_features(
+        return self.fs.get_historical_features(
             entity_df=loans, features=self.feast_features
         ).to_df()
-
-        train_X = training_df[
-            training_df.columns.drop(self.target)
-                .drop("event_timestamp")
-                .drop("created_timestamp")
-                .drop("loan_id")
-                .drop("zipcode")
-                .drop("dob_ssn")
-        ]
-        train_X = train_X.reindex(sorted(train_X.columns), axis=1)
-        train_Y = training_df.loc[:, self.target]
-
-        return training_df, train_X, train_Y
 
     def get_online_features_from_feast(self, request):
         print('get_online_features_from_feast is called')
@@ -104,10 +91,21 @@ class CreditScoringModel:
         self.fs = fs
 
     def train(self, loans):
-        training_df, train_X, train_Y = self.fs.get_training_features(loans)
+        training_df = self.fs.get_training_features(loans)
 
         self._fit_ordinal_encoder(training_df)
         self._apply_ordinal_encoding(training_df)
+
+        train_X = training_df[
+            training_df.columns.drop(self.target)
+                .drop("event_timestamp")
+                .drop("created_timestamp")
+                .drop("loan_id")
+                .drop("zipcode")
+                .drop("dob_ssn")
+        ]
+        train_X = train_X.reindex(sorted(train_X.columns), axis=1)
+        train_Y = training_df.loc[:, self.target]
 
         self.classifier.fit(train_X[sorted(train_X)], train_Y)
         fig, ax = plt.subplots(1, figsize=(10, 10))
