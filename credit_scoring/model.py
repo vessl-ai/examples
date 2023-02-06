@@ -195,24 +195,21 @@ class MyRunner(vessl.RunnerBase):
 
     @staticmethod
     def postprocess_data(data):
-        print("post process data:", data)
+        if data == 0:
+            print("Loan approved!")
+        elif data == 1:
+            print("Loan rejected!")
         return data
 
 
 if __name__ == '__main__':
     vessl.configure()
-
+    
     model_repository_name = "credit-scoring"
-
-    # vessl.create_model_repository(name=model_repository_name)
-    #
-    # model_repository = vessl.read_model_repository(
-    #     repository_name=model_repository_name,
-    # )
 
     vessl.register_model(
         repository_name=model_repository_name,
-        model_number=2,
+        model_number=3,
         runner_cls=MyRunner,
         requirements=["feast"]
     )
