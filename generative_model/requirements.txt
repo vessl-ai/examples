@@ -1,0 +1,11 @@
+vessl
+torch
+torchvision
+diffusers>=0.13.0.dev0
+accelerate
+datasets
+transformers>=4.25.1
+numpy
+pillow
+tqdm
+ftfy
