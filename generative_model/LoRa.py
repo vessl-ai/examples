@@ -55,7 +55,6 @@ def parse_args():
         default=True,
         help='training script is whether on vessl or not.'
     )
-    # "OFA-Sys/small-stable-diffusion-v0", "CompVis/stable-diffusion-v1-4 also available
     parser.add_argument(
         "--pretrained_model_name_or_path",
         type=str,
@@ -147,7 +146,12 @@ def parse_args():
         default=None,
         help="The directory where the downloaded models and datasets will be stored.",
     )
-    parser.add_argument("--seed", type=int, default=None, help="A seed for reproducible training.")
+    parser.add_argument(
+        "--seed",
+        type=int,
+        default=None,
+        help="A seed for reproducible training."
+    )
     parser.add_argument(
         "--resolution",
         type=int,
@@ -174,7 +178,11 @@ def parse_args():
     parser.add_argument(
         "--train_batch_size", type=int, default=16, help="Batch size (per device) for the training dataloader."
     )
-    parser.add_argument("--num_train_epochs", type=int, default=100)
+    parser.add_argument(
+        "--num_train_epochs",
+        type=int,
+        default=100
+    )
     parser.add_argument(
         "--max_train_steps",
         type=int,
@@ -302,6 +310,7 @@ def parse_args():
     )
 
     args = parser.parse_args()
+
     env_local_rank = int(os.environ.get("LOCAL_RANK", -1))
     if env_local_rank != -1 and env_local_rank != args.local_rank:
         args.local_rank = env_local_rank
@@ -316,7 +325,6 @@ def parse_args():
 def main():
     args = parse_args()
 
-    ##directory for logging -> output_dir/logging_dir
     logging_dir = os.path.join(args.output_dir, args.logging_dir)
 
     accelerator = Accelerator(
@@ -335,7 +343,6 @@ def main():
         except:
             raise ImportError("Make sure to install vessl if you're experiment vessl")
 
-    # Make one log on every process with the configuration for debugging.
     logging.basicConfig(
         format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
         datefmt="%m/%d/%Y %H:%M:%S",
@@ -343,7 +350,7 @@ def main():
     )
     logger.info(accelerator.state, main_process_only=False)
 
-    # main_process -> warning, others -> only error #info warning error debug
+    # main_process -> warning, others -> error
     if accelerator.is_local_main_process:
         datasets.utils.logging.set_verbosity_warning()
         transformers.utils.logging.set_verbosity_warning()
@@ -353,37 +360,23 @@ def main():
         transformers.utils.logging.set_verbosity_error()
         diffusers.utils.logging.set_verbosity_error()
 
-    # If passed along, set the training seed now.
+    # Set the training seed now if passed
     if args.seed is not None:
         set_seed(args.seed)
 
-    # Handle the repository creation
-    # if accelerator.is_main_process:
-    #     if args.push_to_hub:
-    #         if args.hub_model_id is None:
-    #             repo_name = get_full_repo_name(Path(args.output_dir).name, token=args.hub_token)
-    #         else:
-    #             repo_name = args.hub_model_id
-    #         repo_name = create_repo(repo_name, exist_ok=True)
-    #         repo = Repository(args.output_dir, clone_from=repo_name)
-    #
-    #         with open(os.path.join(args.output_dir, ".gitignore"), "w+") as gitignore:
-    #             if "step_*" not in gitignore:
-    #                 gitignore.write("step_*\n")
-    #             if "epoch_*" not in gitignore:
-    #                 gitignore.write("epoch_*\n")
-    #     elif args.output_dir is not None:
-    #         os.makedirs(args.output_dir, exist_ok=True)
-
     # Load scheduler, tokenizer and models.
-    noise_scheduler = DDPMScheduler.from_pretrained(args.pretrained_model_name_or_path, subfolder="scheduler")
+    noise_scheduler = DDPMScheduler.from_pretrained(
+        args.pretrained_model_name_or_path, subfolder="scheduler"
+    )
     tokenizer = CLIPTokenizer.from_pretrained(
         args.pretrained_model_name_or_path, subfolder="tokenizer", revision=args.revision
     )
     text_encoder = CLIPTextModel.from_pretrained(
         args.pretrained_model_name_or_path, subfolder="text_encoder", revision=args.revision
     )
-    vae = AutoencoderKL.from_pretrained(args.pretrained_model_name_or_path, subfolder="vae", revision=args.revision)
+    vae = AutoencoderKL.from_pretrained(
+        args.pretrained_model_name_or_path, subfolder="vae", revision=args.revision
+    )
     unet = UNet2DConditionModel.from_pretrained(
         args.pretrained_model_name_or_path, subfolder="unet", revision=args.revision
     )
@@ -394,7 +387,6 @@ def main():
         print_num_param(unet, "Unet")
 
     # For mixed precision training we cast the text_encoder and vae weights to half-precision
-    # as these models are only used for inference, keeping weights in full precision is not required.
     weight_dtype = torch.float32
     if accelerator.mixed_precision == "fp16":
         weight_dtype = torch.float16
@@ -463,7 +455,6 @@ def main():
             raise ImportError(
                 "Please install bitsandbytes to use 8-bit Adam. You can do so by running `pip install bitsandbytes`"
             )
-
         optimizer_cls = bnb.optim.AdamW8bit
     else:
         optimizer_cls = torch.optim.AdamW
@@ -482,8 +473,6 @@ def main():
 
     # In distributed training, the load_dataset function guarantees that only one local process can concurrently
     # download the dataset.
-
-    ## Should be None for using vessl dataset
     if args.dataset_name is not None:
         # Downloading and loading a dataset from the hub.
         dataset = load_dataset(
@@ -502,12 +491,12 @@ def main():
         )
         # See more about loading custom images at
         # https://huggingface.co/docs/datasets/v2.4.0/en/image_load#imagefolder
+
     # Preprocessing the datasets.
     # We need to tokenize inputs and targets.
-
     column_names = dataset["train"].column_names
 
-    # 6. Get the column names for input/target.
+    # Get the column names for input/target.
     dataset_columns = DATASET_NAME_MAPPING.get(args.dataset_name, None)
     if args.image_column is None:
         image_column = dataset_columns[0] if dataset_columns is not None else column_names[0]
@@ -556,7 +545,7 @@ def main():
         ]
     )
 
-    ## utilize function for VESSL/Bored_Ape_NFT
+    ## Modified for VESSL/BAYC dataset
     def preprocess_train(examples):
         images = [Image.open(BytesIO(image['bytes'])).convert("RGB") for image in examples[image_column]]
         examples["pixel_values"] = [train_transforms(image) for image in images]
@@ -770,24 +759,15 @@ def main():
             del pipeline
             torch.cuda.empty_cache()
 
-    # Save the lora layers / wait_for_everyone() -> wait other process to finish
+    # Wait other process to finish
     accelerator.wait_for_everyone()
 
+    # Save lora layer
     if accelerator.is_main_process:
         unet = unet.to(torch.float16)
         unet.save_attn_procs(args.output_dir)
 
-        # if args.push_to_hub:
-        #     save_model_card(
-        #         repo_name,
-        #         images=images,
-        #         base_model=args.pretrained_model_name_or_path,
-        #         dataset_name=args.dataset_name,
-        #         repo_folder=args.output_dir,
-        #     )
-        #     repo.push_to_hub(commit_message="End of training", blocking=False, auto_lfs_prune=True)
-
-    # save last state of unet
+    # save full unet layer
     unet_last = accelerator.unwrap_model(unet)
     torch.save(unet_last.state_dict(), args.output_dir + "/lora_attn_state.pt")
 
