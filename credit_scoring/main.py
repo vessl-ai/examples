@@ -7,6 +7,8 @@ from model import CreditScoringModel, MyFeast
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Credit scoring example')
+    parser.add_argument('--feature-repo-path', type=str, default='/input',
+                        help='Feast feature repo path')
     parser.add_argument('--input-path', type=str, default='/input',
                         help='input dataset path')
     parser.add_argument('--output-path', type=str, default='/output',
@@ -18,7 +20,7 @@ if __name__ == '__main__':
     loans = pd.read_parquet(loan_data_path)
 
     # Create model
-    fs = MyFeast()
+    fs = MyFeast(args.feature_repo_path)
     model = CreditScoringModel(args.output_path, fs)
 
     # Train model (using Redshift for zipcode and credit history features)

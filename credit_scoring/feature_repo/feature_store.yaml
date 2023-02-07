@@ -1,5 +1,5 @@
 project: credit_scoring_aws
-registry: registry.db
+registry: s3://vessl-public-apne2/credit_scoring/registry.db
 provider: aws
 online_store:
     type: dynamodb

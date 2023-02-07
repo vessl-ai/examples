@@ -32,9 +32,9 @@ class MyFeast:
         "credit_history:bankruptcies",
     ]
 
-    def __init__(self):
+    def __init__(self, repo_path):
         # Set up feature store
-        self.fs = feast.FeatureStore(repo_path="feature_repo")
+        self.fs = feast.FeatureStore(repo_path=repo_path)
 
     def get_training_features(self, loans):
         return self.fs.get_historical_features(
