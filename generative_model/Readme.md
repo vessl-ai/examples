@@ -16,7 +16,7 @@ git clone to install dev version of diffusers (may change in future)
 git clone https://github.com/huggingface/diffusers.git \
 cd diffusers\
 pip install .\
-cd -  
+cd -
 ```
 
 ### Start Command
