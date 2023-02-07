@@ -9,8 +9,10 @@ import feast
 import joblib
 import pandas as pd
 from sklearn import tree
+from sklearn.exceptions import NotFittedError
 from sklearn.preprocessing import OrdinalEncoder
 from sklearn.model_selection import LearningCurveDisplay
+from sklearn.utils.validation import check_is_fitted
 
 
 class MyFeast:
@@ -42,7 +44,6 @@ class MyFeast:
         ).to_df()
 
     def get_online_features_from_feast(self, request):
-        print('get_online_features_from_feast is called')
         zipcode = request["zipcode"][0]
         dob_ssn = request["dob_ssn"][0]
 
@@ -147,7 +148,6 @@ class CreditScoringModel:
         )
 
     def predict(self, features_df):
-        print("predict is called!")
         # Apply ordinal encoding to categorical features
         self._apply_ordinal_encoding(features_df)
 
@@ -159,30 +159,32 @@ class CreditScoringModel:
             features_df.columns.drop("zipcode").drop("dob_ssn")]
 
         # Make prediction
-        print("features_df:", features_df, type(features_df))
         features_df["prediction"] = self.classifier.predict(features_df)
 
         # return result of credit scoring
         return features_df["prediction"].iloc[0]
 
+    def is_model_trained(self):
+        try:
+            check_is_fitted(self.classifier, "tree_")
+        except NotFittedError:
+            return False
+        return True
+
 
 class MyRunner(vessl.RunnerBase):
     @staticmethod
     def load_model(props, artifacts):
-        print('load_model started')
         model = CreditScoringModel(output_path="/output")
-        print('model:', model)
         return model
 
     @staticmethod
     def preprocess_data(data):
-        print('preprocess_data started')
         request = json.loads(data.decode('utf-8'))
 
         # Get online features from Feast
-        fs = MyFeast()
+        fs = MyFeast(repo_path="feature_repo")
         feature_vector = fs.get_online_features_from_feast(request)
-        print('feature_vector:', feature_vector)
 
         # Join features to request features
         features = request.copy()
@@ -201,16 +203,22 @@ class MyRunner(vessl.RunnerBase):
     @staticmethod
     def postprocess_data(data):
         if data == 0:
-            print("Loan approved!")
+            msg = "Loan approved!"
+            print(msg)
+            return msg
         elif data == 1:
-            print("Loan rejected!")
-        return data
+            msg = "Loan rejected!"
+            print(msg)
+            return msg
+        msg = "Model prediction failed."
+        print(msg)
+        return msg
 
 
 if __name__ == '__main__':
     vessl.configure()
 
-    model_repository_name = "credit-scoring"
+    model_repository_name = "YOUR_MODEL_REPOSITORY_NAME"
 
     vessl.create_model_repository(name=model_repository_name)
 
@@ -220,7 +228,7 @@ if __name__ == '__main__':
 
     vessl.register_model(
         repository_name=model_repository.name,
-        model_number=None,
+        model_number=YOUR_MODEL_NUMBER,
         runner_cls=MyRunner,
         requirements=["feast"],
     )

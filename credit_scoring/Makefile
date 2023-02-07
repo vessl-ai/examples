@@ -9,6 +9,6 @@ train-model:
 	python main.py
 	cp -r /feature_repo /output && cp -r ~/.aws /output
 
-create-model:
-	@echo "Create model..."
+register-model:
+	@echo "Register your model..."
 	python model.py

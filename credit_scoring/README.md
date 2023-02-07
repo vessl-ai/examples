@@ -157,14 +157,44 @@ make run
 ```
 
 ## Model serving
-We test online inference by reading features from DynamoDB.
+We will test online inference by reading features from DynamoDB.
 
-The script should then output the result of a single loan application
+1. Create a model from your completed experiment on Web UI. 
+![Create a model on Web UI](asset/create_model.png)
+2. On your local device run following commands with `YOUR_MODEL_REPOSITORY_NAME` and `YOUR_MODEL_NUMBER` to register model.
+```bash
+make register-model
+```
+You can see the similar outputs on terminal as follows.
+```bash
+Artifacts will be uploaded as follows:
+  vessl.manifest.yaml -> vessl.manifest.yaml
+  vessl.runner.pkl -> vessl.runner.pkl
+Uploading 1 file(s) (198.0B)...
+Total 1 file(s) uploaded.
+Uploading 1 file(s) (6.6KiB)...
+Total 1 file(s) uploaded.
+Successfully registered model: https://vessl.ai/YOUR_ORGANIZATION/models/YOUR_MODEL_REPOSITORY_NAME/YOUR_MODEL_NUMBER
+```
+3. Deploy the registered model into production on Web UI.
+> Note that you should choose the same Python version you used to register your model.
+
+![Deploy a model on Web UI](asset/deploy_model.png)
+
+4. Curl with sample data.
+```bash
+curl -X POST -H "X-AUTH-KEY: YOUR_AUTH_TOKEN" YOUR_SERVICE_ENDPOINT  \
+  -d '{"zipcode": [76104], "dob_ssn": ["19630621_4278"], "person_age": [133], "person_income": [59000], "person_home_ownership": ["RENT"], "person_emp_length": [123.0], "loan_intent": ["PERSONAL"], "loan_amnt": [35000], "loan_int_rate": [16.02]}'
+```
 ```bash
 loan rejected!
 ```
 
 ## Interactive demo (using Streamlit)
+### Requirements
+- trained_model
+  - encoder.bin
+  - model.bin
 Once the credit scoring model has been trained it can be used for interactive loa application using Streamlit.
 Simply start the Streamlit application.
 ```bash

@@ -6,12 +6,13 @@ import shap
 import streamlit as st
 from matplotlib import pyplot as plt
 
-from model import CreditScoringModel
+from model import CreditScoringModel, MyFeast
 
 st.set_page_config(layout="wide")
-model = CreditScoringModel()
+fs = MyFeast(repo_path="feature_repo")
+model = CreditScoringModel(output_path="", fs=fs)
 if not model.is_model_trained():
-    raise Exception("The credit scoring model has not been trained. Please run main.py.")
+    raise Exception("The credit scoring model has not been trained.")
 
 
 def get_loan_request():
@@ -73,7 +74,7 @@ df
 
 # Full feature vector
 st.header("Feature vector (user input + zipcode features + user features):")
-vector = model._get_online_features_from_feast(loan_request)
+vector = model.fs.get_online_features_from_feast(loan_request)
 ordered_vector = loan_request.copy()
 key_list = vector.keys()
 key_list = sorted(key_list)
@@ -85,7 +86,10 @@ df
 
 # Results of prediction
 st.header("Application Status (model prediction):")
-result = model.predict(loan_request)
+features = loan_request.copy()
+features.update(vector)
+features_df = pd.DataFrame.from_dict(features)
+result = model.predict(features_df)
 
 if result == 0:
     st.success("Your loan has been approved!")
