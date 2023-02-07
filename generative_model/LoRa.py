@@ -248,15 +248,6 @@ def parse_args():
     parser.add_argument("--adam_weight_decay", type=float, default=1e-2, help="Weight decay to use.")
     parser.add_argument("--adam_epsilon", type=float, default=1e-08, help="Epsilon value for the Adam optimizer")
     parser.add_argument("--max_grad_norm", default=1.0, type=float, help="Max gradient norm.")
-    # parser.add_argument(
-    #     "--logging_dir",
-    #     type=str,
-    #     default="logs",
-    #     help=(
-    #         "[TensorBoard](https://www.tensorflow.org/tensorboard) log directory. Will default to"
-    #         " *output_dir/runs/**CURRENT_DATETIME_HOSTNAME***."
-    #     ),
-    # )
     parser.add_argument(
         "--mixed_precision",
         type=str,
@@ -318,6 +309,7 @@ def main():
         try:
             if accelerator.is_main_process:
                 vessl.init()
+                # For clean log
                 time.sleep(0.5)
                 vessllogger = VesslLogger(save_image=True)
         except:
@@ -673,11 +665,6 @@ def main():
                 # Gather the losses across all processes for logging (if we use distributed training).
                 avg_loss = accelerator.gather(loss.repeat(args.train_batch_size)).mean()
                 train_loss += avg_loss.item() / args.gradient_accumulation_steps
-
-                # checking dimensions of outputs
-                # if accelerator.is_main_process:
-                #     print(latents.shape, timesteps.shape , noisy_latents.shape , encoder_hidden_states.shape,
-                #           target.shape, model_pred.shape)
 
                 # Backpropagate
                 accelerator.backward(loss)

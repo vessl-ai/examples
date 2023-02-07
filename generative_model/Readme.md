@@ -44,10 +44,4 @@ examples/generative_model/LoRa.py --random_flip --on_vessl=True  \
    ```
 
 ### VESSL
-You can try it on vessl more easily! Visit https://vessl.ai/ 
-
-## Training MUSE
-
->    Not implemented yet 
-
-
+You can try it on vessl more easily! Visit https://vessl.ai/
