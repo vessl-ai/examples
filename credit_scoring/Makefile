@@ -7,3 +7,7 @@ install-requirements:
 train-model:
 	@echo "Start training..."
 	python main.py
+
+create-model:
+	@echo "Create model..."
+	python model.py

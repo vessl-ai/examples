@@ -87,7 +87,7 @@ resource "aws_glue_catalog_table" "zipcode_features_table" {
   }
 
   storage_descriptor {
-    location      = "s3://${var.S3_bucket_name}/zipcode_features/"
+    location      = "s3://${var.S3_bucket_name}/source_data/zipcode_features/"
     input_format  = "org.apache.hadoop.hive.ql.io.parquet.MapredParquetInputFormat"
     output_format = "org.apache.hadoop.hive.ql.io.parquet.MapredParquetOutputFormat"
 
@@ -155,7 +155,7 @@ resource "aws_glue_catalog_table" "credit_history_table" {
   }
 
   storage_descriptor {
-    location      = "s3://${var.S3_bucket_name}/credit_history/"
+    location      = "s3://${var.S3_bucket_name}/source_data/credit_history/"
     input_format  = "org.apache.hadoop.hive.ql.io.parquet.MapredParquetInputFormat"
     output_format = "org.apache.hadoop.hive.ql.io.parquet.MapredParquetOutputFormat"
 

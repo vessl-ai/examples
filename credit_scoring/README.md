@@ -12,12 +12,14 @@
 - Parquet files in S3 ([s3://vessl-public-apne2/credit_scoring/](s3://vessl-public-apne2/credit_scoring/))
   ```
     credit_scoring/
-      ├── credit_history/
-      │     └── table.parquet
-      ├── loan_features/
-      │     └── table.parquet
-      └── zipcode_features/
-            └── table.parquet
+      ├── source_data/
+      │      ├── credit_history/
+      │      │      └── table.parquet
+      │      └── zipcode_features/
+      │             └── table.parquet
+      └── loan_table/
+            └──loan_features/
+                 └── table.parquet
     ```
   - You can find the source data [here](https://github.com/feast-dev/feast-aws-credit-scoring-tutorial/tree/main/data).
 
@@ -25,6 +27,7 @@
 ## Setup
 ### Setting up AWS infra (Redshift and S3) with Terraform 
 > Note that this step should be done before running an experiment on VESSL.
+
 We will deploy the following resources:
 - Redshift cluster
 - IAM roles and policies: Redshift to access S3
@@ -105,9 +108,11 @@ You should have one `ResultsRows` without any error.
 }
 ```
 ### Setting up Feast
+> Note that this step should be done before running an experiment on VESSL.
+
 Install Feast using pip
 ```bash
-pip install feast[aws]
+pip install 'feast[aws]'
 ```
 Deploy the feature store by running `apply` from within the `feature_repo/` directory.
 ```bash
@@ -124,7 +129,7 @@ Created feature view credit_history
 Deploying infrastructure for zipcode_features
 Deploying infrastructure for credit_history
 ```
-Let's put a `feature_store.yaml` to S3.
+Let's put a `feature_store.yaml` object to S3 bucket.
 ```bash
 aws s3api put-object --bucket vessl-public-apne2 --key credit_scoring/feature_repo/feature_store.yaml --body feature_store.yaml
 ```
@@ -143,13 +148,17 @@ credit_history:
 100%|███████████████████████████████████████████████████████| 28633/28633 [00:27<00:00, 1043.41it/s]
 ```
 
-## Train and test the model
-Finally, we train the model on VESSL using a combination of loan data from S3 and our zipcode and credit history features from
-Redshift (which in turn queries S3), and then we test online inference by reading those same features from DynamoDB.
+## Train a model
+Finally, we train a model on VESSL using a combination of loan data from S3 and our zipcode and credit history features from
+Redshift (which in turn queries S3).
 ### Start command
 ```bash
-pip install -r examples/credit_scoring/requirements.txt && python examples/credit_scoring/main.py
+make run
 ```
+
+## Model serving
+We test online inference by reading features from DynamoDB.
+
 The script should then output the result of a single loan application
 ```bash
 loan rejected!

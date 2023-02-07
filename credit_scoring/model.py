@@ -79,8 +79,6 @@ class CreditScoringModel:
             self.encoder = OrdinalEncoder()
 
         # # Set up feature store
-        # self.fs = feast.FeatureStore(repo_path="feature_repo")
-        print("fs:", fs)
         if fs is not None:
             self.fs = fs
 
@@ -89,24 +87,7 @@ class CreditScoringModel:
     def set_feast(self, fs):
         self.fs = fs
 
-    def train(self, loans):
-        training_df = self.fs.get_training_features(loans)
-
-        self._fit_ordinal_encoder(training_df)
-        self._apply_ordinal_encoding(training_df)
-
-        train_X = training_df[
-            training_df.columns.drop(self.target)
-                .drop("event_timestamp")
-                .drop("created_timestamp")
-                .drop("loan_id")
-                .drop("zipcode")
-                .drop("dob_ssn")
-        ]
-        train_X = train_X.reindex(sorted(train_X.columns), axis=1)
-        train_Y = training_df.loc[:, self.target]
-
-        self.classifier.fit(train_X[sorted(train_X)], train_Y)
+    def plot_learning_curve(self, train_X, train_Y):
         fig, ax = plt.subplots(1, figsize=(10, 10))
         common_params = {
             "X": train_X[sorted(train_X)],
@@ -117,7 +98,8 @@ class CreditScoringModel:
             "std_display_style": "fill_between",
             "score_name": "Accuracy",
         }
-        LearningCurveDisplay.from_estimator(self.classifier, **common_params, ax=ax)
+        LearningCurveDisplay.from_estimator(self.classifier, **common_params,
+                                            ax=ax)
         handles, label = ax.get_legend_handles_labels()
         ax.legend(handles[:2], ["Training Score", "Test Score"])
         title = f"Learning Curve for {self.classifier.__class__.__name__}"
@@ -128,6 +110,28 @@ class CreditScoringModel:
         vessl.log({
             "log-image": [vessl.Image(data=file_path, caption=title)],
         })
+
+    def train(self, loans):
+        training_df = self.fs.get_training_features(loans)
+
+        self._fit_ordinal_encoder(training_df)
+        self._apply_ordinal_encoding(training_df)
+
+        train_X = training_df[
+            training_df.columns
+                .drop(self.target)
+                .drop("event_timestamp")
+                .drop("created_timestamp")
+                .drop("loan_id")
+                .drop("zipcode")
+                .drop("dob_ssn")
+        ]
+        train_X = train_X.reindex(sorted(train_X.columns), axis=1)
+        train_Y = training_df.loc[:, self.target]
+
+        self.classifier.fit(train_X[sorted(train_X)], train_Y)
+
+        self.plot_learning_curve(train_X, train_Y)
 
         model_path = os.path.join(self.output_path, self.model_filename)
         joblib.dump(self.classifier, model_path)
@@ -151,7 +155,8 @@ class CreditScoringModel:
         features_df = features_df.reindex(sorted(features_df.columns), axis=1)
 
         # Drop unnecessary columns
-        features_df = features_df[features_df.columns.drop("zipcode").drop("dob_ssn")]
+        features_df = features_df[
+            features_df.columns.drop("zipcode").drop("dob_ssn")]
 
         # Make prediction
         print("features_df:", features_df, type(features_df))
@@ -204,12 +209,27 @@ class MyRunner(vessl.RunnerBase):
 
 if __name__ == '__main__':
     vessl.configure()
-    
+
     model_repository_name = "credit-scoring"
 
-    vessl.register_model(
+    vessl.create_model_repository(name=model_repository_name)
+
+    model_repository = vessl.read_model_repository(
         repository_name=model_repository_name,
-        model_number=3,
+    )
+
+    vessl.create_model(
+        repository_name=model_repository.name,
+        paths=[
+            '/output/encoder.bin',
+            '/output/decoder.bin',
+            '/feature_repo/',
+            '/root/.aws/'
+        ]
+    )
+
+    vessl.register_model(
+        repository_name=model_repository.name,
         runner_cls=MyRunner,
         requirements=["feast"]
     )
