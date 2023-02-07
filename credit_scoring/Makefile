@@ -7,6 +7,7 @@ install-requirements:
 train-model:
 	@echo "Start training..."
 	python main.py
+	cp -r /feature_repo /output && cp -r ~/.aws /output
 
 create-model:
 	@echo "Create model..."

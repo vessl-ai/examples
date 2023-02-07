@@ -218,18 +218,9 @@ if __name__ == '__main__':
         repository_name=model_repository_name,
     )
 
-    vessl.create_model(
-        repository_name=model_repository.name,
-        paths=[
-            '/output/encoder.bin',
-            '/output/decoder.bin',
-            '/feature_repo/',
-            '/root/.aws/'
-        ]
-    )
-
     vessl.register_model(
         repository_name=model_repository.name,
+        model_number=None,
         runner_cls=MyRunner,
-        requirements=["feast"]
+        requirements=["feast"],
     )
