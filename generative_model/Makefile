@@ -3,6 +3,7 @@ run: install-diffuser install-requirements fine-tuning-model
 install-diffuser:
 	@echo "Install diffuser dev version..."
 	cd /root/diffusers
+	pwd
 	pip install .
 	cd /root
 

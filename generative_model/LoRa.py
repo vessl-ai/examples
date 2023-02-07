@@ -49,7 +49,6 @@ logger = get_logger(__name__, log_level="INFO")
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Stable diffusion and LoRa on Vessl")
-
     parser.add_argument(
         "--on_vessl",
         type=bool,
@@ -62,7 +61,7 @@ def parse_args():
         type=str,
         default="OFA-Sys/small-stable-diffusion-v0",
         help="Path to pretrained model or model identifier from huggingface.co/models."
-             "(OFA-Sys/small-stable-diffusion-v0 also available",
+             "CompVis/stable-diffusion-v1-4 also available",
     )
     parser.add_argument(
         "--revision",
