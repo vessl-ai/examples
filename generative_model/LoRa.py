@@ -248,15 +248,15 @@ def parse_args():
     parser.add_argument("--adam_weight_decay", type=float, default=1e-2, help="Weight decay to use.")
     parser.add_argument("--adam_epsilon", type=float, default=1e-08, help="Epsilon value for the Adam optimizer")
     parser.add_argument("--max_grad_norm", default=1.0, type=float, help="Max gradient norm.")
-    parser.add_argument(
-        "--logging_dir",
-        type=str,
-        default="logs",
-        help=(
-            "[TensorBoard](https://www.tensorflow.org/tensorboard) log directory. Will default to"
-            " *output_dir/runs/**CURRENT_DATETIME_HOSTNAME***."
-        ),
-    )
+    # parser.add_argument(
+    #     "--logging_dir",
+    #     type=str,
+    #     default="logs",
+    #     help=(
+    #         "[TensorBoard](https://www.tensorflow.org/tensorboard) log directory. Will default to"
+    #         " *output_dir/runs/**CURRENT_DATETIME_HOSTNAME***."
+    #     ),
+    # )
     parser.add_argument(
         "--mixed_precision",
         type=str,
@@ -266,15 +266,6 @@ def parse_args():
             "Whether to use mixed precision. Choose between fp16 and bf16 (bfloat16). Bf16 requires PyTorch >="
             " 1.10.and an Nvidia Ampere GPU.  Default to the value of accelerate config of the current system or the"
             " flag passed with the `accelerate.launch` command. Use this argument to override the accelerate config."
-        ),
-    )
-    parser.add_argument(
-        "--report_to",
-        type=str,
-        default='vessl',
-        help=(
-            'The integration to report the results and logs to. Supported platforms are `vessl` (originally None default)'
-            '`"tensorboard"`, `"wandb"` and `"comet_ml"`. Use `"all"` to report to all integrations.'
         ),
     )
     parser.add_argument("--local_rank", type=int, default=-1, help="For distributed training: local_rank")
