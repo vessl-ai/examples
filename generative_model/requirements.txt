@@ -1,0 +1,10 @@
+vessl
+torch
+torchvision
+accelerate
+datasets
+transformers>=4.25.1
+numpy
+pillow
+tqdm
+ftfy
