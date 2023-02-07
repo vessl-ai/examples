@@ -359,22 +359,22 @@ def main():
         set_seed(args.seed)
 
     # Handle the repository creation
-    if accelerator.is_main_process:
-        if args.push_to_hub:
-            if args.hub_model_id is None:
-                repo_name = get_full_repo_name(Path(args.output_dir).name, token=args.hub_token)
-            else:
-                repo_name = args.hub_model_id
-            repo_name = create_repo(repo_name, exist_ok=True)
-            repo = Repository(args.output_dir, clone_from=repo_name)
-
-            with open(os.path.join(args.output_dir, ".gitignore"), "w+") as gitignore:
-                if "step_*" not in gitignore:
-                    gitignore.write("step_*\n")
-                if "epoch_*" not in gitignore:
-                    gitignore.write("epoch_*\n")
-        elif args.output_dir is not None:
-            os.makedirs(args.output_dir, exist_ok=True)
+    # if accelerator.is_main_process:
+    #     if args.push_to_hub:
+    #         if args.hub_model_id is None:
+    #             repo_name = get_full_repo_name(Path(args.output_dir).name, token=args.hub_token)
+    #         else:
+    #             repo_name = args.hub_model_id
+    #         repo_name = create_repo(repo_name, exist_ok=True)
+    #         repo = Repository(args.output_dir, clone_from=repo_name)
+    #
+    #         with open(os.path.join(args.output_dir, ".gitignore"), "w+") as gitignore:
+    #             if "step_*" not in gitignore:
+    #                 gitignore.write("step_*\n")
+    #             if "epoch_*" not in gitignore:
+    #                 gitignore.write("epoch_*\n")
+    #     elif args.output_dir is not None:
+    #         os.makedirs(args.output_dir, exist_ok=True)
 
     # Load scheduler, tokenizer and models.
     noise_scheduler = DDPMScheduler.from_pretrained(args.pretrained_model_name_or_path, subfolder="scheduler")
@@ -778,15 +778,15 @@ def main():
         unet = unet.to(torch.float16)
         unet.save_attn_procs(args.output_dir)
 
-        if args.push_to_hub:
-            save_model_card(
-                repo_name,
-                images=images,
-                base_model=args.pretrained_model_name_or_path,
-                dataset_name=args.dataset_name,
-                repo_folder=args.output_dir,
-            )
-            repo.push_to_hub(commit_message="End of training", blocking=False, auto_lfs_prune=True)
+        # if args.push_to_hub:
+        #     save_model_card(
+        #         repo_name,
+        #         images=images,
+        #         base_model=args.pretrained_model_name_or_path,
+        #         dataset_name=args.dataset_name,
+        #         repo_folder=args.output_dir,
+        #     )
+        #     repo.push_to_hub(commit_message="End of training", blocking=False, auto_lfs_prune=True)
 
     # save last state of unet
     unet_last = accelerator.unwrap_model(unet)
