@@ -192,6 +192,7 @@ loan rejected!
 
 ## Interactive demo (using Streamlit)
 ### Requirements
+- streamlit
 - trained_model
   - encoder.bin
   - model.bin
