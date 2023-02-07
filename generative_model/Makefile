@@ -6,11 +6,11 @@ install-diffuser:
     pip install .
     cd -
 
-install-requirements
+install-requirements:
     @echo "Installing requirements..."
     pip install -r examples/generative_model/requirements.txt
 
-fine-tuning-model
+fine-tuning-model:
     @echo "Fine-tuning diffuser by LoRa on VESSL"
     accelerate launch --mixed_precision="bf16" examples/generative_model/LoRa.py --random_flip --train_batch_size=${train_batch_size} \
     --num_train_epochs=$(num_train_epochs) --learning_rate=${learning_rate} --seed=${seed} \
