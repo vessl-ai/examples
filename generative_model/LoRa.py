@@ -308,13 +308,10 @@ def parse_args():
 def main():
     args = parse_args()
 
-    logging_dir = os.path.join(args.output_dir, args.logging_dir)
-
     accelerator = Accelerator(
         gradient_accumulation_steps=args.gradient_accumulation_steps,
         mixed_precision=args.mixed_precision,
         log_with=None,
-        project_dir=logging_dir,
     )
 
     if args.on_vessl:
@@ -324,7 +321,7 @@ def main():
                 time.sleep(0.5)
                 vessllogger = VesslLogger(save_image=True)
         except:
-            raise ImportError("Make sure to install vessl if you're experiment vessl")
+            raise ImportError("Make sure to install vessl if you're on vessl experiment")
 
     logging.basicConfig(
         format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
@@ -528,7 +525,7 @@ def main():
         ]
     )
 
-    ## Modified for VESSL/BAYC dataset
+    # Modified for VESSL/BAYC dataset
     def preprocess_train(examples):
         images = [Image.open(BytesIO(image['bytes'])).convert("RGB") for image in examples[image_column]]
         examples["pixel_values"] = [train_transforms(image) for image in images]
@@ -750,9 +747,8 @@ def main():
         unet = unet.to(torch.float16)
         unet.save_attn_procs(args.output_dir)
 
-    # save full unet layer
-    unet_last = accelerator.unwrap_model(unet)
-    torch.save(unet_last.state_dict(), args.output_dir + "/lora_attn_state.pt")
+        unet_last = accelerator.unwrap_model(unet)
+        torch.save(unet_last.state_dict(), args.output_dir + "/lora_attn_state.pt")
 
     accelerator.end_training()
 
