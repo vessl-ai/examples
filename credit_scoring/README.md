@@ -1,4 +1,4 @@
-#Real-time Credit Scoring with Feast on AWS
+# Real-time Credit Scoring with Feast on AWS
 
 ## Summary
 - This example is modified from [feast-dev/feast-aws-credit-scoring-tutorial](https://github.com/feast-dev/feast-aws-credit-scoring-tutorial) for a better understanding of how to use Feast with [VESSL](http://vessl.ai/).
