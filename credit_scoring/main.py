@@ -7,7 +7,7 @@ from model import CreditScoringModel, MyFeast
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Credit scoring example')
-    parser.add_argument('--feature-repo-path', type=str, default='/input',
+    parser.add_argument('--feature-repo-path', type=str, default='/feature_repo',
                         help='Feast feature repo path')
     parser.add_argument('--input-path', type=str, default='/input',
                         help='input dataset path')

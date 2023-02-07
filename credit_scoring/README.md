@@ -124,6 +124,10 @@ Created feature view credit_history
 Deploying infrastructure for zipcode_features
 Deploying infrastructure for credit_history
 ```
+Let's put a `feature_store.yaml` to S3.
+```bash
+aws s3api put-object --bucket vessl-public-apne2 --key credit_scoring/feature_repo/feature_store.yaml --body feature_store.yaml
+```
 Next we load features into the online store using materialize command.
 ```bash
 CURRENT_TIME=$(date -u +"%Y-%m-%dT%H:%M:%S")

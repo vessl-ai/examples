@@ -1,5 +1,5 @@
 project: credit_scoring_aws
-registry: s3://vessl-public-apne2/credit_scoring/registry.db
+registry: s3://vessl-public-apne2/credit_scoring/feature_repo/registry.db
 provider: aws
 online_store:
     type: dynamodb
@@ -10,5 +10,5 @@ offline_store:
     region: ap-northeast-2
     user: admin
     database: dev
-    s3_staging_location: s3://vessl-public-apne2/credit_scoring
+    s3_staging_location: s3://vessl-public-apne2/credit_scoring/source_data
     iam_role: ${tf_redshift_spectrum_arn}
