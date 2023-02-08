@@ -33,18 +33,18 @@ We will deploy the following resources:
 - IAM roles and policies: Redshift to access S3
 - Glue catalogs: zipcode features and credit history
 
-1. Initialize terraform
+#### 1. Initialize terraform
 ```bash
 cd infra
 terraform init
 ```
-2. Set terraform variables
+#### 2. Set terraform variables
 ```bash
 export TF_VAR_region="ap-northeast-2"
 export TF_VAR_project_name="vessl-credit-scoring-project"
 export TF_VAR_admin_password="MyAdminPassword1"
 ```
-3. Plan and deploy infrastructure on your AWS
+#### 3. Plan and deploy infrastructure on your AWS
 ```bash
 terraform plan
 terraform apply
@@ -60,7 +60,7 @@ To have these outputs in env variables, you can source the `env` script.
 ```bash
 (cd .. && source env)
 ```
-4. Create a mapping from the Redshift cluster to the external catalog
+#### 4. Create a mapping from the Redshift cluster to the external catalog
 ```bash
 aws redshift-data execute-statement \
     --region "${TF_VAR_region}" \
@@ -77,7 +77,7 @@ You might find list-statements command useful to find executed statement ids.
 ```bash
 aws redshift-data list-statements --region ${TF_VAR_region}
 ```
-5. You should now be able to query actual zipcode features by executing the following statement.
+#### 5. You should now be able to query actual zipcode features by executing the following statement.
 ```bash
 aws redshift-data execute-statement \
     --region "${TF_VAR_region}" \
@@ -110,11 +110,12 @@ You should have one `ResultsRows` without any error.
 ### Setting up Feast
 > Note that this step should be done before running an experiment on VESSL.
 
-Install Feast using pip
+#### 1. Install Feast using pip
 ```bash
 pip install 'feast[aws]'
 ```
-Deploy the feature store by running `apply` from within the `feature_repo/` directory.
+#### 2. Deploy the feature store 
+Run `apply` from within the `feature_repo/` directory.
 ```bash
 cd feature_repo
 feast apply
@@ -129,10 +130,12 @@ Created feature view credit_history
 Deploying infrastructure for zipcode_features
 Deploying infrastructure for credit_history
 ```
-Let's put a `feature_store.yaml` object to S3 bucket.
+#### 3. Put `feature_store.yaml` to S3
 ```bash
 aws s3api put-object --bucket vessl-public-apne2 --key credit_scoring/feature_repo/feature_store.yaml --body feature_store.yaml
 ```
+
+#### 4. Materialize
 Next we load features into the online store using materialize command.
 ```bash
 CURRENT_TIME=$(date -u +"%Y-%m-%dT%H:%M:%S")
@@ -151,17 +154,44 @@ credit_history:
 ## Train a model
 Finally, we train a model on VESSL using a combination of loan data from S3 and our zipcode and credit history features from
 Redshift (which in turn queries S3).
-### Start command
-```bash
-make run
-```
+### Dataset
+#### 1. Prepare datasets
+Prepare loan table and feature store dataset in VESSL with the following public S3 bucket URIs. [Learn more](https://docs.vessl.ai/user-guide/dataset/adding-new-datasets)
+- `s3://vessl-public-apne2/credit_scoring/loan_table`
+- `s3://vessl-public-apne2/credit_scoring/feature_repo`
+
+![dataset](asset/dataset.png)
+#### 2. Run an experiment
+Mount the following volumes:
+- Add Dataset:
+  - `/feature_repo`: credit-scoring-feature-store
+  - `/input`: credit-scoring-loan-table
+- Add File:
+  - `/root/.aws`: your aws credentials (or set them as environment variables)
+- Add Code:
+  - `/root/examples`: your GitHub repository
+
+![volume mount](asset/volume_mount.png)
+
+Set start command and hyperparamters as follows.
+- Start command 
+  ```
+  cd examples/credit_scoring && make run
+  ```
+- Hyperparamters
+  > Note that hyperparameters are set as envrionment variables in container. [Learn more](https://docs.vessl.ai/user-guide/experiment/creating-an-experiment#hyperparameters)
+  - `tf_redshift_spectrum_arn`: YOUR_REDSHIFT_ARN
+  - `tf_redshift_cluster_identifier`: YOUR_REDSHIFT_CLUSTER_IDENTIFIER
+
+![start command](asset/start_command.png)
 
 ## Model serving
 We will test online inference by reading features from DynamoDB.
 
-1. Create a model from your completed experiment on Web UI. 
+1. Create a model from your completed experiment on Web UI. [Learn more](https://docs.vessl.ai/user-guide/model-registry/creating-a-model)
+
 ![Create a model on Web UI](asset/create_model.png)
-2. On your local device run following commands with `YOUR_MODEL_REPOSITORY_NAME` and `YOUR_MODEL_NUMBER` to register model.
+3. On your local device run following commands with `YOUR_MODEL_REPOSITORY_NAME` and `YOUR_MODEL_NUMBER` to register model. [Learn more](https://docs.vessl.ai/user-guide/model-registry/deploying-a-model)
 ```bash
 make register-model
 ```
@@ -176,7 +206,7 @@ Uploading 1 file(s) (6.6KiB)...
 Total 1 file(s) uploaded.
 Successfully registered model: https://vessl.ai/YOUR_ORGANIZATION/models/YOUR_MODEL_REPOSITORY_NAME/YOUR_MODEL_NUMBER
 ```
-3. Deploy the registered model into production on Web UI.
+3. Deploy the registered model into production on Web UI. [Learn more](https://docs.vessl.ai/user-guide/model-registry/deploying-a-model#deploy-a-registered-model)
 > Note that you should choose the same Python version you used to register your model.
 
 ![Deploy a model on Web UI](asset/deploy_model.png)
