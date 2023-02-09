@@ -20,10 +20,7 @@ https://github.com/huggingface/diffusers/blob/main/examples/text_to_image/train_
 #### You need to install diffusers>=0.13.0.dev0
 git clone to install dev version of diffusers (may change in future)
 ```bash
-git clone https://github.com/huggingface/diffusers.git \
-cd diffusers\
-pip install .\
-cd -
+pip install git+https://github.com/huggingface/diffusers.git
 ```
 
 ### Start Command
