@@ -3,7 +3,14 @@
 ## Text_to_image fine-tuning by LoRa on Bayc text-image dataset
 
 ### Dataset 
+Image-Text pair with auto generated
+
+You can train with your own dataset using huggingface dataset or Vessl dataset mount
+- Check dataset format url below
+- Also, you can modify data pre-processing code in LoRa.py 
+
 https://huggingface.co/datasets/VESSL/Bored_Ape_NFT_text
+
 
 ### Reference code 
 https://github.com/huggingface/diffusers/blob/main/examples/text_to_image/train_text_to_image_lora.py
@@ -44,4 +51,5 @@ examples/generative_model/LoRa.py --random_flip --on_vessl=True  \
    ```
 
 ### VESSL
-You can try it on vessl more easily! Visit https://vessl.ai/
+
+You can try it on vessl more easily! Visit https://vessl.ai/ for easy and reproducible training and validation.
