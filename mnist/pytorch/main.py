@@ -2,41 +2,14 @@ import argparse
 import os
 import random
 
-import numpy as np
 import pandas as pd
-import torch
-import torch.nn as nn
 import torch.nn.functional as F
-import vessl
 from torch import optim
 from torch.optim.lr_scheduler import StepLR
 from torchvision import datasets, transforms
+from model import *
 
 vessl.init()
-
-
-class Net(nn.Module):
-    def __init__(self):
-        super(Net, self).__init__()
-        self.conv = nn.Conv2d(1, 32, 3, 1)
-        self.relu = nn.ReLU()
-        self.pool = nn.MaxPool2d(2)
-        self.drop1 = nn.Dropout2d(0.25)
-        self.drop2 = nn.Dropout2d(0.5)
-        self.fc1 = nn.Linear(5408, 128)
-        self.fc2 = nn.Linear(128, 10)
-        self.softmax = nn.LogSoftmax(1)
-
-    def forward(self, x):
-        x = self.relu(self.conv(x))
-        x = self.pool(x)
-        x = self.drop1(x)
-        x = torch.flatten(x, 1)
-        x = self.fc1(x)
-        x = self.relu(x)
-        x = self.drop2(x)
-        x = self.fc2(x)
-        return self.softmax(x)
 
 
 def load_data(data_dir, filename):
