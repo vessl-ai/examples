@@ -304,7 +304,9 @@ def main():
         mixed_precision=args.mixed_precision,
         log_with=None,
     )
-
+    torch.ddp
+    scatter
+    gradine
     if args.on_vessl:
         try:
             if accelerator.is_main_process:
@@ -418,6 +420,8 @@ def main():
         args.learning_rate = (
                 args.learning_rate * args.gradient_accumulation_steps * args.train_batch_size * accelerator.num_processes
         )
+
+
 
     # Initialize the optimizer
     if args.use_8bit_adam:

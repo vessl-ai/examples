@@ -1,6 +1,7 @@
 import json
 import os
 
+import sklearn.pipeline
 import vessl
 import matplotlib.pyplot as plt
 from pathlib import Path
@@ -53,7 +54,7 @@ class MyFeast:
         ).to_dict()
 
 
-class CreditScoringModel:
+class CreditScoringModel(sklearn.pipeline.Pipeline):
     categorical_features = [
         "person_home_ownership",
         "loan_intent",
