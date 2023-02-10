@@ -1,19 +1,19 @@
-import json
-import os
-
-import sklearn.pipeline
-import vessl
 import matplotlib.pyplot as plt
 from pathlib import Path
+import os
+import json
 
 import feast
 import joblib
 import pandas as pd
+import vessl
+
 from sklearn import tree
 from sklearn.exceptions import NotFittedError
 from sklearn.preprocessing import OrdinalEncoder
 from sklearn.model_selection import LearningCurveDisplay
 from sklearn.utils.validation import check_is_fitted
+from sklearn.pipeline import Pipeline
 
 
 class MyFeast:
@@ -54,7 +54,7 @@ class MyFeast:
         ).to_dict()
 
 
-class CreditScoringModel(sklearn.pipeline.Pipeline):
+class CreditScoringModel(Pipeline):
     categorical_features = [
         "person_home_ownership",
         "loan_intent",

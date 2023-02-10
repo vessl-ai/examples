@@ -26,12 +26,3 @@ if __name__ == '__main__':
 
     # Train model (using Redshift for zipcode and credit history features)
     model.train(loans)
-
-    # Serve using bentoml
-
-    bentoml.sklearn.save_model("credit_scoring_model", model)
-
-
-
-    print("script ends")
-

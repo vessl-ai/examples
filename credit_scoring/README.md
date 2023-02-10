@@ -226,8 +226,9 @@ loan rejected!
 - trained_model
   - encoder.bin
   - model.bin
-Once the credit scoring model has been trained it can be used for interactive loa application using Streamlit.
-Simply start the Streamlit application.
+
+Once the credit scoring model has been trained it can be used for interactive loa application using Streamlit. Simply start the Streamlit application.
+
 ```bash
 streamlit run app.py
 ```
@@ -239,4 +240,76 @@ loan applications can be made:
 ```bash
 cd infra
 terraform destroy 
+```
+
+## Docker image (using BentoML)
+### Requirments 
+- bentoml
+- trained_model
+  - encoder.bin
+  - model.bin
+### Prepare
+- aws access key id 
+- aws secret access key
+
+Once the credit scoring model has been trained, you can make docker image using bentoML by simply build bentoml model.
+
+1. Make bentoml model
+
+  ```bash
+  python bentoML.py
+  ```
+
+2. Build with bentofile.yaml
+
+#### bentofile.yaml
+```yaml
+service: "service.py:svc"
+labels:
+  owner: YOUR_NAME
+  project: YOUR_PROJECT_NAME
+include:
+- "model.py"
+- "bentoML.py"
+- "main.py"
+- "service.py"
+- "feature_repo"
+- "infra"
+- "data"
+- "asset"
+- "encoder.bin"
+- "model.bin"
+
+python:
+  packages:
+    - scikit-learn
+    - pandas
+    - vessl
+    - matplotlib
+    - feast
+    - joblib
+```
+
+```bash
+bentoml build
+```
+3. Make docker image using bentoML command
+```bash
+bentoml containerize credit_classifier:$TAG  
+```
+4. Run docker
+
+```bash
+docker run -e AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID -e AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
+-it --rm -p 3000:3000 credit_classifier:$TAG serve --production
+```
+
+Then you can check your docker container at http://localhost:3000/ 
+
+![bentoML screenshot](asset/bentoML.png)
+
+5. Curl POST
+```bash
+curl -X POST -H "Content-Type: application/json"  http://localhost:3000/scoring  \                                   
+-d '{"zipcode": [76104], "dob_ssn": ["19630621_4278"], "person_age": [133], "person_income": [59000], "person_home_ownership": ["RENT"], "person_emp_length": [123.0], "loan_intent": ["PERSONAL"], "loan_amnt": [35000], "loan_int_rate": [16.02]}'
 ```
