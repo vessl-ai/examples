@@ -76,7 +76,7 @@ class MyRunner(vessl.RunnerBase):
 vessl.configure()
 vessl.register_model(
     repository_name="YOUR_REPOSITORY_NAME",
-    model_number=MODEL_NUMBER,
+    model_number=None,
     runner_cls=MyRunner,
     requirements=["torch"],
 )
