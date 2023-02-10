@@ -242,26 +242,24 @@ cd infra
 terraform destroy 
 ```
 
-## Docker image (using BentoML)
-### Requirments 
+## BentoML example
+### Requirements 
 - bentoml
 - trained_model
   - encoder.bin
   - model.bin
-### Prepare
-- aws access key id 
-- aws secret access key
+- AWS credentials
+  - aws access key id 
+  - aws secret access key
 
 Once the credit scoring model has been trained, you can make docker image using bentoML by simply build bentoml model.
 
 1. Make bentoml model
-
   ```bash
   python bentoML.py
   ```
 
 2. Build with bentofile.yaml
-
 #### bentofile.yaml
 ```yaml
 service: "service.py:svc"
@@ -293,6 +291,10 @@ python:
 ```bash
 bentoml build
 ```
+Once your build , you should see the tag in the following outputs from Bento ML.
+```bash
+Successfully built Bento(tag="credit_classifier:plyuipvjeooz6pgn").
+```
 3. Make docker image using bentoML command
 ```bash
 bentoml containerize credit_classifier:$TAG  
@@ -301,7 +303,7 @@ bentoml containerize credit_classifier:$TAG
 
 ```bash
 docker run -e AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID -e AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
--it --rm -p 3000:3000 credit_classifier:$TAG serve --production
+  -it --rm -p 3000:3000 credit_classifier:$TAG serve --production
 ```
 
 Then you can check your docker container at http://localhost:3000/ 
