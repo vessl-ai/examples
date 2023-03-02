@@ -40,7 +40,7 @@ terraform init
 ```
 #### 2. Set terraform variables
 ```bash
-export TF_VAR_region="ap-northeast-2"
+export TF_VAR_region="us-west-2"
 export TF_VAR_project_name="vessl-credit-scoring-project"
 export TF_VAR_admin_password="MyAdminPassword1"
 ```
@@ -132,7 +132,7 @@ Deploying infrastructure for credit_history
 ```
 #### 3. Put `feature_store.yaml` to S3
 ```bash
-aws s3api put-object --bucket vessl-public-apne2 --key credit_scoring/feature_repo/feature_store.yaml --body feature_store.yaml
+aws s3api put-object --bucket vessl-public-uw2 --key credit_scoring/feature_repo/feature_store.yaml --body feature_store.yaml
 ```
 
 #### 4. Materialize
@@ -157,8 +157,8 @@ Redshift (which in turn queries S3).
 ### Dataset
 #### 1. Prepare datasets
 Prepare loan table and feature store dataset in VESSL with the following public S3 bucket URIs. [Learn more](https://docs.vessl.ai/user-guide/dataset/adding-new-datasets)
-- `s3://vessl-public-apne2/credit_scoring/loan_table`
-- `s3://vessl-public-apne2/credit_scoring/feature_repo`
+- `s3://vessl-public-uw2/credit_scoring/loan_table`
+- `s3://vessl-public-uw2/credit_scoring/feature_repo`
 
 ![dataset](asset/dataset.png)
 #### 2. Run an experiment
