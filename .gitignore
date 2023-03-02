@@ -16,3 +16,4 @@ __pycache__/
 .vessl-serving/
 vessl.manifest.yaml
 vessl.runner.pkl
+/credit_scoring/iris_classifier.ipynb

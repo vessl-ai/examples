@@ -304,7 +304,6 @@ def main():
         mixed_precision=args.mixed_precision,
         log_with=None,
     )
-
     if args.on_vessl:
         try:
             if accelerator.is_main_process:

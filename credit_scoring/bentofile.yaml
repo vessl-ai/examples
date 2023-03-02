@@ -1,0 +1,24 @@
+service: "service.py:svc"
+labels:
+  owner: VESSL
+  project: bento_test
+include:
+- "model.py"
+- "bentoML.py"
+- "main.py"
+- "service.py"
+- "feature_repo"
+- "infra"
+- "data"
+- "asset"
+- "encoder.bin"
+- "model.bin"
+
+python:
+  packages:
+    - scikit-learn
+    - pandas
+    - vessl
+    - matplotlib
+    - feast
+    - joblib

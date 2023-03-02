@@ -146,3 +146,4 @@ websockets==10.4
 wrapt==1.14.1
 yarl==1.8.2
 zipp==3.11.0
+bentoml

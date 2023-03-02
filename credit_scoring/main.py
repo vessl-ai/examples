@@ -1,7 +1,8 @@
 import argparse
 import os
-
 import pandas as pd
+
+from matplotlib import pyplot as plt
 
 from model import CreditScoringModel, MyFeast
 
@@ -15,7 +16,7 @@ if __name__ == '__main__':
                         help='output files path')
     args = parser.parse_args()
 
-    # Get historic loan data
+    # Get historic loan datapyth
     loan_data_path = os.path.join(args.input_path, "loan_features/table.parquet")
     loans = pd.read_parquet(loan_data_path)
 
