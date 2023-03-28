@@ -114,7 +114,6 @@ class BaseBinarizer:
         lengths = []
         f0s = []
         total_sec = 0
-        print("debug - 1")
         for item_name, meta_data in self.meta_data_iterator(prefix):
             args.append([item_name, meta_data, self.binarization_args])
         spec_min = []
