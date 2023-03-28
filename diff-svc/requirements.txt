@@ -1,0 +1,14 @@
+torchcrepe
+praat-parselmouth==0.4.1
+scikit-image
+ipython
+ipykernel
+pyloudnorm
+webrtcvad
+h5py
+einops
+pycwt
+torchmetrics
+pytorch_lightning==1.8.3
+pydub
+torchaudio
