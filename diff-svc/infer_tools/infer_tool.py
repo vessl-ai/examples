@@ -4,14 +4,13 @@ import os
 import time
 from io import BytesIO
 from pathlib import Path
-
+from collections import defaultdict
 import librosa
 import numpy as np
 import soundfile
 import torch
 
 import utils
-from modules.fastspeech.pe import PitchExtractor
 from network.diff.candidate_decoder import FFT
 from network.diff.diffusion import GaussianDiffusion
 from network.diff.net import DiffNet
@@ -46,9 +45,6 @@ def read_temp(file_name):
             print(f"{file_name} error,auto rebuild file")
             data_dict = {"info": "temp_dict"}
         return data_dict
-
-
-f0_dict = read_temp("./infer_tools/f0_temp.json")
 
 
 def write_temp(file_name, data):
@@ -226,7 +222,7 @@ class Svc:
 
         def get_pitch(wav, mel):
             # get ground truth f0 by self.get_pitch_algorithm
-            global f0_dict
+            f0_dict = defaultdict()
             if use_crepe:
                 md5 = get_md5(wav)
                 if f"{md5}_gt" in f0_dict.keys():
@@ -241,7 +237,6 @@ class Svc:
                     "f0": coarse_f0.tolist(),
                     "time": int(time.time()),
                 }
-                write_temp("./infer_tools/f0_temp.json", f0_dict)
             else:
                 gt_f0, coarse_f0 = get_pitch_parselmouth(wav, mel, hparams)
             processed_input["f0"] = gt_f0
