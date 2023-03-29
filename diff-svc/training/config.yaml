@@ -50,7 +50,6 @@ keep_bins: 80
 loud_norm: false
 lr: 0.0004
 max_beta: 0.02
-max_epochs: 1000
 max_eval_sentences: 1
 max_eval_tokens: 60000
 max_frames: 42000
