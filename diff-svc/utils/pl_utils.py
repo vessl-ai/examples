@@ -30,7 +30,7 @@ class BaseTrainer:
         self,
         exp_name="",
         gradient_clip_val=0,
-        max_epochs=10000,
+        max_epoch=10000,
         log_interval=50,
     ):
         self.gradient_clip_val = gradient_clip_val
@@ -52,7 +52,7 @@ class BaseTrainer:
         self.model = None
         self.optimizers = None
         self.total_batches = 0
-        self.max_epochs = max_epochs
+        self.max_epoch = max_epoch
         self.log_interval = log_interval
 
         self.current_epoch = 0
@@ -211,7 +211,7 @@ class BaseTrainer:
         output_path = f"/output/{self.exp_name}"
         Path(output_path).mkdir(parents=True, exist_ok=True)
         # run all epochs
-        for epoch in range(self.current_epoch, self.max_epochs):
+        for epoch in range(self.current_epoch, self.max_epoch):
             self.current_epoch = epoch
 
             # update training progress in trainer and model

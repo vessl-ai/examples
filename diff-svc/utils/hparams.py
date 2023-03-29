@@ -113,7 +113,7 @@ def set_hparams(
     # due to legacy configs, use infer_ckpt_epoch as key
     if config == "":
         hparams_["log_interval"] = args.log_interval
-        hparams_["max_epochs"] = args.max_epochs
+        hparams_["max_epoch"] = args.max_epoch
         hparams_["exp_name"] = args.exp_name
         hparams_["org"] = args.org
         hparams_["vessl_project_name"] = args.vessl_project_name

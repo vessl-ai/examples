@@ -198,7 +198,7 @@ class BaseTask(nn.Module):
         trainer = BaseTrainer(
             exp_name=hparams["exp_name"],
             gradient_clip_val=hparams["clip_grad_norm"],
-            max_epochs=hparams["max_epochs"],
+            max_epoch=hparams["max_epoch"],
             log_interval=hparams["log_interval"],
         )
         trainer.fit(task)
