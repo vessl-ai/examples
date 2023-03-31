@@ -2,3 +2,4 @@ vessl[media]
 numpy
 pandas
 torch
+torchvision
