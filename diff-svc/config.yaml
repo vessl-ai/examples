@@ -1,0 +1,103 @@
+binarization_args:
+  shuffle: false
+  with_align: true
+  with_f0: true
+  with_hubert: true
+  with_spk_embed: false
+  with_wav: false
+binarizer_cls: preprocessing.SVCpre.SVCBinarizer
+project_name: a100_test
+
+config_path: training/config.yaml
+load_ckpt: ''
+task_cls: training.task.SVC_task.SVCTask
+vocoder_ckpt: /input/vessl-diff-svc/checkpoints/hifigan
+
+K_step: 1000
+audio_num_mel_bins: 80
+audio_sample_rate: 24000
+clip_grad_norm: 1
+cwt_hidden_size: 128
+debug: false
+dec_ffn_kernel_size: 9
+dec_layers: 4
+decay_steps: 40000
+decoder_type: fft
+diff_decoder_type: wavenet
+diff_loss_type: l2
+dilation_cycle_length: 4
+dropout: 0.1
+ds_workers: 4
+dur_loss: mse
+enc_ffn_kernel_size: 9
+enc_layers: 4
+encoder_type: fft
+endless_ds: false
+f0_bin: 256
+f0_max: 1100.0
+f0_min: 50.0
+ffn_act: gelu
+ffn_padding: SAME
+fft_size: 512
+fmax: 12000
+fmin: 30
+gaussian_start: true
+hidden_size: 256
+hop_size: 128
+hubert_gpu: true
+hubert_path: /input/vessl-diff-svc/checkpoints/hubert/hubert_soft.pt
+keep_bins: 80
+loud_norm: false
+lr: 0.0004
+max_beta: 0.02
+max_eval_sentences: 1
+max_eval_tokens: 60000
+max_frames: 42000
+max_input_tokens: 60000
+max_sentences: 40
+max_tokens: 80000
+mel_loss: ssim:0.5|l1:0.5
+mel_vmax: 1.5
+mel_vmin: -6.0
+min_level_db: -120
+num_heads: 2
+num_spk: 1
+optimizer_adam_beta1: 0.9
+optimizer_adam_beta2: 0.98
+pe_ckpt: ''
+pe_enable: false
+pitch_norm: log
+pitch_type: frame
+pndm_speedup: 10
+predictor_dropout: 0.5
+predictor_grad: 0.1
+predictor_hidden: -1
+predictor_kernel: 5
+predictor_layers: 5
+profile_infer: false
+rel_pos: true
+residual_channels: 256
+residual_layers: 20
+schedule_type: linear
+seed: 1234
+sort_by_len: true
+test_set_name: test
+timesteps: 1000
+train_set_name: train
+use_crepe: true
+use_energy_embed: false
+use_midi: false
+use_nsf: true
+use_pitch_embed: true
+use_pos_embed: true
+use_spk_embed: false
+use_spk_id: false
+use_split_spk_id: false
+use_uv: false
+use_vec: false
+valid_set_name: valid
+vocoder: HifiGAN
+wav2spec_eps: 1e-6
+weight_decay: 0
+win_size: 512
+no_fs2: true
