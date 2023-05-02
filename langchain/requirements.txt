@@ -1,0 +1,4 @@
+langchain
+GitPython
+chromadb
+tiktoken
