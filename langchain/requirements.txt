@@ -2,3 +2,4 @@ langchain
 GitPython
 chromadb
 tiktoken
+deeplake

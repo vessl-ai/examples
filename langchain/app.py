@@ -7,7 +7,7 @@ def make_qa_from_git_streamlit() :
 def main() :
     qa = make_qa_from_git_streamlit()
 
-    st.title("Vessl docs searcher")
+    st.title("VESSL docs searcher")
     st.write("You can get answers by question and answering from vessl docs.")
 
     user_question = st.text_input("Enter Question:")
