@@ -10,7 +10,7 @@ st.set_page_config(layout="wide")
 
 @st.cache_resource()
 def MakingQA(repo_url=None, branch="main", files=None, chunk_size=500, chunk_overlap=100):
-    st.write("Making QA Chatbot Server from your data with VESSL")
+    st.write("Making QA Chatbot Server from your data with VESSL, it may take a few minutes depends on your data size")
     return make_qa(repo_url,
                    branch,
                    files,
@@ -58,11 +58,11 @@ def main():
         if submit_button and (uploaded_files or repo_url) and chunk_size and chunk_overlap:
             file_paths = []
             if uploaded_files:
-                os.makedirs("./tmp", exist_ok=True)
+                os.makedirs("./streamlit_data", exist_ok=True)
                 for uploaded_file in uploaded_files:
-                    with open(os.path.join("./tmp", uploaded_file.name), "wb") as f:
+                    with open(os.path.join("./streamlit_data", uploaded_file.name), "wb") as f:
                         f.write(uploaded_file.getbuffer())
-                    file_paths.append(os.path.join("./tmp", uploaded_file.name))
+                    file_paths.append(os.path.join("./streamlit_data", uploaded_file.name))
                     st.success("Saved file: {}".format(uploaded_file.name))
 
             st.session_state["uploaded_files"] = file_paths
