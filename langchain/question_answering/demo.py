@@ -8,20 +8,9 @@ VESSL_LOGO_URL = "https://vessl-public-apne2.s3.ap-northeast-2.amazonaws.com/ves
 st.set_page_config(layout="wide")
 
 
-def parse_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--repo_url", type=str, default=None)
-    parser.add_argument("--repo_dir", type=str, default=None)
-    parser.add_argument("--output_dir", type=str, default="./output")
-    parser.add_argument("--mode", type=str, default="git")
-    parser.add_argument("--add", type=bool, default=False)
-    return parser.parse_args()
-
-
 @st.cache_resource()
 def MakingQA(repo_url=None, branch="main", files=None, chunk_size=500, chunk_overlap=100):
     st.write("Making QA Chatbot Server from your data with VESSL")
-    st.write("It will take a few minutes to process your data(eg. 5 minutes 10 files, 100MB)")
     return make_qa(repo_url,
                    branch,
                    files,
@@ -29,13 +18,6 @@ def MakingQA(repo_url=None, branch="main", files=None, chunk_size=500, chunk_ove
                    chunk_size=chunk_size,
                    chunk_overlap=chunk_overlap,
                    )
-
-
-def QuestionProcessing(qa, question, chat_history):
-    if question == "":
-        msg("Please enter your question", is_user=False)
-    msg("Processing your question...", is_user=False)
-    return qa({"question": question, "chat_history": chat_history})
 
 
 def streamlit_display_title():
@@ -103,7 +85,7 @@ def main():
         chunk_overlap=st.session_state["chunk_overlap"],
     )
 
-    user_question = st.text_input("Enter Question:")
+    user_question = st.text_input("Enter Question ('clear' to reset history)")
     submit_button = st.button("Submit Question")
 
     if "history" not in st.session_state:
@@ -115,9 +97,14 @@ def main():
         msg(hist[1], is_user=False)
 
     if submit_button and user_question:
+        if user_question == "clear":
+            st.session_state['history'] = []
+            st.success("History cleared")
+            quit()
         msg(user_question, is_user=True)
         try:
-            result = QuestionProcessing(qa, user_question, st.session_state['history'])
+            msg("Processing your question...", is_user=False)
+            result = qa({"question": user_question, "chat_history": st.session_state['history']})
         except:
             msg("Error occured while processing, please retry with fresh question", is_user=False)
             return
