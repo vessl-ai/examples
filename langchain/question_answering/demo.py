@@ -1,11 +1,11 @@
 import streamlit as st
 from utils import *
-import streamlit_chat
+from streamlit_chat import message as msg
 import os
-import sys
-import time
 
-VESSL_LOGO_URL = "https://vessl-public-apne2.s3.ap-northeast-2.amazonaws.com/vessl-logo/vessl_logo.jpeg"
+VESSL_LOGO_URL = "https://vessl-public-apne2.s3.ap-northeast-2.amazonaws.com/vessl-logo/vessl-ai_color_light" \
+                 "-background.png"
+st.set_page_config(layout="wide")
 
 
 def parse_args():
@@ -20,6 +20,8 @@ def parse_args():
 
 @st.cache_resource()
 def MakingQA(repo_url=None, branch="main", files=None, chunk_size=500, chunk_overlap=100):
+    st.write("Making QA Chatbot Server from your data with VESSL")
+    st.write("It will take a few minutes to process your data(eg. 5 minutes 10 files, 100MB)")
     return make_qa(repo_url,
                    branch,
                    files,
@@ -29,15 +31,17 @@ def MakingQA(repo_url=None, branch="main", files=None, chunk_size=500, chunk_ove
                    )
 
 
-@st.cache_data()
 def QuestionProcessing(qa, question, chat_history):
+    if question == "":
+        msg("Please enter your question", is_user=False)
+    msg("Processing your question...", is_user=False)
     return qa({"question": question, "chat_history": chat_history})
 
 
 def streamlit_display_title():
     st.image(VESSL_LOGO_URL, width=400)
-    st.title("Langchain with VESSL")
-    st.subheader("VESSL is End-to-End MLops platform for ML engineers. Please check our product at https://vessl.ai/")
+    st.title("Making QA Chatbot Server from your data with VESSL")
+    st.write("VESSL is End-to-End MLops platform for ML engineers. Please check our product at https://vessl.ai/")
     return
 
 
@@ -51,6 +55,8 @@ def main():
         if submit_button and api_key:
             st.session_state["api_key"] = api_key
             os.environ["OPENAI_API_KEY"] = api_key
+            st.write("click submit button again to move next step")
+            quit()
 
     if "api_key" not in st.session_state:
         st.warning("Please enter your OpenAI API key")
@@ -64,8 +70,8 @@ def main():
                                           )
         repo_url = st.text_input("Enter git repo url to integrate in your source", value="")
         repo_branch = st.text_input("Enter branch of repo url to integrate in your source", value="main")
-        chunk_size = st.number_input("Enter chunk size", value=500)
-        chunk_overlap = st.number_input("Enter chunk overlap", value=100)
+        chunk_size = st.number_input("Enter chunk size [How large to split long texts]", value=500)
+        chunk_overlap = st.number_input("Enter chunk overlap [How much to overlap splitted texts]", value=100)
         submit_button = st.button("Submit", key="submit_button")
         if submit_button and (uploaded_files or repo_url) and chunk_size and chunk_overlap:
             file_paths = []
@@ -82,9 +88,10 @@ def main():
             st.session_state["git_branch"] = repo_branch
             st.session_state["chunk_size"] = chunk_size
             st.session_state["chunk_overlap"] = chunk_overlap
-            # quit()
+            st.write("click submit button again to move next step")
+            quit()
 
-    if st.session_state.get('uploaded_files') is None and st.session_state.get('git_repo') is "":
+    if st.session_state.get('uploaded_files') is None and st.session_state.get('git_repo') is None:
         st.warning("Please upload files or enter git repo url")
         quit()
 
@@ -102,24 +109,21 @@ def main():
     if "history" not in st.session_state:
         st.session_state['history'] = []
 
-    ## ensure displaying history
+    # ensure displaying history
     for hist in st.session_state['history']:
-        st.write("Q: " + hist[0])
-        st.write("A: " + hist[1])
-        st.write("")
+        msg(hist[0], is_user=True)
+        msg(hist[1], is_user=False)
 
     if submit_button and user_question:
-        st.write("Q: " + user_question)
+        msg(user_question, is_user=True)
         try:
             result = QuestionProcessing(qa, user_question, st.session_state['history'])
         except:
-            st.write("Error occured while processing, please retry with fresh question")
-            # TODO: 에러 메세지 띄우기 + 핸들링
+            msg("Error occured while processing, please retry with fresh question", is_user=False)
             return
         st.session_state['history'].append((user_question, result["answer"]))
-        ## display new answer
-        st.write("A: " + result["answer"])
-        st.write("")
+        # display new answer
+        msg(result["answer"], is_user=False)
 
 
 if __name__ == "__main__":
