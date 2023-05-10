@@ -1,0 +1,16 @@
+langchain
+GitPython
+chromadb
+tiktoken
+deeplake
+
+faiss-cpu
+faiss-gpu
+google-search-results
+
+streamlit
+streamlit-chat
+
+getpass
+
+pypdf
