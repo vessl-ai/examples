@@ -60,15 +60,11 @@ def parse_slack_messages(file_path, output_dir) :
     file_path : slack message file path
     add header about its directory info to eech file and save to output_dir
 
-    sort by date and merge by channel is needed
-    channels.json , integration_logs.json, users.json are not needed
-    random, support, support-kr, vessl-tips, yonsei-ai, kaist-ai, general, random, etc
-
     json architecture
     data :{
         0 {
             type (message, file, etc)
-            subtype (channel_join, etc) -> channel in의 경우에는 버림
+            subtype (channel_join, etc)
             text (maybe the question) -> most important part
             blocks
             user_profile : {
@@ -83,7 +79,6 @@ def parse_slack_messages(file_path, output_dir) :
     """
 
     channels = set()
-    channel_conversation_log = []
     for file in sorted(glob.glob(f"{file_path}/**/*.json", recursive=True)):
 
         if (os.path.isdir(file)) :
@@ -97,15 +92,8 @@ def parse_slack_messages(file_path, output_dir) :
         for data in datas :
             if 'text' in data and data['text'] != '' and  (not 'subtype' in data  or data["subtype"] != 'channel_join') :
                 with open(target_file, 'a', encoding='utf-8') as f:
-                    f.write('-----------------------------------------' + '\n')
                     if ("user_profile" in data and data['user_profile']['name'] != '') :
                         f.write(data['user_profile']['name'] + '\n')
                     else :
                         f.write("anonymous\n")
                     f.write(data['text'] + '\n')
-
-if __name__ == "__main__":
-
-    args = parse_args()
-    # convert(parse_args())
-    parse_slack_messages("./vessl_community_slack_2023_5_4", "merge_data/slack_2023_5_4")
