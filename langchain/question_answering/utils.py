@@ -1,4 +1,3 @@
-import argparse
 import os
 import logging
 
@@ -8,22 +7,6 @@ from langchain.text_splitter import CharacterTextSplitter
 from langchain.vectorstores import Chroma
 from langchain.embeddings import *
 from langchain.chains import *
-
-
-def parse_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--repo_url", type=str, default=None)
-    parser.add_argument("--file_dir", type=str, default=None)
-    parser.add_argument("--files", type=str, nargs="+", default=None)
-    parser.add_argument("--chunk_size", type=int, default=500)
-    parser.add_argument("--chunk_overlap", type=int, default=100)
-    parser.add_argument("--embedding_type", type=str, default="openai")
-    parser.add_argument("--llm_type", type=str, default="openai")
-    parser.add_argument("--temperature", type=float, default=0.9)
-    parser.add_argument("--n", type=int, default=1)
-    parser.add_argument("--max_tokens", type=int, default=-1)
-    parser.add_argument("--branch", type=str, default="main")
-    return parser.parse_args()
 
 
 def get_embeddings(embedding_type="openai"):
@@ -64,7 +47,7 @@ def make_qa(repo_url=None, branch="main", files=None, file_dir=None, chunk_size=
             pass
 
     if file_dir is not None:
-        try :
+        try:
             documents.extend(DirectoryLoader(path=file_dir).load())
         except:
             pass

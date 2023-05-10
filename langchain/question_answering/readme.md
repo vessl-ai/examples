@@ -3,6 +3,8 @@
 ## [1] Start with VESSL 
 ### You can make server that can access from anywhere
 
+### 0. Get your OpenAI API
+Get your own OpenAI API key from [here](https://platform.openai.com/account/api-keys)
 
 ### 1. Sign up to [VESSL](https://vessl.ai)
 ![plot](../imgs/signup.png)
@@ -25,6 +27,8 @@ cd examples/question_answering
 ./run.sh
 ```
 
+### 4. Follow streamlit link to use your QA chatbot
+![plot](../imgs/streamlit_demo.png)
 
 ## [2] Start with your local device
 
@@ -34,5 +38,3 @@ cd examples/question_answering
 ./run.sh
 ```
 
-## OpenAI API
-Get your own OpenAI API key from [here](https://beta.openai.com/)
