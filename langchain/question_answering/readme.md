@@ -16,7 +16,7 @@
 ##### 2.2 copy and paste the code below to the init command
 
 ```bash
-git clone  "https://github.com/vessl-ai/examples.git" && cd ~/examples/langchain/question_answering/ && ./run.sh
+git clone  "https://github.com/vessl-ai/examples.git" && cd ~/examples/langchain/question_answering/ && bash ./run.sh
 ```
 
 ![plot](../imgs/workspace.png)
