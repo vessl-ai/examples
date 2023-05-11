@@ -16,7 +16,7 @@
 ##### 2.2 copy and paste the code below to the init command
 
 ```bash
-git clone  "https://github.com/vessl-ai/examples.git" && cd ~/examples/langchain/question_answering/ && bash ./run.sh
+git clone  "https://github.com/vessl-ai/examples.git" && cd /root/examples/langchain/question_answering/ && bash ./run.sh
 ```
 
 ![plot](../imgs/workspace.png)
@@ -25,6 +25,7 @@ git clone  "https://github.com/vessl-ai/examples.git" && cd ~/examples/langchain
 
 
 ### 3. Click Link and Follow streamlit link to use your QA chatbot
+![plot](../imgs/streamlit_link.png)
 ![plot](../imgs/streamlit_demo.png)
 
 ## [2] Start with your local device
