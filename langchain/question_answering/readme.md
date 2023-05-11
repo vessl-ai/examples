@@ -4,25 +4,27 @@
 ### You can make server that can access from anywhere
 
 ### 0. Get your OpenAI API
-Get your own OpenAI API key from [here](https://platform.openai.com/account/api-keys)
+###### Get your own OpenAI API key from [here](https://platform.openai.com/account/api-keys)
 
 ### 1. Sign up to [VESSL](https://vessl.ai)
 ![plot](../imgs/signup.png)
 
 ### 2. Make workspace (only cpu is enough)
-You can connect your own GPU server or AWS, GCP cluster
+###### You can connect your own GPU server or AWS, GCP cluster to VESSL
+
+##### 2.1  Expose port 8501 for streamlit in advanced setting
+##### 2.2 copy and paste the code below to the init command
+
+```bash
+git clone  "https://github.com/vessl-ai/examples.git" && cd ~/examples/langchain/question_answering/ && ./run.sh
+```
+
 ![plot](../imgs/workspace.png)
 ![plot](../imgs/workspace_make.png)
 
-### 3. click the upper left Jupyter Notebook
-![plot](../imgs/workspace_log.png)
 
-### 4. copy and paste the code below to the notebook and run it
-```bash
-git clone  "https://github.com/vessl-ai/examples.git" && cd examples/question_answering && ./run.sh
-```
 
-### 4. Follow streamlit link to use your QA chatbot
+### 3. Click Link and Follow streamlit link to use your QA chatbot
 ![plot](../imgs/streamlit_demo.png)
 
 ## [2] Start with your local device
