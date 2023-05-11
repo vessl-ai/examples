@@ -50,7 +50,8 @@ def main():
                                           accept_multiple_files=True,
                                           type=["txt", "pdf", "docx", "py", "c", "h"]
                                           )
-        repo_url = st.text_input("Enter git repo url to integrate in your source", value="")
+        repo_url = st.text_input("Enter git repo url to integrate in your source", value="https://github.com/vessl-ai"
+                                                                                         "/gitbook-docs.git")
         repo_branch = st.text_input("Enter branch of repo url to integrate in your source", value="main")
         chunk_size = st.number_input("Enter chunk size [How large to split long texts]", value=500)
         chunk_overlap = st.number_input("Enter chunk overlap [How much to overlap splitted texts]", value=100)
