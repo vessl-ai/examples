@@ -1,4 +1,4 @@
-# Making Question Answering Server with your own data
+# Making Question Answering Chatbot On Any Clouds(AWS, GCP, On-premise) with VESSL
 
 ## [1] Start with VESSL 
 ### You can make server that can access from anywhere
@@ -10,21 +10,16 @@ Get your own OpenAI API key from [here](https://platform.openai.com/account/api-
 ![plot](../imgs/signup.png)
 
 ### 2. Make workspace (only cpu is enough)
+You can connect your own GPU server or AWS, GCP cluster
 ![plot](../imgs/workspace.png)
 ![plot](../imgs/workspace_make.png)
 
-### 3. Using Jupyter Notebook, access it and run the code 
+### 3. click the upper left Jupyter Notebook
+![plot](../imgs/workspace_log.png)
 
-
-copy and paste the code below to the notebook and run it
+### 4. copy and paste the code below to the notebook and run it
 ```bash
-git clone  "https://github.com/vessl-ai/examples.git"
-```
-```bash
-cd examples/question_answering
-```
-```bash
-./run.sh
+git clone  "https://github.com/vessl-ai/examples.git" && cd examples/question_answering && ./run.sh
 ```
 
 ### 4. Follow streamlit link to use your QA chatbot
