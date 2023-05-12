@@ -3,7 +3,7 @@
 ## [1] Start with VESSL 
 ### You can make server that can access from anywhere
 
-### 0. Get your OpenAI API and Prepare your data (eg. books for study, documents on github, etc)
+### 0. Get your OpenAI API, Prepare your data (eg. books for study, documents on github, etc)
 ###### Get your own OpenAI API key from [here](https://platform.openai.com/account/api-keys)
 
 
@@ -16,7 +16,7 @@
 ##### 2.1  Expose port 8501 for streamlit in advanced setting
 ![plot](../imgs/workspace.png)
 ![plot](../imgs/workspace_make.png)
-##### 2.2 click jupyter notebook logo after workspace status changed to running
+##### 2.2 Click jupyter notebook logo after workspace status changed to running
 ![plot](../imgs/click_jupyter_notebook.png)
 
 ### 3. Run the code below in jupyter notebook cli terminal
@@ -25,12 +25,12 @@ git clone  "https://github.com/vessl-ai/examples.git" && cd /root/examples/langc
 ```
 ![plot](../imgs/jupyter_notebook.png)
 
-### 3. Do not Click Link that streamlit gives, just modify the port of jupyternotebook link from 8888 to 8501 and click it
+### 4. Do not Click Link that streamlit gives, just modify the port of jupyternotebook link from 8888 to 8501 and click it
 
 ![plot](../imgs/jupyter_link.png)
 ![plot](../imgs/streamlit_link.png)
 
-### 4. You can see the question answering chatbot, follow its instruction
+### 5. You can see the question answering chatbot, follow its instruction
 ![plot](../imgs/streamlit_demo.png)
 
 ## [2] Start with your local device
