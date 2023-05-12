@@ -37,7 +37,7 @@ git clone  "https://github.com/vessl-ai/examples.git" && cd /root/examples/langc
 
 ```bash
 git clone  "https://github.com/vessl-ai/examples.git"
-cd examples/question_answering
+cd examples/langchain/question_answering
 ./run.sh
 ```
 
