@@ -63,10 +63,13 @@ if image_path is not None:
         col1, col2, col3 = st.columns(3)
 
         with col2:
-            st.image(image)
+            o_fig, o_ax = plt.subplots(figsize=(10, 10))
+            o_ax.imshow(image)
+            o_ax.axis("off")
+            st.pyplot(o_fig)
             st.success("Original Image")
 
-            fig, ax = plt.subplots(figsize=(15, 15))
+            fig, ax = plt.subplots(figsize=(10, 10))
             ax.imshow(image)
             show_anns(masks, ax)
             ax.axis("off")
