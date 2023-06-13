@@ -97,8 +97,8 @@ with torch.no_grad():
             print(decode(y[0].tolist()))
             print("---------------")
             output.append(decode(y[0].tolist()))
-
-with open("./output/out.txt", "w") as f:
+os.makedirs("/output", exist_ok=True)
+with open("/output/out.txt", "w") as f:
     for idx, e in enumerate(output):
         f.write(f"===== SAMPLE {idx} =====")
         f.write(e)

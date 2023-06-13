@@ -40,10 +40,6 @@ eval_iters = 200
 eval_only = False  # if True, script exits right after the first eval
 always_save_checkpoint = True  # if True, always save a checkpoint after each eval
 init_from = "scratch"  # 'scratch' or 'resume' or 'gpt2*'
-# wandb logging
-wandb_log = False  # disabled by default
-wandb_project = "owt"
-wandb_run_name = "gpt2"  # 'run' + str(time.time())
 # data
 dataset = "openwebtext"
 gradient_accumulation_steps = 5 * 8  # used to simulate larger batch sizes
@@ -58,7 +54,6 @@ bias = False  # do we use bias inside LayerNorm and Linear layers?
 # adamw optimizer
 learning_rate = 6e-4  # max learning rate
 max_iters = 600000  # total number of training iterations
-vessl_log_interval = 1000
 weight_decay = 1e-1
 beta1 = 0.9
 beta2 = 0.95
@@ -265,12 +260,6 @@ def get_lr(it):
     return min_lr + coeff * (learning_rate - min_lr)
 
 
-# logging
-if wandb_log and master_process:
-    import wandb
-
-    wandb.init(project=wandb_project, name=wandb_run_name, config=config)
-
 # training loop
 X, Y = get_batch("train")  # fetch the very first batch
 t0 = time.time()
@@ -287,16 +276,11 @@ while True:
     if iter_num % eval_interval == 0 and master_process:
         losses = estimate_loss()
         print(f"step {iter_num}: train loss {losses['train']:.4f}, val loss {losses['val']:.4f}")
-        if wandb_log:
-            wandb.log(
-                {
-                    "iter": iter_num,
-                    "train/loss": losses["train"],
-                    "val/loss": losses["val"],
-                    "lr": lr,
-                    "mfu": running_mfu * 100,  # convert to percentage
-                }
-            )
+        vessl.log(
+            step=iter_num,
+            payload={"train_loss": losses["train"], "val_loss": losses["val"], "lr": lr},
+        )
+
         if losses["val"] < best_val_loss or always_save_checkpoint:
             best_val_loss = losses["val"]
             if iter_num > 0:
@@ -355,8 +339,6 @@ while True:
         print(
             f"iter {iter_num}: loss {lossf:.4f}, time {dt*1000:.2f}ms, mfu {running_mfu*100:.2f}%"
         )
-    if iter_num % vessl_log_interval == 0 and master_process:
-        vessl.log(step=iter_num, payload={"loss": loss.item()})
 
     iter_num += 1
     local_iter_num += 1
