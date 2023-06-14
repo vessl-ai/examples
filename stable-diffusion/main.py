@@ -48,7 +48,7 @@ with col4:
 resources:
   cluster: aws-apne2-prod1
   accelerators: V100:1
-image: nvcr.io/nvidia/pytorch:21.05-py3
+image: quay.io/vessl-ai/ngc-pytorch-kernel:22.12-py3-202301160809
 run:
   - workdir: /root/stable-diff-st/
     command: |
