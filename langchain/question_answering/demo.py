@@ -163,7 +163,7 @@ interactive:
             f'<p style="font-family:system-ui; color:Black; font-size: 20px;">You can save the YAML into a file and run it by yourself! Try:</p>',
             unsafe_allow_html=True,
         )
-        st.code("pip install vessl\nvessl run -f langchain.yaml", language="python", line_numbers=False)
+        st.code("pip install vessl\nvessl run -f langchain.yaml", language="bash", line_numbers=False)
 
     st.markdown(
         f'<p style="font-family:system-ui; color:Black; font-size: 20px;">For further details, visit <a href="https://vesslai.mintlify.app/docs/reference/yaml">VESSL Run Docs</a>',
