@@ -1,0 +1,15 @@
+name : stable-diffusion
+resources:
+  cluster: aws-uw2-prod1
+  accelerators: V100:1
+image: quay.io/vessl-ai/ngc-pytorch-kernel:22.12-py3-202301160809
+run:
+  - workdir: /root/stable-diff-st/
+    command: |
+      bash ./setup.sh
+volumes:
+  /root/stable-diff-st: git://github.com/saeyoon17/stable-diff-st
+interactive:
+  runtime: 24h
+  ports:
+    - 8501
