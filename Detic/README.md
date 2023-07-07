@@ -1,4 +1,5 @@
 # Detecting Twenty-thousand Classes using Image-level Supervision
+## Base Code Reference: https://github.com/facebookresearch/Detic
 
 **Detic**: A **Det**ector with **i**mage **c**lasses that can use image-level labels to easily train detectors.
 
