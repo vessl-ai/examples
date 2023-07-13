@@ -1,6 +1,6 @@
 name: stable-diffusion
 resources:
-  cluster: aws-uw2-prod1
+  cluster: aws-uw2
   accelerators: V100:1
 image: quay.io/vessl-ai/ngc-pytorch-kernel:22.12-py3-202301160809
 volumes:
