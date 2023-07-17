@@ -8,6 +8,7 @@ volumes:
 run:
   - workdir: /root/examples/
     command: |
+      cd stable-diffusion
       bash ./setup.sh
 interactive:
   runtime: 24h
