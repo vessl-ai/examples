@@ -1,16 +1,8 @@
-import streamlit as st
 import torch
+import streamlit as st
 from diffusers import DPMSolverMultistepScheduler, StableDiffusionPipeline
 
 from constants import INTRO, VESSL_LOGO_URL
-
-st.set_page_config(layout="wide")
-st.image(VESSL_LOGO_URL, width=400)
-intro = INTRO
-
-st.title("Manage your own Stable Diffusion session!")
-for e in intro:
-    st.text(e, unsafe_allow_html=True)
 
 # Load model
 model_id = "stabilityai/stable-diffusion-2-1"
@@ -18,6 +10,15 @@ model_id = "stabilityai/stable-diffusion-2-1"
 pipe = StableDiffusionPipeline.from_pretrained(model_id, torch_dtype=torch.float16)
 pipe.scheduler = DPMSolverMultistepScheduler.from_config(pipe.scheduler.config)
 pipe = pipe.to("cuda")
+
+# Configure page layout
+st.set_page_config(layout="wide")
+st.image(VESSL_LOGO_URL, width=400)
+intro = INTRO
+
+st.title("Manage your own Stable Diffusion session!")
+for e in intro:
+    st.text(e, unsafe_allow_html=True)
 
 with st.form("prompt", clear_on_submit=False):
     prompt = st.text_area("Write down your prompt here: ", value="")
