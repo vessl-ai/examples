@@ -10,6 +10,7 @@ run:
     command: |
       cd stable-diffusion
       bash ./setup.sh
+      streamlit run main.py
 interactive:
   runtime: 24h
   ports:
