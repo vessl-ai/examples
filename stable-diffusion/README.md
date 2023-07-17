@@ -1,10 +1,15 @@
 # Stable Diffusion
-This is a repository targetted for stable diffusion inference using diffusers library.
-The inference is hosted through streamlit.
 
-Try Stable diffusion using:
+The repository is for creating a micro AI app for Stable Diffusion with the [Hugging Face Diffusers](https://huggingface.co/docs/diffusers/index) library.
+We used [VESSL Run](https://medium.com/vessl-ai/introducing-vessl-run-a-unified-yaml-interface-for-running-any-ai-models-ca449b0d5158) for the infrastructure and [Streamlit](https://streamlit.io/) for the interface layer. 
+
+You can try the app with our Quickstart command. 
 ```
 pip install vessl
 vessl hello
 ```
-and selecting Stable Diffusion.
+
+You can also run it using the YAML file we prepared.
+```
+vessl run -f stable-diffusion.yaml
+```
