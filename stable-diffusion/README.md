@@ -13,3 +13,5 @@ You can also run it using the YAML file we prepared.
 ```
 vessl run -f stable-diffusion.yaml
 ```
+
+Follow along our [tutorial]() on our blog to deploy your own micro AI app with VESSL Run.
