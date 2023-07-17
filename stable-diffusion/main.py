@@ -4,14 +4,14 @@ from diffusers import DPMSolverMultistepScheduler, StableDiffusionPipeline
 
 from constants import INTRO, VESSL_LOGO_URL
 
-# Load model
+# Load model from Hugging Face Diffusers
 model_id = "stabilityai/stable-diffusion-2-1"
 # Use the DPMSolverMultistepScheduler (DPM-Solver++) scheduler here instead
 pipe = StableDiffusionPipeline.from_pretrained(model_id, torch_dtype=torch.float16)
 pipe.scheduler = DPMSolverMultistepScheduler.from_config(pipe.scheduler.config)
 pipe = pipe.to("cuda")
 
-# Configure page layout
+# Configure page layout with Streamlit
 st.set_page_config(layout="wide")
 st.image(VESSL_LOGO_URL, width=400)
 intro = INTRO
