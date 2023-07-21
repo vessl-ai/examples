@@ -1,0 +1,14 @@
+name : segment-anything
+resources:
+  accelerators: V100:1
+image: quay.io/vessl-ai/ngc-pytorch-kernel:22.12-py3-202301160809
+run:
+  - workdir: /root/examples/segment-anything/
+    command: |
+      bash ./setup.sh
+volumes:
+  /root/examples: git://github.com/vessl-ai/examples/
+interactive:
+  runtime: 24h
+  ports:
+    - 8501
