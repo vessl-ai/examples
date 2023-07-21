@@ -4,13 +4,11 @@ resources:
   accelerators: V100:1
 image: quay.io/vessl-ai/ngc-pytorch-kernel:22.12-py3-202301160809
 volumes:
-  /root/examples: git://github.com/vessl-ai/examples
+  /root/examples: git://github.com/vessl-ai/examples/
 run:
-  - workdir: /root/examples/
+  - workdir: /root/examples/stable-diffusion
     command: |
-      cd stable-diffusion
-      bash ./setup.sh
-      streamlit run main.py
+      bash ./setup.sh && streamlit run main.py
 interactive:
   runtime: 24h
   ports:
