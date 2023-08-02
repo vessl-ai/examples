@@ -1,0 +1,13 @@
+name: Llama2_c
+resources:
+  cpu: 1
+  memory: 16Gi
+image: quay.io/vessl-ai/kernels:py310-202301160626
+run:
+  - workdir: /root/examples/llama2_c/
+    command: |
+        wget https://karpathy.ai/llama2c/model.bin -P out
+        gcc -O3 -o run run.c -lm
+        ./run out/model.bin
+volumes:
+  /root/examples: git://github.com/vessl-ai/examples
