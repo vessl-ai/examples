@@ -1,4 +1,5 @@
 import os
+from PIL import Image
 import streamlit as st
 
 
@@ -15,7 +16,7 @@ st.title("Image animation using Thin-Plate-Spline-Motion-Model")
 def inference(img, vid):
     if not os.path.exists("temp"):
         os.system("mkdir temp")
-
+    img = Image.open(img)
     img.save("temp/image.jpg", "JPEG")
     os.system(f"python demo.py --config config/vox-256.yaml --checkpoint /ckpt/vox.pth.tar --source_image 'temp/image.jpg' --driving_video {vid} --result_video './temp/result.mp4' --gpu")
     return "./temp/result.mp4"
