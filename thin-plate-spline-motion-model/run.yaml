@@ -1,0 +1,15 @@
+name: thin-plate-spline-motion-model
+resources:
+  cluster: aws-apne2
+  accelerators: V100:1
+image: quay.io/vessl-ai/ngc-pytorch-kernel:22.12-py3-202301160809
+volumes:
+  /root/examples: git://github.com/vessl-ai/examples
+run:
+  - workdir: /root/examples/thin-plate-spline-motion-model
+    command: |
+            mkdir /ckpt && cd /ckpt && wget https://vessl-public-apne2.s3.ap-northeast-2.amazonaws.com/thin-plate-spline-motion-model/vox.pth.tar && cd /root/examples/thin-plate-spline-motion-model && pip install -r requirements.txt && pip install streamlit && streamlit run run_st.py
+interactive:
+  runtime: 24h
+  ports:
+    - 8501
