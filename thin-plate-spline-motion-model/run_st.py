@@ -24,6 +24,7 @@ with col1:
         image_path = st.file_uploader("Upload your image!", type=["png", "jpg", "jpeg"])
 
         img_file_buffer = st.camera_input("Take your photo!")
+        submit_button = st.form_submit_button(label="Generate")
         if not os.path.exists("temp"):
             os.system("mkdir temp")
         if img_file_buffer != None:
@@ -31,7 +32,6 @@ with col1:
         else:
             img = Image.open(image_path)
         img.save("temp/image.jpg", "JPEG")
-        submit_button = st.form_submit_button(label="Generate")
 
     st.header("Driving Video")
     video_file = open("./assets/driving.mp4", "rb")

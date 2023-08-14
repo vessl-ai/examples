@@ -21,9 +21,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 # custom LLM class for llamaindex
 class Llama2Model(CustomLLM):
     def __init__(self):
-        max_memory = {0: "80GIB", 1: "80GIB", "cpu": "30GB"}
         model = AutoModelForCausalLM.from_pretrained("/data/llama-2-7b-hf", device_map="auto", torch_dtype=torch.float16)
-        # model = PeftModel.from_pretrained(model, peft_model_id, device_map="auto", max_memory=max_memory)
         model.eval()
         self.model = model
         tokenizer = AutoTokenizer.from_pretrained("/data/llama-2-7b-hf", legacy=False)
@@ -36,7 +34,6 @@ class Llama2Model(CustomLLM):
         return LLMMetadata(name="custom-llama2")
 
     def complete(self, prompt: str, **kwargs: Any) -> CompletionResponse:
-        prompt_length = len(prompt)
         tokenized = self.tokenizer(prompt)
         tokenized["input_ids"] = torch.tensor(tokenized["input_ids"]).unsqueeze(0).to("cuda")
         tokenized["attention_mask"] = torch.ones(tokenized["input_ids"].size(1)).unsqueeze(0).to("cuda")
@@ -52,6 +49,7 @@ class Llama2Model(CustomLLM):
         raise NotImplementedError()
 
 
+# custom Embedder class for llamaindex
 class InstructorEmbeddings(BaseEmbedding):
     def __init__(
         self,
