@@ -16,34 +16,35 @@ def inference(vid):
     return "./temp/result.mp4"
 
 
+_col1, _col2, _col3 = st.columns(3)
+st.header("Driving Video")
+video_file = open("./assets/driving.mp4", "rb")
+video_bytes = video_file.read()
+with _col1:
+    st.video(video_bytes)
+with _col2:
+    st.video(video_bytes)
+with _col3:
+    st.video(video_bytes)
+option = st.radio("Choose your driving video!", ["Video 1", "Video 2", "Video 3"])
+
+
 col1, col2 = st.columns(2)
 
 with col1:
     st.header("Upload image or Take your photo!")
     with st.form("image", clear_on_submit=False):
         image_path = st.file_uploader("Upload your image!", type=["png", "jpg", "jpeg"])
-
         img_file_buffer = st.camera_input("Take your photo!")
         submit_button = st.form_submit_button(label="Generate")
         if not os.path.exists("temp"):
             os.system("mkdir temp")
         if img_file_buffer != None:
             img = Image.open(img_file_buffer)
+            img.save("temp/image.jpg", "JPEG")
         elif image_path != None:
             img = Image.open(image_path)
-        img.save("temp/image.jpg", "JPEG")
-
-    _col1, _col2, _col3 = st.columns(3)
-    st.header("Driving Video")
-    video_file = open("./assets/driving.mp4", "rb")
-    video_bytes = video_file.read()
-    with _col1:
-        st.video(video_bytes)
-    with _col2:
-        st.video(video_bytes)
-    with _col3:
-        st.video(video_bytes)
-    option = st.radio("Choose your driving video!", ["Video 1", "Video 2", "Video 3"])
+            img.save("temp/image.jpg", "JPEG")
 
 with col2:
     st.header("Result Video")

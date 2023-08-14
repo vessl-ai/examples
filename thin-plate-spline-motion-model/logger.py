@@ -52,7 +52,8 @@ class Logger:
         image = self.visualizer.visualize(inp["driving"], inp["source"], out)
         imageio.imsave(
             os.path.join(
-                self.visualizations_dir, "%s-rec.png" % str(self.epoch).zfill(self.zfill_num)
+                self.visualizations_dir,
+                "%s-rec.png" % str(self.epoch).zfill(self.zfill_num),
             ),
             image,
         )
@@ -65,7 +66,8 @@ class Logger:
         cpk = {k: v.state_dict() for k, v in self.models.items()}
         cpk["epoch"] = self.epoch
         cpk_path = os.path.join(
-            self.cpk_dir, "%s-checkpoint.pth.tar" % str(self.epoch).zfill(self.zfill_num)
+            self.cpk_dir,
+            "%s-checkpoint.pth.tar" % str(self.epoch).zfill(self.zfill_num),
         )
         if not (os.path.exists(cpk_path) and emergent):
             torch.save(cpk, cpk_path)
@@ -94,7 +96,10 @@ class Logger:
         if avd_network is not None:
             if "avd_network" in checkpoint:
                 avd_network.load_state_dict(checkpoint["avd_network"])
-        if optimizer_bg_predictor is not None and "optimizer_bg_predictor" in checkpoint:
+        if (
+            optimizer_bg_predictor is not None
+            and "optimizer_bg_predictor" in checkpoint
+        ):
             optimizer_bg_predictor.load_state_dict(checkpoint["optimizer_bg_predictor"])
         if optimizer is not None and "optimizer" in checkpoint:
             optimizer.load_state_dict(checkpoint["optimizer"])
@@ -145,7 +150,9 @@ class Visualizer:
         return image
 
     def create_image_column_with_kp(self, images, kp):
-        image_array = np.array([self.draw_image_with_kp(v, k) for v, k in zip(images, kp)])
+        image_array = np.array(
+            [self.draw_image_with_kp(v, k) for v, k in zip(images, kp)]
+        )
         return self.create_image_column(image_array)
 
     def create_image_column(self, images):
@@ -204,7 +211,9 @@ class Visualizer:
         if "occlusion_map" in out:
             for i in range(len(out["occlusion_map"])):
                 occlusion_map = out["occlusion_map"][i].data.cpu().repeat(1, 3, 1, 1)
-                occlusion_map = F.interpolate(occlusion_map, size=source.shape[1:3]).numpy()
+                occlusion_map = F.interpolate(
+                    occlusion_map, size=source.shape[1:3]
+                ).numpy()
                 occlusion_map = np.transpose(occlusion_map, [0, 2, 3, 1])
                 images.append(occlusion_map)
 
@@ -215,7 +224,11 @@ class Visualizer:
                 image = out["deformed_source"][:, i].data.cpu()
                 # import ipdb;ipdb.set_trace()
                 image = F.interpolate(image, size=source.shape[1:3])
-                mask = out["contribution_maps"][:, i : (i + 1)].data.cpu().repeat(1, 3, 1, 1)
+                mask = (
+                    out["contribution_maps"][:, i : (i + 1)]
+                    .data.cpu()
+                    .repeat(1, 3, 1, 1)
+                )
                 mask = F.interpolate(mask, size=source.shape[1:3])
                 image = np.transpose(image.numpy(), (0, 2, 3, 1))
                 mask = np.transpose(mask.numpy(), (0, 2, 3, 1))

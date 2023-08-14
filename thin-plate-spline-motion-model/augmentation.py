@@ -18,15 +18,15 @@ from skimage import img_as_ubyte, img_as_float
 
 def crop_clip(clip, min_h, min_w, h, w):
     if isinstance(clip[0], np.ndarray):
-        cropped = [img[min_h:min_h + h, min_w:min_w + w, :] for img in clip]
+        cropped = [img[min_h : min_h + h, min_w : min_w + w, :] for img in clip]
 
     elif isinstance(clip[0], PIL.Image.Image):
-        cropped = [
-            img.crop((min_w, min_h, min_w + w, min_h + h)) for img in clip
-            ]
+        cropped = [img.crop((min_w, min_h, min_w + w, min_h + h)) for img in clip]
     else:
-        raise TypeError('Expected numpy.ndarray or PIL.Image' +
-                        'but got list of {0}'.format(type(clip[0])))
+        raise TypeError(
+            "Expected numpy.ndarray or PIL.Image"
+            + "but got list of {0}".format(type(clip[0]))
+        )
     return cropped
 
 
@@ -35,16 +35,15 @@ def pad_clip(clip, h, w):
     pad_h = (0, 0) if h < im_h else ((h - im_h) // 2, (h - im_h + 1) // 2)
     pad_w = (0, 0) if w < im_w else ((w - im_w) // 2, (w - im_w + 1) // 2)
 
-    return np.pad(clip, ((0, 0), pad_h, pad_w, (0, 0)), mode='edge')
+    return np.pad(clip, ((0, 0), pad_h, pad_w, (0, 0)), mode="edge")
 
 
-def resize_clip(clip, size, interpolation='bilinear'):
+def resize_clip(clip, size, interpolation="bilinear"):
     if isinstance(clip[0], np.ndarray):
         if isinstance(size, numbers.Number):
             im_h, im_w, im_c = clip[0].shape
             # Min spatial dim already matches minimal size
-            if (im_w <= im_h and im_w == size) or (im_h <= im_w
-                                                   and im_h == size):
+            if (im_w <= im_h and im_w == size) or (im_h <= im_w and im_h == size):
                 return clip
             new_h, new_w = get_resize_sizes(im_h, im_w, size)
             size = (new_w, new_h)
@@ -52,28 +51,36 @@ def resize_clip(clip, size, interpolation='bilinear'):
             size = size[1], size[0]
 
         scaled = [
-            resize(img, size, order=1 if interpolation == 'bilinear' else 0, preserve_range=True,
-                   mode='constant', anti_aliasing=True) for img in clip
-            ]
+            resize(
+                img,
+                size,
+                order=1 if interpolation == "bilinear" else 0,
+                preserve_range=True,
+                mode="constant",
+                anti_aliasing=True,
+            )
+            for img in clip
+        ]
     elif isinstance(clip[0], PIL.Image.Image):
         if isinstance(size, numbers.Number):
             im_w, im_h = clip[0].size
             # Min spatial dim already matches minimal size
-            if (im_w <= im_h and im_w == size) or (im_h <= im_w
-                                                   and im_h == size):
+            if (im_w <= im_h and im_w == size) or (im_h <= im_w and im_h == size):
                 return clip
             new_h, new_w = get_resize_sizes(im_h, im_w, size)
             size = (new_w, new_h)
         else:
             size = size[1], size[0]
-        if interpolation == 'bilinear':
+        if interpolation == "bilinear":
             pil_inter = PIL.Image.NEAREST
         else:
             pil_inter = PIL.Image.BILINEAR
         scaled = [img.resize(size, pil_inter) for img in clip]
     else:
-        raise TypeError('Expected numpy.ndarray or PIL.Image' +
-                        'but got list of {0}'.format(type(clip[0])))
+        raise TypeError(
+            "Expected numpy.ndarray or PIL.Image"
+            + "but got list of {0}".format(type(clip[0]))
+        )
     return scaled
 
 
@@ -111,7 +118,7 @@ class RandomResize(object):
     size (tuple): (widht, height)
     """
 
-    def __init__(self, ratio=(3. / 4., 4. / 3.), interpolation='nearest'):
+    def __init__(self, ratio=(3.0 / 4.0, 4.0 / 3.0), interpolation="nearest"):
         self.ratio = ratio
         self.interpolation = interpolation
 
@@ -126,8 +133,7 @@ class RandomResize(object):
         new_w = int(im_w * scaling_factor)
         new_h = int(im_h * scaling_factor)
         new_size = (new_w, new_h)
-        resized = resize_clip(
-            clip, new_size, interpolation=self.interpolation)
+        resized = resize_clip(clip, new_size, interpolation=self.interpolation)
 
         return resized
 
@@ -159,8 +165,10 @@ class RandomCrop(object):
         elif isinstance(clip[0], PIL.Image.Image):
             im_w, im_h = clip[0].size
         else:
-            raise TypeError('Expected numpy.ndarray or PIL.Image' +
-                            'but got list of {0}'.format(type(clip[0])))
+            raise TypeError(
+                "Expected numpy.ndarray or PIL.Image"
+                + "but got list of {0}".format(type(clip[0]))
+            )
 
         clip = pad_clip(clip, h, w)
         im_h, im_w = clip.shape[1:3]
@@ -183,13 +191,11 @@ class RandomRotation(object):
     def __init__(self, degrees):
         if isinstance(degrees, numbers.Number):
             if degrees < 0:
-                raise ValueError('If degrees is a single number,'
-                                 'must be positive')
+                raise ValueError("If degrees is a single number," "must be positive")
             degrees = (-degrees, degrees)
         else:
             if len(degrees) != 2:
-                raise ValueError('If degrees is a sequence,'
-                                 'it must be of len 2.')
+                raise ValueError("If degrees is a sequence," "it must be of len 2.")
 
         self.degrees = degrees
 
@@ -203,12 +209,16 @@ class RandomRotation(object):
         """
         angle = random.uniform(self.degrees[0], self.degrees[1])
         if isinstance(clip[0], np.ndarray):
-            rotated = [rotate(image=img, angle=angle, preserve_range=True) for img in clip]
+            rotated = [
+                rotate(image=img, angle=angle, preserve_range=True) for img in clip
+            ]
         elif isinstance(clip[0], PIL.Image.Image):
             rotated = [img.rotate(angle) for img in clip]
         else:
-            raise TypeError('Expected numpy.ndarray or PIL.Image' +
-                            'but got list of {0}'.format(type(clip[0])))
+            raise TypeError(
+                "Expected numpy.ndarray or PIL.Image"
+                + "but got list of {0}".format(type(clip[0]))
+            )
 
         return rotated
 
@@ -234,20 +244,17 @@ class ColorJitter(object):
 
     def get_params(self, brightness, contrast, saturation, hue):
         if brightness > 0:
-            brightness_factor = random.uniform(
-                max(0, 1 - brightness), 1 + brightness)
+            brightness_factor = random.uniform(max(0, 1 - brightness), 1 + brightness)
         else:
             brightness_factor = None
 
         if contrast > 0:
-            contrast_factor = random.uniform(
-                max(0, 1 - contrast), 1 + contrast)
+            contrast_factor = random.uniform(max(0, 1 - contrast), 1 + contrast)
         else:
             contrast_factor = None
 
         if saturation > 0:
-            saturation_factor = random.uniform(
-                max(0, 1 - saturation), 1 + saturation)
+            saturation_factor = random.uniform(max(0, 1 - saturation), 1 + saturation)
         else:
             saturation_factor = None
 
@@ -266,21 +273,39 @@ class ColorJitter(object):
         """
         if isinstance(clip[0], np.ndarray):
             brightness, contrast, saturation, hue = self.get_params(
-                self.brightness, self.contrast, self.saturation, self.hue)
+                self.brightness, self.contrast, self.saturation, self.hue
+            )
 
             # Create img transform function sequence
             img_transforms = []
             if brightness is not None:
-                img_transforms.append(lambda img: torchvision.transforms.functional.adjust_brightness(img, brightness))
+                img_transforms.append(
+                    lambda img: torchvision.transforms.functional.adjust_brightness(
+                        img, brightness
+                    )
+                )
             if saturation is not None:
-                img_transforms.append(lambda img: torchvision.transforms.functional.adjust_saturation(img, saturation))
+                img_transforms.append(
+                    lambda img: torchvision.transforms.functional.adjust_saturation(
+                        img, saturation
+                    )
+                )
             if hue is not None:
-                img_transforms.append(lambda img: torchvision.transforms.functional.adjust_hue(img, hue))
+                img_transforms.append(
+                    lambda img: torchvision.transforms.functional.adjust_hue(img, hue)
+                )
             if contrast is not None:
-                img_transforms.append(lambda img: torchvision.transforms.functional.adjust_contrast(img, contrast))
+                img_transforms.append(
+                    lambda img: torchvision.transforms.functional.adjust_contrast(
+                        img, contrast
+                    )
+                )
             random.shuffle(img_transforms)
-            img_transforms = [img_as_ubyte, torchvision.transforms.ToPILImage()] + img_transforms + [np.array,
-                                                                                                     img_as_float]
+            img_transforms = (
+                [img_as_ubyte, torchvision.transforms.ToPILImage()]
+                + img_transforms
+                + [np.array, img_as_float]
+            )
 
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
@@ -289,21 +314,36 @@ class ColorJitter(object):
                     jittered_img = img
                     for func in img_transforms:
                         jittered_img = func(jittered_img)
-                    jittered_clip.append(jittered_img.astype('float32'))
+                    jittered_clip.append(jittered_img.astype("float32"))
         elif isinstance(clip[0], PIL.Image.Image):
             brightness, contrast, saturation, hue = self.get_params(
-                self.brightness, self.contrast, self.saturation, self.hue)
+                self.brightness, self.contrast, self.saturation, self.hue
+            )
 
             # Create img transform function sequence
             img_transforms = []
             if brightness is not None:
-                img_transforms.append(lambda img: torchvision.transforms.functional.adjust_brightness(img, brightness))
+                img_transforms.append(
+                    lambda img: torchvision.transforms.functional.adjust_brightness(
+                        img, brightness
+                    )
+                )
             if saturation is not None:
-                img_transforms.append(lambda img: torchvision.transforms.functional.adjust_saturation(img, saturation))
+                img_transforms.append(
+                    lambda img: torchvision.transforms.functional.adjust_saturation(
+                        img, saturation
+                    )
+                )
             if hue is not None:
-                img_transforms.append(lambda img: torchvision.transforms.functional.adjust_hue(img, hue))
+                img_transforms.append(
+                    lambda img: torchvision.transforms.functional.adjust_hue(img, hue)
+                )
             if contrast is not None:
-                img_transforms.append(lambda img: torchvision.transforms.functional.adjust_contrast(img, contrast))
+                img_transforms.append(
+                    lambda img: torchvision.transforms.functional.adjust_contrast(
+                        img, contrast
+                    )
+                )
             random.shuffle(img_transforms)
 
             # Apply to all videos
@@ -314,13 +354,22 @@ class ColorJitter(object):
                 jittered_clip.append(jittered_img)
 
         else:
-            raise TypeError('Expected numpy.ndarray or PIL.Image' +
-                            'but got list of {0}'.format(type(clip[0])))
+            raise TypeError(
+                "Expected numpy.ndarray or PIL.Image"
+                + "but got list of {0}".format(type(clip[0]))
+            )
         return jittered_clip
 
 
 class AllAugmentationTransform:
-    def __init__(self, resize_param=None, rotation_param=None, flip_param=None, crop_param=None, jitter_param=None):
+    def __init__(
+        self,
+        resize_param=None,
+        rotation_param=None,
+        flip_param=None,
+        crop_param=None,
+        jitter_param=None,
+    ):
         self.transforms = []
 
         if flip_param is not None:

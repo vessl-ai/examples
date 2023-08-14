@@ -38,7 +38,12 @@ def train(
     optimizer_bg_predictor = None
     if bg_predictor:
         optimizer_bg_predictor = torch.optim.Adam(
-            [{"params": bg_predictor.parameters(), "initial_lr": train_params["lr_generator"]}],
+            [
+                {
+                    "params": bg_predictor.parameters(),
+                    "initial_lr": train_params["lr_generator"],
+                }
+            ],
             lr=train_params["lr_generator"],
             betas=(0.5, 0.999),
             weight_decay=1e-4,
@@ -60,7 +65,10 @@ def train(
         start_epoch = 0
 
     scheduler_optimizer = MultiStepLR(
-        optimizer, train_params["epoch_milestones"], gamma=0.1, last_epoch=start_epoch - 1
+        optimizer,
+        train_params["epoch_milestones"],
+        gamma=0.1,
+        last_epoch=start_epoch - 1,
     )
     if bg_predictor:
         scheduler_bg_predictor = MultiStepLR(
@@ -81,7 +89,11 @@ def train(
     )
 
     generator_full = GeneratorFullModel(
-        kp_detector, bg_predictor, dense_motion_network, inpainting_network, train_params
+        kp_detector,
+        bg_predictor,
+        dense_motion_network,
+        inpainting_network,
+        train_params,
     )
 
     if torch.cuda.is_available():
@@ -106,10 +118,16 @@ def train(
                 loss = sum(loss_values)
                 loss.backward()
 
-                clip_grad_norm_(kp_detector.parameters(), max_norm=10, norm_type=math.inf)
-                clip_grad_norm_(dense_motion_network.parameters(), max_norm=10, norm_type=math.inf)
+                clip_grad_norm_(
+                    kp_detector.parameters(), max_norm=10, norm_type=math.inf
+                )
+                clip_grad_norm_(
+                    dense_motion_network.parameters(), max_norm=10, norm_type=math.inf
+                )
                 if bg_predictor and epoch >= bg_start:
-                    clip_grad_norm_(bg_predictor.parameters(), max_norm=10, norm_type=math.inf)
+                    clip_grad_norm_(
+                        bg_predictor.parameters(), max_norm=10, norm_type=math.inf
+                    )
 
                 optimizer.step()
                 optimizer.zero_grad()
