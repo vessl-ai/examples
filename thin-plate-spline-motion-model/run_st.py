@@ -13,21 +13,20 @@ st.title("Image animation using Thin-Plate-Spline-Motion-Model")
 
 
 def inference(vid):
-    os.system(
-        f"python demo.py --config config/vox-256.yaml --checkpoint /ckpt/vox.pth.tar --source_image 'temp/image.jpg' --driving_video {vid} --result_video './temp/result.mp4'"
-    )
+    os.system(f"python demo.py --config config/vox-256.yaml --checkpoint /ckpt/vox.pth.tar --source_image 'temp/image.jpg' --driving_video {vid} --result_video './temp/result.mp4'")
     return "./temp/result.mp4"
 
 
-_col1, _col2 = st.columns(2)
+_col1, _col2, _col3, _col4 = st.columns(4)
 st.header("Use predefined driving video or upload your own!")
 video_file = open("./assets/driving.mp4", "rb")
 video_bytes = video_file.read()
 with _col1:
     st.video(video_bytes)
-with _col2:
+with _col4:
     with st.form("Driving video", clear_on_submit=False):
         video_path = st.file_uploader("Upload your own driving video!", type=["mp4"])
+        video_submit_button = st.form_submit_button(label="Submit Driving Video")
 if video_path == None:
     video_path = "./assets/driving.mp4"
 
