@@ -38,7 +38,6 @@ with col1:
 
 with col2:
     st.header("Image")
-    st.write(f"Generating {num_images} BAYC image with prompt <{prompt}>...")
     if submit_button:
         generator = torch.Generator(device=device).manual_seed(seed)
         images = []
