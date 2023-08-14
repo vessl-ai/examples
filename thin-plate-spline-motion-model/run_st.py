@@ -17,13 +17,13 @@ def inference(vid):
     return "./temp/result.mp4"
 
 
-_col1, _col2, _col3, _col4 = st.columns(4)
 st.header("Use predefined driving video or upload your own!")
+_col1, _col2, _col3 = st.columns(3)
 video_file = open("./assets/driving.mp4", "rb")
 video_bytes = video_file.read()
 with _col1:
     st.video(video_bytes)
-with _col4:
+with _col2:
     with st.form("Driving video", clear_on_submit=False):
         video_path = st.file_uploader("Upload your own driving video!", type=["mp4"])
         video_submit_button = st.form_submit_button(label="Submit Driving Video")
