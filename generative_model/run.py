@@ -41,10 +41,12 @@ with col2:
     if submit_button:
         generator = torch.Generator(device=device).manual_seed(seed)
         images = []
+        cols = st.columns(num_images)
         for img_idx in stqdm(range(num_images)):
             generated_image = pipeline(prompt, num_inference_steps=30, generator=generator).images[0]
             images.append(generated_image)
-        st.image(images, width=200, caption=[f"Generated Images with <{prompt}>" for i in range(len(images))])
+            with cols[img_idx]:
+                st.image(generated_image, width=200, caption=[f"Image: {img_idx}"])
 
 st.markdown("Explore more models at [vessl.ai/hub](https://vessl.ai/).")
 st.image("https://i.imgur.com/UpdYC1d.png", width=180)

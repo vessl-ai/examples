@@ -29,14 +29,20 @@ with col1:
             os.system("mkdir temp")
         if img_file_buffer != None:
             img = Image.open(img_file_buffer)
-        else:
+        elif image_path != None:
             img = Image.open(image_path)
         img.save("temp/image.jpg", "JPEG")
 
+    _col1, _col2, _col3 = st.columns(3)
     st.header("Driving Video")
     video_file = open("./assets/driving.mp4", "rb")
     video_bytes = video_file.read()
-    st.video([video_bytes, video_bytes, video_bytes])
+    with _col1:
+        st.video(video_bytes)
+    with _col2:
+        st.video(video_bytes)
+    with _col3:
+        st.video(video_bytes)
     option = st.radio("Choose your driving video!", ["Video 1", "Video 2", "Video 3"])
 
 with col2:
