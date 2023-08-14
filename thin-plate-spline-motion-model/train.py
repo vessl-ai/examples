@@ -1,13 +1,14 @@
-from tqdm import trange
-from tqdm import tqdm
+import math
+
 import torch
+from torch.nn.utils import clip_grad_norm_
+from torch.optim.lr_scheduler import MultiStepLR
 from torch.utils.data import DataLoader
+from tqdm import tqdm, trange
+
+from frames_dataset import DatasetRepeater
 from logger import Logger
 from modules.model import GeneratorFullModel
-from torch.optim.lr_scheduler import MultiStepLR
-from torch.nn.utils import clip_grad_norm_
-from frames_dataset import DatasetRepeater
-import math
 
 
 def train(

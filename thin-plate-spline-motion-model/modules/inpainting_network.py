@@ -1,8 +1,9 @@
 import torch
-from torch import nn
 import torch.nn.functional as F
-from modules.util import ResBlock2d, SameBlock2d, UpBlock2d, DownBlock2d
+from torch import nn
+
 from modules.dense_motion import DenseMotionNetwork
+from modules.util import DownBlock2d, ResBlock2d, SameBlock2d, UpBlock2d
 
 
 class InpaintingNetwork(nn.Module):

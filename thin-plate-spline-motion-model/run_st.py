@@ -1,6 +1,7 @@
 import os
-from PIL import Image
+
 import streamlit as st
+from PIL import Image
 
 MODEL_REPO = "OFA-Sys/small-stable-diffusion-v0"
 LoRa_DIR = "/ckpt"
@@ -12,25 +13,26 @@ st.title("Image animation using Thin-Plate-Spline-Motion-Model")
 
 
 def inference(vid):
-    os.system(f"python demo.py --config config/vox-256.yaml --checkpoint /ckpt/vox.pth.tar --source_image 'temp/image.jpg' --driving_video {vid} --result_video './temp/result.mp4'")
+    os.system(
+        f"python demo.py --config config/vox-256.yaml --checkpoint /ckpt/vox.pth.tar --source_image 'temp/image.jpg' --driving_video {vid} --result_video './temp/result.mp4'"
+    )
     return "./temp/result.mp4"
 
 
-_col1, _col2, _col3 = st.columns(3)
-st.header("Driving Video")
+_col1, _col2 = st.columns(2)
+st.header("Use predefined driving video or upload your own!")
 video_file = open("./assets/driving.mp4", "rb")
 video_bytes = video_file.read()
 with _col1:
     st.video(video_bytes)
 with _col2:
-    st.video(video_bytes)
-with _col3:
-    st.video(video_bytes)
-option = st.radio("Choose your driving video!", ["Video 1", "Video 2", "Video 3"])
+    with st.form("Driving video", clear_on_submit=False):
+        video_path = st.file_uploader("Upload your own driving video!", type=["mp4"])
+if video_path == None:
+    video_path = "./assets/driving.mp4"
 
 
 col1, col2 = st.columns(2)
-
 with col1:
     st.header("Upload image or Take your photo!")
     with st.form("image", clear_on_submit=False):
@@ -45,11 +47,10 @@ with col1:
         elif image_path != None:
             img = Image.open(image_path)
             img.save("temp/image.jpg", "JPEG")
-
 with col2:
     st.header("Result Video")
     if submit_button:
-        result_video = inference("./assets/driving.mp4")
+        result_video = inference(video_path)
         video_file = open(result_video, "rb")
         video_bytes = video_file.read()
         st.video(video_bytes)

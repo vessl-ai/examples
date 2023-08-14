@@ -1,10 +1,12 @@
 import os
-from tqdm import tqdm
+
+import imageio
+import numpy as np
 import torch
 from torch.utils.data import DataLoader
+from tqdm import tqdm
+
 from logger import Logger, Visualizer
-import numpy as np
-import imageio
 
 
 def reconstruction(

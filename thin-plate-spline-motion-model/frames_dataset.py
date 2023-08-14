@@ -1,14 +1,16 @@
-import os
-from skimage import io, img_as_float32
-from skimage.color import gray2rgb
-from sklearn.model_selection import train_test_split
-from imageio import mimread
-from skimage.transform import resize
-import numpy as np
-from torch.utils.data import Dataset
-from augmentation import AllAugmentationTransform
 import glob
+import os
 from functools import partial
+
+import numpy as np
+from imageio import mimread
+from skimage import img_as_float32, io
+from skimage.color import gray2rgb
+from skimage.transform import resize
+from sklearn.model_selection import train_test_split
+from torch.utils.data import Dataset
+
+from augmentation import AllAugmentationTransform
 
 
 def read_video(name, frame_shape):

@@ -2,19 +2,21 @@ import matplotlib
 
 matplotlib.use("Agg")
 import sys
-import yaml
 from argparse import ArgumentParser
-from tqdm import tqdm
-from scipy.spatial import ConvexHull
-import numpy as np
+
 import imageio
-from skimage.transform import resize
-from skimage import img_as_ubyte
+import numpy as np
 import torch
+import yaml
+from scipy.spatial import ConvexHull
+from skimage import img_as_ubyte
+from skimage.transform import resize
+from tqdm import tqdm
+
+from modules.avd_network import AVDNetwork
+from modules.dense_motion import DenseMotionNetwork
 from modules.inpainting_network import InpaintingNetwork
 from modules.keypoint_detector import KPDetector
-from modules.dense_motion import DenseMotionNetwork
-from modules.avd_network import AVDNetwork
 
 if sys.version_info[0] < 3:
     raise Exception(

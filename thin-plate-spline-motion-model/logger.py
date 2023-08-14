@@ -1,14 +1,13 @@
+import collections
+import os
+
+import imageio
+import matplotlib.pyplot as plt
 import numpy as np
 import torch
-import vessl
 import torch.nn.functional as F
-import imageio
-
-import os
+import vessl
 from skimage.draw import circle
-
-import matplotlib.pyplot as plt
-import collections
 
 
 class Logger:

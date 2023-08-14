@@ -1,9 +1,10 @@
-from tqdm import trange
 import torch
-from torch.utils.data import DataLoader
-from logger import Logger
 from torch.optim.lr_scheduler import MultiStepLR
+from torch.utils.data import DataLoader
+from tqdm import trange
+
 from frames_dataset import DatasetRepeater
+from logger import Logger
 
 
 def random_scale(kp_params, scale):
