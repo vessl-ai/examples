@@ -1,0 +1,12 @@
+accelerate
+peft
+tqdm
+datasets
+transformers
+deepspeed
+sentencepiece
+bentoml
+llama-index
+InstructorEmbedding
+sentence-transformers
+pydantic==1.10.8
