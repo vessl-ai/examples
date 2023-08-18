@@ -57,6 +57,7 @@ class IndexedDatasetBuilder:
 
 if __name__ == "__main__":
     import random
+
     from tqdm import tqdm
 
     ds_path = "/tmp/indexed_ds_example"

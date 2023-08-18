@@ -20,7 +20,9 @@ class Hubert(nn.Module):
         self.norm = nn.LayerNorm(768)
         self.dropout = nn.Dropout(0.1)
         self.encoder = TransformerEncoder(
-            nn.TransformerEncoderLayer(768, 12, 3072, activation="gelu", batch_first=True),
+            nn.TransformerEncoderLayer(
+                768, 12, 3072, activation="gelu", batch_first=True
+            ),
             12,
         )
         self.proj = nn.Linear(768, 256)
@@ -131,9 +133,13 @@ class PositionalConvEmbedding(nn.Module):
 
 
 class TransformerEncoder(nn.Module):
-    def __init__(self, encoder_layer: nn.TransformerEncoderLayer, num_layers: int) -> None:
+    def __init__(
+        self, encoder_layer: nn.TransformerEncoderLayer, num_layers: int
+    ) -> None:
         super(TransformerEncoder, self).__init__()
-        self.layers = nn.ModuleList([copy.deepcopy(encoder_layer) for _ in range(num_layers)])
+        self.layers = nn.ModuleList(
+            [copy.deepcopy(encoder_layer) for _ in range(num_layers)]
+        )
         self.num_layers = num_layers
 
     def forward(
@@ -145,7 +151,9 @@ class TransformerEncoder(nn.Module):
     ) -> torch.Tensor:
         output = src
         for layer in self.layers[:output_layer]:
-            output = layer(output, src_mask=mask, src_key_padding_mask=src_key_padding_mask)
+            output = layer(
+                output, src_mask=mask, src_key_padding_mask=src_key_padding_mask
+            )
         return output
 
 
@@ -178,7 +186,9 @@ def _compute_mask(
     mask = torch.zeros((batch_size, sequence_length), device=device, dtype=torch.bool)
 
     # uniform distribution to sample from, make sure that offset samples are < sequence_length
-    uniform_dist = torch.ones((batch_size, sequence_length - (mask_length - 1)), device=device)
+    uniform_dist = torch.ones(
+        (batch_size, sequence_length - (mask_length - 1)), device=device
+    )
 
     # get random indices to mask
     mask_indices = torch.multinomial(uniform_dist, num_masked_spans)

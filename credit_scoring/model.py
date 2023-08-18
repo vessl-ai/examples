@@ -1,19 +1,18 @@
-import matplotlib.pyplot as plt
-from pathlib import Path
-import os
 import json
+import os
+from pathlib import Path
 
 import feast
 import joblib
+import matplotlib.pyplot as plt
 import pandas as pd
 import vessl
-
 from sklearn import tree
 from sklearn.exceptions import NotFittedError
-from sklearn.preprocessing import OrdinalEncoder
 from sklearn.model_selection import LearningCurveDisplay
-from sklearn.utils.validation import check_is_fitted
 from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import OrdinalEncoder
+from sklearn.utils.validation import check_is_fitted
 
 
 class MyFeast:
@@ -100,8 +99,7 @@ class CreditScoringModel(Pipeline):
             "std_display_style": "fill_between",
             "score_name": "Accuracy",
         }
-        LearningCurveDisplay.from_estimator(self.classifier, **common_params,
-                                            ax=ax)
+        LearningCurveDisplay.from_estimator(self.classifier, **common_params, ax=ax)
         handles, label = ax.get_legend_handles_labels()
         ax.legend(handles[:2], ["Training Score", "Test Score"])
         title = f"Learning Curve for {self.classifier.__class__.__name__}"
@@ -109,9 +107,11 @@ class CreditScoringModel(Pipeline):
         file_path = os.path.join(self.output_path, "learning_curve.png")
         plt.savefig(file_path)
 
-        vessl.log({
-            "log-image": [vessl.Image(data=file_path, caption=title)],
-        })
+        vessl.log(
+            {
+                "log-image": [vessl.Image(data=file_path, caption=title)],
+            }
+        )
 
     def train(self, loans):
         training_df = self.fs.get_training_features(loans)
@@ -120,13 +120,12 @@ class CreditScoringModel(Pipeline):
         self._apply_ordinal_encoding(training_df)
 
         train_X = training_df[
-            training_df.columns
-                .drop(self.target)
-                .drop("event_timestamp")
-                .drop("created_timestamp")
-                .drop("loan_id")
-                .drop("zipcode")
-                .drop("dob_ssn")
+            training_df.columns.drop(self.target)
+            .drop("event_timestamp")
+            .drop("created_timestamp")
+            .drop("loan_id")
+            .drop("zipcode")
+            .drop("dob_ssn")
         ]
         train_X = train_X.reindex(sorted(train_X.columns), axis=1)
         train_Y = training_df.loc[:, self.target]
@@ -156,8 +155,7 @@ class CreditScoringModel(Pipeline):
         features_df = features_df.reindex(sorted(features_df.columns), axis=1)
 
         # Drop unnecessary columns
-        features_df = features_df[
-            features_df.columns.drop("zipcode").drop("dob_ssn")]
+        features_df = features_df[features_df.columns.drop("zipcode").drop("dob_ssn")]
 
         # Make prediction
         features_df["prediction"] = self.classifier.predict(features_df)
@@ -181,7 +179,7 @@ class MyRunner(vessl.RunnerBase):
 
     @staticmethod
     def preprocess_data(data):
-        request = json.loads(data.decode('utf-8'))
+        request = json.loads(data.decode("utf-8"))
 
         # Get online features from Feast
         fs = MyFeast(repo_path="feature_repo")
@@ -216,7 +214,7 @@ class MyRunner(vessl.RunnerBase):
         return msg
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     vessl.configure()
 
     model_repository_name = "YOUR_MODEL_REPOSITORY_NAME"

@@ -8,15 +8,14 @@ import imageio
 import numpy as np
 import torch
 import yaml
-from scipy.spatial import ConvexHull
-from skimage import img_as_ubyte
-from skimage.transform import resize
-from tqdm import tqdm
-
 from modules.avd_network import AVDNetwork
 from modules.dense_motion import DenseMotionNetwork
 from modules.inpainting_network import InpaintingNetwork
 from modules.keypoint_detector import KPDetector
+from scipy.spatial import ConvexHull
+from skimage import img_as_ubyte
+from skimage.transform import resize
+from tqdm import tqdm
 
 if sys.version_info[0] < 3:
     raise Exception(
@@ -25,7 +24,6 @@ if sys.version_info[0] < 3:
 
 
 def relative_kp(kp_source, kp_driving, kp_driving_initial):
-
     source_area = ConvexHull(kp_source["fg_kp"][0].data.cpu().numpy()).volume
     driving_area = ConvexHull(kp_driving_initial["fg_kp"][0].data.cpu().numpy()).volume
     adapt_movement_scale = np.sqrt(source_area) / np.sqrt(driving_area)

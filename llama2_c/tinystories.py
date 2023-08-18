@@ -7,18 +7,18 @@ import glob
 import json
 import os
 import random
-from typing import List
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from typing import List
 
 import numpy as np
 import requests
 import torch
 import torch.distributed as dist
+from tokenizer import Tokenizer
 from tqdm import tqdm
 
-from tokenizer import Tokenizer
-
 DATA_CACHE_DIR = "data"
+
 
 def download_file(url: str, fname: str, chunk_size=1024):
     """Helper function to download a file from a given url"""
@@ -66,6 +66,7 @@ def download():
     print(f"Number of shards: {len(shard_filenames)}")
     print(f"Example story:\n{data[0]}")
 
+
 def pretokenize():
     enc = Tokenizer()
 
@@ -75,7 +76,7 @@ def pretokenize():
         all_tokens = []
         for example in tqdm(data):
             text = example["story"]
-            text = text.strip() # get rid of leading/trailing whitespace
+            text = text.strip()  # get rid of leading/trailing whitespace
             tokens = enc.encode(text, bos=True, eos=False)  # encode the text, use BOS
             all_tokens.extend(tokens)
         # convert to uint16 nparray
@@ -118,7 +119,9 @@ class PretokDataset(torch.utils.data.IterableDataset):
         data_dir = os.path.join(DATA_CACHE_DIR, "TinyStories_all_data")
         shard_filenames = sorted(glob.glob(os.path.join(data_dir, "*.bin")))
         # train/test split. let's use only shard 0 for test split, rest train
-        shard_filenames = shard_filenames[1:] if self.split == "train" else shard_filenames[:1]
+        shard_filenames = (
+            shard_filenames[1:] if self.split == "train" else shard_filenames[:1]
+        )
         while True:
             rng.shuffle(shard_filenames)
             for shard in shard_filenames:
@@ -140,7 +143,6 @@ class PretokDataset(torch.utils.data.IterableDataset):
 
 
 class Task:
-
     @staticmethod
     def iter_batches(split, batch_size, max_seq_len, device, num_workers=0):
         ds = PretokDataset(split, max_seq_len)
@@ -155,7 +157,9 @@ class Task:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("stage", type=str, choices=["download", "train_tokenizer", "pretokenize"])
+    parser.add_argument(
+        "stage", type=str, choices=["download", "train_tokenizer", "pretokenize"]
+    )
     args = parser.parse_args()
 
     # depending on the stage call the appropriate function

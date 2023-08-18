@@ -1,9 +1,8 @@
 import torch
 import torch.nn.functional as F
-from torch import nn
-
 from modules.dense_motion import DenseMotionNetwork
 from modules.util import DownBlock2d, ResBlock2d, SameBlock2d, UpBlock2d
+from torch import nn
 
 
 class InpaintingNetwork(nn.Module):
@@ -113,7 +112,6 @@ class InpaintingNetwork(nn.Module):
         warped_encoder_maps.append(out_ij)
 
         for i in range(self.num_down_blocks):
-
             out = self.resblock[2 * i](out)
             out = self.resblock[2 * i + 1](out)
             out = self.up_blocks[i](out)

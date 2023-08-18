@@ -1,10 +1,9 @@
 from datetime import timedelta
 
-from feast import FeatureView, Field
-from feast.types import String, Int64
-
 from data_sources import *
 from entities import *
+from feast import FeatureView, Field
+from feast.types import Int64, String
 
 zipcode_features = FeatureView(
     name="zipcode_features",

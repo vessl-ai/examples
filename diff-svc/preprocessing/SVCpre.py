@@ -1,10 +1,9 @@
+import logging
 from copy import deepcopy
 
-import logging
-
+from preprocessing.base_binarizer import BaseBinarizer
 from preprocessing.process_pipeline import File2Batch
 from utils.hparams import hparams
-from preprocessing.base_binarizer import BaseBinarizer
 
 SVCSINGING_ITEM_ATTRIBUTES = ["wav_fn"]
 
@@ -13,7 +12,9 @@ class SVCBinarizer(BaseBinarizer):
     def __init__(self, item_attributes=SVCSINGING_ITEM_ATTRIBUTES):
         super().__init__(item_attributes)
         self.item_names = sorted(list(self.items.keys()))
-        self._train_item_names, self._test_item_names = self.split_train_test_set(self.item_names)
+        self._train_item_names, self._test_item_names = self.split_train_test_set(
+            self.item_names
+        )
 
     def split_train_test_set(self, item_names):
         item_names = deepcopy(item_names)

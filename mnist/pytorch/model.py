@@ -1,10 +1,10 @@
-import torch
-import torch.nn as nn
-from PIL import Image
-import numpy as np
 from io import BytesIO
 
+import numpy as np
+import torch
+import torch.nn as nn
 import vessl
+from PIL import Image
 
 
 class Net(nn.Module):
@@ -51,11 +51,13 @@ class MyRunner(vessl.RunnerBase):
 
         # change datatype to tensor by using TensorDataset
         infer_torch_data = torch.utils.data.TensorDataset(
-            torch.from_numpy(data).unsqueeze(1))
+            torch.from_numpy(data).unsqueeze(1)
+        )
 
         # load tensor data to dataloader iteration
         infer_dataloader = torch.utils.data.DataLoader(
-            infer_torch_data, batch_size=128, shuffle=False)
+            infer_torch_data, batch_size=128, shuffle=False
+        )
 
         # save data from dataloader iteration, and change datatype of data in tensor to float(?)
         for data in infer_dataloader:

@@ -4,39 +4,36 @@ import logging
 import math
 import random
 import time
+from io import BytesIO
+from pathlib import Path
 
+import datasets
+import diffusers
 import numpy as np
 import torch
 import torch.nn.functional as F
 import torch.utils.checkpoint  # for making ckpt of model
-
-import datasets
-import diffusers
 import transformers
-
-from pathlib import Path
-
 from accelerate import Accelerator
 from accelerate.logging import get_logger
 from accelerate.utils import set_seed
-
 from datasets import load_dataset
-
-from diffusers import AutoencoderKL, DDPMScheduler, DiffusionPipeline, UNet2DConditionModel
+from diffusers import (
+    AutoencoderKL,
+    DDPMScheduler,
+    DiffusionPipeline,
+    UNet2DConditionModel,
+)
 from diffusers.loaders import AttnProcsLayers
 from diffusers.models.cross_attention import LoRACrossAttnProcessor
 from diffusers.optimization import get_scheduler
 from diffusers.utils import check_min_version
 from diffusers.utils.import_utils import is_xformers_available
-
 from huggingface_hub import Repository, create_repo
+from PIL import Image
 from torchvision import transforms
 from tqdm.auto import tqdm
 from transformers import CLIPTextModel, CLIPTokenizer
-
-from io import BytesIO
-from PIL import Image
-
 from utils import *
 
 """
@@ -53,14 +50,14 @@ def parse_args():
         "--on_vessl",
         type=bool,
         default=True,
-        help='training script is whether on vessl or not.'
+        help="training script is whether on vessl or not.",
     )
     parser.add_argument(
         "--pretrained_model_name_or_path",
         type=str,
         default="OFA-Sys/small-stable-diffusion-v0",
         help="Path to pretrained model or model identifier from huggingface.co/models."
-             "CompVis/stable-diffusion-v1-4 also available",
+        "CompVis/stable-diffusion-v1-4 also available",
     )
     parser.add_argument(
         "--revision",
@@ -96,7 +93,10 @@ def parse_args():
         ),
     )
     parser.add_argument(
-        "--image_column", type=str, default="image", help="The column of the dataset containing an image."
+        "--image_column",
+        type=str,
+        default="image",
+        help="The column of the dataset containing an image.",
     )
     parser.add_argument(
         "--caption_column",
@@ -108,7 +108,7 @@ def parse_args():
         "--validation_prompt",
         type=str,
         required=True,
-        help="A prompt that is sampled during training for inference."
+        help="A prompt that is sampled during training for inference.",
     )
     parser.add_argument(
         "--num_validation_images",
@@ -147,10 +147,7 @@ def parse_args():
         help="The directory where the downloaded models and datasets will be stored.",
     )
     parser.add_argument(
-        "--seed",
-        type=int,
-        default=None,
-        help="A seed for reproducible training."
+        "--seed", type=int, default=None, help="A seed for reproducible training."
     )
     parser.add_argument(
         "--resolution",
@@ -176,13 +173,12 @@ def parse_args():
         help="whether to randomly flip images horizontally",
     )
     parser.add_argument(
-        "--train_batch_size", type=int, default=16, help="Batch size (per device) for the training dataloader."
-    )
-    parser.add_argument(
-        "--num_train_epochs",
+        "--train_batch_size",
         type=int,
-        default=100
+        default=16,
+        help="Batch size (per device) for the training dataloader.",
     )
+    parser.add_argument("--num_train_epochs", type=int, default=100)
     parser.add_argument(
         "--max_train_steps",
         type=int,
@@ -222,10 +218,15 @@ def parse_args():
         ),
     )
     parser.add_argument(
-        "--lr_warmup_steps", type=int, default=500, help="Number of steps for the warmup in the lr scheduler."
+        "--lr_warmup_steps",
+        type=int,
+        default=500,
+        help="Number of steps for the warmup in the lr scheduler.",
     )
     parser.add_argument(
-        "--use_8bit_adam", action="store_true", help="Whether or not to use 8-bit Adam from bitsandbytes."
+        "--use_8bit_adam",
+        action="store_true",
+        help="Whether or not to use 8-bit Adam from bitsandbytes.",
     )
     parser.add_argument(
         "--allow_tf32",
@@ -243,11 +244,30 @@ def parse_args():
             "Number of subprocesses to use for data loading. 0 means that the data will be loaded in the main process."
         ),
     )
-    parser.add_argument("--adam_beta1", type=float, default=0.9, help="The beta1 parameter for the Adam optimizer.")
-    parser.add_argument("--adam_beta2", type=float, default=0.999, help="The beta2 parameter for the Adam optimizer.")
-    parser.add_argument("--adam_weight_decay", type=float, default=1e-2, help="Weight decay to use.")
-    parser.add_argument("--adam_epsilon", type=float, default=1e-08, help="Epsilon value for the Adam optimizer")
-    parser.add_argument("--max_grad_norm", default=1.0, type=float, help="Max gradient norm.")
+    parser.add_argument(
+        "--adam_beta1",
+        type=float,
+        default=0.9,
+        help="The beta1 parameter for the Adam optimizer.",
+    )
+    parser.add_argument(
+        "--adam_beta2",
+        type=float,
+        default=0.999,
+        help="The beta2 parameter for the Adam optimizer.",
+    )
+    parser.add_argument(
+        "--adam_weight_decay", type=float, default=1e-2, help="Weight decay to use."
+    )
+    parser.add_argument(
+        "--adam_epsilon",
+        type=float,
+        default=1e-08,
+        help="Epsilon value for the Adam optimizer",
+    )
+    parser.add_argument(
+        "--max_grad_norm", default=1.0, type=float, help="Max gradient norm."
+    )
     parser.add_argument(
         "--mixed_precision",
         type=str,
@@ -259,7 +279,12 @@ def parse_args():
             " flag passed with the `accelerate.launch` command. Use this argument to override the accelerate config."
         ),
     )
-    parser.add_argument("--local_rank", type=int, default=-1, help="For distributed training: local_rank")
+    parser.add_argument(
+        "--local_rank",
+        type=int,
+        default=-1,
+        help="For distributed training: local_rank",
+    )
     parser.add_argument(
         "--checkpointing_steps",
         type=int,
@@ -280,7 +305,9 @@ def parse_args():
     )
     # related to accelerate
     parser.add_argument(
-        "--enable_xformers_memory_efficient_attention", action="store_true", help="Whether or not to use xformers."
+        "--enable_xformers_memory_efficient_attention",
+        action="store_true",
+        help="Whether or not to use xformers.",
     )
 
     args = parser.parse_args()
@@ -312,7 +339,9 @@ def main():
                 time.sleep(0.5)
                 vessllogger = VesslLogger(save_image=True)
         except:
-            raise ImportError("Make sure to install vessl if you're on vessl experiment")
+            raise ImportError(
+                "Make sure to install vessl if you're on vessl experiment"
+            )
 
     logging.basicConfig(
         format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
@@ -340,10 +369,14 @@ def main():
         args.pretrained_model_name_or_path, subfolder="scheduler"
     )
     tokenizer = CLIPTokenizer.from_pretrained(
-        args.pretrained_model_name_or_path, subfolder="tokenizer", revision=args.revision
+        args.pretrained_model_name_or_path,
+        subfolder="tokenizer",
+        revision=args.revision,
     )
     text_encoder = CLIPTextModel.from_pretrained(
-        args.pretrained_model_name_or_path, subfolder="text_encoder", revision=args.revision
+        args.pretrained_model_name_or_path,
+        subfolder="text_encoder",
+        revision=args.revision,
     )
     vae = AutoencoderKL.from_pretrained(
         args.pretrained_model_name_or_path, subfolder="vae", revision=args.revision
@@ -373,7 +406,9 @@ def main():
         if is_xformers_available():
             unet.enable_xformers_memory_efficient_attention()
         else:
-            raise ValueError("xformers is not available. Make sure it is installed correctly")
+            raise ValueError(
+                "xformers is not available. Make sure it is installed correctly"
+            )
 
     # now we will add new LoRA weights to the attention layers
     # It's important to realize here how many attention weights will be added and of which sizes
@@ -391,7 +426,11 @@ def main():
     # Set correct lora layers
     lora_attn_procs = {}
     for name in unet.attn_processors.keys():
-        cross_attention_dim = None if name.endswith("attn1.processor") else unet.config.cross_attention_dim
+        cross_attention_dim = (
+            None
+            if name.endswith("attn1.processor")
+            else unet.config.cross_attention_dim
+        )
         if name.startswith("mid_block"):
             hidden_size = unet.config.block_out_channels[-1]
         elif name.startswith("up_blocks"):
@@ -415,7 +454,10 @@ def main():
 
     if args.scale_lr:
         args.learning_rate = (
-                args.learning_rate * args.gradient_accumulation_steps * args.train_batch_size * accelerator.num_processes
+            args.learning_rate
+            * args.gradient_accumulation_steps
+            * args.train_batch_size
+            * accelerator.num_processes
         )
 
     # Initialize the optimizer
@@ -470,7 +512,9 @@ def main():
     # Get the column names for input/target.
     dataset_columns = DATASET_NAME_MAPPING.get(args.dataset_name, None)
     if args.image_column is None:
-        image_column = dataset_columns[0] if dataset_columns is not None else column_names[0]
+        image_column = (
+            dataset_columns[0] if dataset_columns is not None else column_names[0]
+        )
     else:
         image_column = args.image_column
         if image_column not in column_names:
@@ -478,7 +522,9 @@ def main():
                 f"--image_column' value '{args.image_column}' needs to be one of: {', '.join(column_names)}"
             )
     if args.caption_column is None:
-        caption_column = dataset_columns[1] if dataset_columns is not None else column_names[1]
+        caption_column = (
+            dataset_columns[1] if dataset_columns is not None else column_names[1]
+        )
     else:
         caption_column = args.caption_column
         if caption_column not in column_names:
@@ -501,16 +547,26 @@ def main():
                     f"Caption column `{caption_column}` should contain either strings or lists of strings."
                 )
         inputs = tokenizer(
-            captions, max_length=tokenizer.model_max_length, padding="max_length", truncation=True, return_tensors="pt"
+            captions,
+            max_length=tokenizer.model_max_length,
+            padding="max_length",
+            truncation=True,
+            return_tensors="pt",
         )
         return inputs.input_ids
 
     # Preprocessing the datasets.
     train_transforms = transforms.Compose(
         [
-            transforms.Resize(args.resolution, interpolation=transforms.InterpolationMode.BILINEAR),
-            transforms.CenterCrop(args.resolution) if args.center_crop else transforms.RandomCrop(args.resolution),
-            transforms.RandomHorizontalFlip() if args.random_flip else transforms.Lambda(lambda x: x),
+            transforms.Resize(
+                args.resolution, interpolation=transforms.InterpolationMode.BILINEAR
+            ),
+            transforms.CenterCrop(args.resolution)
+            if args.center_crop
+            else transforms.RandomCrop(args.resolution),
+            transforms.RandomHorizontalFlip()
+            if args.random_flip
+            else transforms.Lambda(lambda x: x),
             transforms.ToTensor(),
             transforms.Normalize([0.5], [0.5]),
         ]
@@ -518,14 +574,21 @@ def main():
 
     # Modified for VESSL/BAYC dataset
     def preprocess_train(examples):
-        images = [Image.open(BytesIO(image['bytes'])).convert("RGB") for image in examples[image_column]]
+        images = [
+            Image.open(BytesIO(image["bytes"])).convert("RGB")
+            for image in examples[image_column]
+        ]
         examples["pixel_values"] = [train_transforms(image) for image in images]
         examples["input_ids"] = tokenize_captions(examples)
         return examples
 
     with accelerator.main_process_first():
         if args.max_train_samples is not None:
-            dataset["train"] = dataset["train"].shuffle(seed=args.seed).select(range(args.max_train_samples))
+            dataset["train"] = (
+                dataset["train"]
+                .shuffle(seed=args.seed)
+                .select(range(args.max_train_samples))
+            )
         # Set the training transforms
         train_dataset = dataset["train"].with_transform(preprocess_train)
 
@@ -546,7 +609,9 @@ def main():
 
     # Scheduler and math around the number of training steps.
     overrode_max_train_steps = False
-    num_update_steps_per_epoch = math.ceil(len(train_dataloader) / args.gradient_accumulation_steps)
+    num_update_steps_per_epoch = math.ceil(
+        len(train_dataloader) / args.gradient_accumulation_steps
+    )
     if args.max_train_steps is None:
         args.max_train_steps = args.num_train_epochs * num_update_steps_per_epoch
         overrode_max_train_steps = True
@@ -564,7 +629,9 @@ def main():
     )
 
     # We need to recalculate our total training steps as the size of the training dataloader may have changed.
-    num_update_steps_per_epoch = math.ceil(len(train_dataloader) / args.gradient_accumulation_steps)
+    num_update_steps_per_epoch = math.ceil(
+        len(train_dataloader) / args.gradient_accumulation_steps
+    )
     if overrode_max_train_steps:
         args.max_train_steps = args.num_train_epochs * num_update_steps_per_epoch
     # Afterwards we recalculate our number of training epochs
@@ -576,13 +643,19 @@ def main():
         accelerator.init_trackers("text2image-fine-tune", config=vars(args))
 
     # Train!
-    total_batch_size = args.train_batch_size * accelerator.num_processes * args.gradient_accumulation_steps
+    total_batch_size = (
+        args.train_batch_size
+        * accelerator.num_processes
+        * args.gradient_accumulation_steps
+    )
 
     logger.info("***** Running training *****")
     logger.info(f"  Num examples = {len(train_dataset)}")
     logger.info(f"  Num Epochs = {args.num_train_epochs}")
     logger.info(f"  Instantaneous batch size per device = {args.train_batch_size}")
-    logger.info(f"  Total train batch size (w. parallel, distributed & accumulation) = {total_batch_size}")
+    logger.info(
+        f"  Total train batch size (w. parallel, distributed & accumulation) = {total_batch_size}"
+    )
     logger.info(f"  Gradient Accumulation steps = {args.gradient_accumulation_steps}")
     logger.info(f"  Total optimization steps = {args.max_train_steps}")
     global_step = 0
@@ -611,10 +684,15 @@ def main():
 
             resume_global_step = global_step * args.gradient_accumulation_steps
             first_epoch = global_step // num_update_steps_per_epoch
-            resume_step = resume_global_step % (num_update_steps_per_epoch * args.gradient_accumulation_steps)
+            resume_step = resume_global_step % (
+                num_update_steps_per_epoch * args.gradient_accumulation_steps
+            )
 
     # Only show the progress bar once on each machine.
-    progress_bar = tqdm(range(global_step, args.max_train_steps), disable=not accelerator.is_local_main_process)
+    progress_bar = tqdm(
+        range(global_step, args.max_train_steps),
+        disable=not accelerator.is_local_main_process,
+    )
     progress_bar.set_description("Steps")
 
     # training script
@@ -624,7 +702,11 @@ def main():
 
         for step, batch in enumerate(train_dataloader):
             # Skip steps until we reach the resumed step
-            if args.resume_from_checkpoint and epoch == first_epoch and step < resume_step:
+            if (
+                args.resume_from_checkpoint
+                and epoch == first_epoch
+                and step < resume_step
+            ):
                 if step % args.gradient_accumulation_steps == 0:
                     progress_bar.update(1)
                 continue
@@ -632,22 +714,32 @@ def main():
             with accelerator.accumulate(unet):
                 # Convert images to latent space
                 latents = vae.encode(
-                    batch["pixel_values"].to(dtype=weight_dtype)).latent_dist.sample()  # (1,tb, 64, 64)
+                    batch["pixel_values"].to(dtype=weight_dtype)
+                ).latent_dist.sample()  # (1,tb, 64, 64)
                 latents = latents * vae.config.scaling_factor
 
                 # Sample noise that we'll add to the latents
                 noise = torch.randn_like(latents)
                 bsz = latents.shape[0]
                 # Sample a random timestep for each image
-                timesteps = torch.randint(0, noise_scheduler.num_train_timesteps, (bsz,), device=latents.device)  # [b,]
+                timesteps = torch.randint(
+                    0,
+                    noise_scheduler.num_train_timesteps,
+                    (bsz,),
+                    device=latents.device,
+                )  # [b,]
                 timesteps = timesteps.long()
 
                 # Add noise to the latents according to the noise magnitude at each timestep
                 # (this is the forward diffusion process)
-                noisy_latents = noise_scheduler.add_noise(latents, noise, timesteps)  # (b, 4, 64, 64)
+                noisy_latents = noise_scheduler.add_noise(
+                    latents, noise, timesteps
+                )  # (b, 4, 64, 64)
 
                 # Get the text embedding for conditioning
-                encoder_hidden_states = text_encoder(batch["input_ids"])[0]  # (b, max_length, emb_dim)
+                encoder_hidden_states = text_encoder(batch["input_ids"])[
+                    0
+                ]  # (b, max_length, emb_dim)
 
                 # Get the target for loss depending on the prediction type
                 if noise_scheduler.config.prediction_type == "epsilon":
@@ -655,10 +747,14 @@ def main():
                 elif noise_scheduler.config.prediction_type == "v_prediction":
                     target = noise_scheduler.get_velocity(latents, noise, timesteps)
                 else:
-                    raise ValueError(f"Unknown prediction type {noise_scheduler.config.prediction_type}")
+                    raise ValueError(
+                        f"Unknown prediction type {noise_scheduler.config.prediction_type}"
+                    )
 
                 # Predict the noise residual and compute loss
-                model_pred = unet(noisy_latents, timesteps, encoder_hidden_states).sample  # (b, 4, 64, 64)
+                model_pred = unet(
+                    noisy_latents, timesteps, encoder_hidden_states
+                ).sample  # (b, 4, 64, 64)
                 loss = F.mse_loss(model_pred.float(), target.float(), reduction="mean")
 
                 # Gather the losses across all processes for logging (if we use distributed training).
@@ -680,16 +776,23 @@ def main():
                 global_step += 1
                 accelerator.log({"train_loss": train_loss}, step=global_step)
                 if args.on_vessl and accelerator.is_main_process:
-                    vessllogger.log(step=global_step, metric="train_loss", value=train_loss)
+                    vessllogger.log(
+                        step=global_step, metric="train_loss", value=train_loss
+                    )
                 train_loss = 0.0
 
                 if global_step % args.checkpointing_steps == 0:
                     if accelerator.is_main_process:
-                        save_path = os.path.join(args.output_dir, f"checkpoint-{global_step}")
+                        save_path = os.path.join(
+                            args.output_dir, f"checkpoint-{global_step}"
+                        )
                         accelerator.save_state(save_path)
                         logger.info(f"Saved state to {save_path}")
 
-            logs = {"step_loss": loss.detach().item(), "lr": lr_scheduler.get_last_lr()[0]}
+            logs = {
+                "step_loss": loss.detach().item(),
+                "lr": lr_scheduler.get_last_lr()[0],
+            }
             progress_bar.set_postfix(**logs)
 
             if global_step >= args.max_train_steps:
@@ -711,16 +814,26 @@ def main():
             pipeline.set_progress_bar_config(disable=True)
 
             # run inference
-            generator = torch.Generator(device=accelerator.device).manual_seed(args.seed)
+            generator = torch.Generator(device=accelerator.device).manual_seed(
+                args.seed
+            )
             images = []
             for img_idx in range(args.num_validation_images):
-                generated_image = pipeline(args.validation_prompt, num_inference_steps=30, generator=generator).images[
-                    0]
+                generated_image = pipeline(
+                    args.validation_prompt, num_inference_steps=30, generator=generator
+                ).images[0]
                 images.append(generated_image)
                 if args.on_vessl and accelerator.is_main_process:
-                    vessl.log({"Image": vessl.Image(data=generated_image,
-                                                    caption="{}_epoch{}_{}.png".format(args.validation_prompt,
-                                                                                       epoch + 1, img_idx + 1))})
+                    vessl.log(
+                        {
+                            "Image": vessl.Image(
+                                data=generated_image,
+                                caption="{}_epoch{}_{}.png".format(
+                                    args.validation_prompt, epoch + 1, img_idx + 1
+                                ),
+                            )
+                        }
+                    )
 
             del pipeline
             torch.cuda.empty_cache()

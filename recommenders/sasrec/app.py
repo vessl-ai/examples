@@ -1,10 +1,10 @@
 import os
-import numpy as np
-import tensorflow as tf
-import pandas as pd
-import streamlit as st
 import time
 
+import numpy as np
+import pandas as pd
+import streamlit as st
+import tensorflow as tf
 from recommenders.models.sasrec.model import SASREC
 
 
@@ -26,8 +26,7 @@ class SASREC_Vessl(SASREC):
         input_seq = np.array([seq])
         candidate = np.expand_dims(np.arange(1, self.item_num + 1, 1), axis=0)
 
-        mask = tf.expand_dims(tf.cast(tf.not_equal(input_seq, 0), tf.float32),
-                              -1)
+        mask = tf.expand_dims(tf.cast(tf.not_equal(input_seq, 0), tf.float32), -1)
         seq_embeddings, positional_embeddings = self.embedding(input_seq)
         seq_embeddings += positional_embeddings
         seq_embeddings *= mask
@@ -58,7 +57,7 @@ def elapsed_time(fn, *args):
     output = fn(*args)
     end = time.time()
 
-    elapsed = f'{end - start:.2f}'
+    elapsed = f"{end - start:.2f}"
 
     return elapsed, output
 
@@ -88,9 +87,8 @@ def load_model():
         num_neg_test=model_config.get("NUM_NEG_TEST"),
     )
 
-    if os.path.isfile('best.index') and os.path.isfile(
-            'best.data-00000-of-00001'):
-        model.load_weights('best').expect_partial()
+    if os.path.isfile("best.index") and os.path.isfile("best.data-00000-of-00001"):
+        model.load_weights("best").expect_partial()
 
     return model
 
@@ -102,7 +100,7 @@ def postprocess_data(data):
     dic_result = {
         "Rank": [i for i in range(1, 6)],
         "ItemID": list(rec_items + 1),
-        "Similarity Score": -1 * predictions[rec_items]
+        "Similarity Score": -1 * predictions[rec_items],
     }
     result = pd.DataFrame(dic_result)
 
@@ -119,7 +117,8 @@ def main():
     st.write(f"Model is loaded in {elapsed} seconds!")
 
     numbers = st.text_input(
-        label="Please write input items separated by comma. (e.g. 80, 70, 100, 1)")
+        label="Please write input items separated by comma. (e.g. 80, 70, 100, 1)"
+    )
     if numbers:
         integer_numbers = np.array(list(map(int, numbers.split(","))))
         result = model.predict_next(integer_numbers)
@@ -128,5 +127,5 @@ def main():
         st.write(f"Best item is {best_item}")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

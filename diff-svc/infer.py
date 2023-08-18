@@ -5,7 +5,6 @@ from pathlib import Path
 import librosa
 import numpy as np
 import soundfile
-
 from infer_tools import infer_tool, slicer
 from infer_tools.infer_tool import Svc
 from utils.hparams import hparams

@@ -1,6 +1,6 @@
 from modules.commons.common_layers import *
-from utils.hparams import hparams
 from modules.fastspeech.tts_modules import PitchPredictor
+from utils.hparams import hparams
 from utils.pitch_utils import denorm_f0
 
 

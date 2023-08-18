@@ -7,7 +7,9 @@ plugin_dir = "projects/mmdet3d_plugin/"
 point_cloud_range = [-51.2, -51.2, -5.0, 51.2, 51.2, 3.0]
 voxel_size = [0.2, 0.2, 8]
 patch_size = [102.4, 102.4]
-img_norm_cfg = dict(mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True)
+img_norm_cfg = dict(
+    mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True
+)
 # For nuScenes we usually do 10-class detection
 class_names = [
     "car",
@@ -22,7 +24,7 @@ class_names = [
     "traffic_cone",
 ]
 vehicle_id_list = [0, 1, 2, 3, 4, 6, 7]
-group_id_list = [[0,1,2,3,4], [6,7], [8], [5,9]]
+group_id_list = [[0, 1, 2, 3, 4], [6, 7], [8], [5, 9]]
 input_modality = dict(
     use_lidar=False, use_camera=True, use_radar=False, use_map=False, use_external=True
 )
@@ -45,12 +47,12 @@ past_steps = 4
 use_nonlinear_optimizer = False
 use_future_states = False
 use_sdc_query = True
-select_methods = 'before_mem_bank'
+select_methods = "before_mem_bank"
 
 occflow_grid_conf = {
-    'xbound': [-50.0, 50.0, 0.5],
-    'ybound': [-50.0, 50.0, 0.5],
-    'zbound': [-10.0, 10.0, 20.0],
+    "xbound": [-50.0, 50.0, 0.5],
+    "ybound": [-50.0, 50.0, 0.5],
+    "zbound": [-10.0, 10.0, 20.0],
 }
 
 # Other settings
@@ -70,21 +72,23 @@ model = dict(
     pc_range=point_cloud_range,
     prev_bev_mode="prev",
     img_backbone=dict(
-        type='VoVNet',
-        spec_name='V-99-eSE',
+        type="VoVNet",
+        spec_name="V-99-eSE",
         norm_eval=True,
         frozen_stages=4,
         input_ch=3,
-        out_features=('stage3', 'stage4', 'stage5')),
+        out_features=("stage3", "stage4", "stage5"),
+    ),
     img_neck=dict(
-        type='FPN',
+        type="FPN",
         in_channels=[512, 768, 1024],
         out_channels=256,
         start_level=0,
-        add_extra_convs='on_output',
+        add_extra_convs="on_output",
         num_outs=4,
-        relu_before_extra_convs=True),
-  fix_feats=False,  # set fix feats to true can fix the backbone
+        relu_before_extra_convs=True,
+    ),
+    fix_feats=False,  # set fix feats to true can fix the backbone
     score_thresh=0.4,
     filter_score_thresh=0.35,
     qim_args=dict(
@@ -201,7 +205,7 @@ model = dict(
                     ),
                 ),
             ),
-            bev_feat_no_grad=False, # False for with_grad, True for no_grad
+            bev_feat_no_grad=False,  # False for with_grad, True for no_grad
         ),
         bbox_coder=dict(
             type="NMSFreeCoder",
@@ -224,7 +228,7 @@ model = dict(
         loss_iou=dict(type="GIoULoss", loss_weight=0.0),
     ),
     seg_head=dict(
-        type='PansegformerHead',
+        type="PansegformerHead",
         bev_h=bev_h_,
         bev_w=bev_w_,
         canvas_size=canvas_size,
@@ -238,116 +242,129 @@ model = dict(
         as_two_stage=False,
         with_box_refine=True,
         transformer=dict(
-            type='Deformable_Transformer',
+            type="Deformable_Transformer",
             encoder=dict(
-                type='DetrTransformerEncoder',
+                type="DetrTransformerEncoder",
                 num_layers=6,
                 transformerlayers=dict(
-                    type='BaseTransformerLayer',
+                    type="BaseTransformerLayer",
                     attn_cfgs=dict(
-                        type='MultiScaleDeformableAttention',
+                        type="MultiScaleDeformableAttention",
                         embed_dims=_dim_,
                         num_levels=_num_levels_,
-                         ),
+                    ),
                     feedforward_channels=_feed_dim_,
                     ffn_dropout=0.1,
-                    operation_order=('self_attn', 'norm', 'ffn', 'norm'))),
+                    operation_order=("self_attn", "norm", "ffn", "norm"),
+                ),
+            ),
             decoder=dict(
-                type='DeformableDetrTransformerDecoder',
+                type="DeformableDetrTransformerDecoder",
                 num_layers=6,
                 return_intermediate=True,
                 transformerlayers=dict(
-                    type='DetrTransformerDecoderLayer',
+                    type="DetrTransformerDecoderLayer",
                     attn_cfgs=[
                         dict(
-                            type='MultiheadAttention',
+                            type="MultiheadAttention",
                             embed_dims=_dim_,
                             num_heads=8,
-                            dropout=0.1),
+                            dropout=0.1,
+                        ),
                         dict(
-                            type='MultiScaleDeformableAttention',
+                            type="MultiScaleDeformableAttention",
                             embed_dims=_dim_,
                             num_levels=_num_levels_,
-                        )
+                        ),
                     ],
                     feedforward_channels=_feed_dim_,
                     ffn_dropout=0.1,
-                    operation_order=('self_attn', 'norm', 'cross_attn', 'norm',
-                                     'ffn', 'norm')
+                    operation_order=(
+                        "self_attn",
+                        "norm",
+                        "cross_attn",
+                        "norm",
+                        "ffn",
+                        "norm",
+                    ),
                 ),
             ),
         ),
         positional_encoding=dict(
-            type='SinePositionalEncoding',
+            type="SinePositionalEncoding",
             num_feats=_dim_half_,
             normalize=True,
-            offset=-0.5),
+            offset=-0.5,
+        ),
         loss_cls=dict(
-            type='FocalLoss',
-            use_sigmoid=True,
-            gamma=2.0,
-            alpha=0.25,
-            loss_weight=2.0),
-        loss_bbox=dict(type='L1Loss', loss_weight=5.0),
-        loss_iou=dict(type='GIoULoss', loss_weight=2.0),
-        loss_mask=dict(type='DiceLoss', loss_weight=2.0),
-        thing_transformer_head=dict(type='MaskHead',d_model=_dim_,nhead=8,num_decoder_layers=4),
-        stuff_transformer_head=dict(type='MaskHead',d_model=_dim_,nhead=8,num_decoder_layers=6,self_attn=True),
+            type="FocalLoss", use_sigmoid=True, gamma=2.0, alpha=0.25, loss_weight=2.0
+        ),
+        loss_bbox=dict(type="L1Loss", loss_weight=5.0),
+        loss_iou=dict(type="GIoULoss", loss_weight=2.0),
+        loss_mask=dict(type="DiceLoss", loss_weight=2.0),
+        thing_transformer_head=dict(
+            type="MaskHead", d_model=_dim_, nhead=8, num_decoder_layers=4
+        ),
+        stuff_transformer_head=dict(
+            type="MaskHead",
+            d_model=_dim_,
+            nhead=8,
+            num_decoder_layers=6,
+            self_attn=True,
+        ),
         train_cfg=dict(
             assigner=dict(
-                type='HungarianAssigner',
-                cls_cost=dict(type='FocalLossCost', weight=2.0),
-                reg_cost=dict(type='BBoxL1Cost', weight=5.0, box_format='xywh'),
-                iou_cost=dict(type='IoUCost', iou_mode='giou', weight=2.0),
-                ),
+                type="HungarianAssigner",
+                cls_cost=dict(type="FocalLossCost", weight=2.0),
+                reg_cost=dict(type="BBoxL1Cost", weight=5.0, box_format="xywh"),
+                iou_cost=dict(type="IoUCost", iou_mode="giou", weight=2.0),
+            ),
             assigner_with_mask=dict(
-                type='HungarianAssigner_multi_info',
-                cls_cost=dict(type='FocalLossCost', weight=2.0),
-                reg_cost=dict(type='BBoxL1Cost', weight=5.0, box_format='xywh'),
-                iou_cost=dict(type='IoUCost', iou_mode='giou', weight=2.0),
-                mask_cost=dict(type='DiceCost', weight=2.0),
-                ),
-            sampler =dict(type='PseudoSampler'),
-            sampler_with_mask =dict(type='PseudoSampler_segformer'),
+                type="HungarianAssigner_multi_info",
+                cls_cost=dict(type="FocalLossCost", weight=2.0),
+                reg_cost=dict(type="BBoxL1Cost", weight=5.0, box_format="xywh"),
+                iou_cost=dict(type="IoUCost", iou_mode="giou", weight=2.0),
+                mask_cost=dict(type="DiceCost", weight=2.0),
+            ),
+            sampler=dict(type="PseudoSampler"),
+            sampler_with_mask=dict(type="PseudoSampler_segformer"),
         ),
     ),
     occ_head=dict(
-        type='OccFlowHeadFormer',
-
+        type="OccFlowHeadFormer",
         grid_conf=occflow_grid_conf,
         ignore_index=255,
-
         convert_ego2lidar=True,
-
         bev_grid_sample=True,
         bev_proj_dim=256,
         bev_proj_nlayers=4,
-
         # Transformer
         attn_cur_frame=True,
-
         # From DETR, TODO: From Mask2Former
         transformer_decoder=dict(
-            type='DetrTransformerDecoder',
+            type="DetrTransformerDecoder",
             return_intermediate=True,
             num_layers=5,
             transformerlayers=dict(
-                type='DetrTransformerDecoderLayer',
+                type="DetrTransformerDecoderLayer",
                 attn_cfgs=dict(
-                    type='MultiheadAttention',
-                    embed_dims=256,
-                    num_heads=8,
-                    dropout=0.1),
+                    type="MultiheadAttention", embed_dims=256, num_heads=8, dropout=0.1
+                ),
                 feedforward_channels=2048,
                 ffn_dropout=0.1,
-                operation_order=('self_attn', 'norm', 'cross_attn', 'norm',
-                                    'ffn', 'norm')),
+                operation_order=(
+                    "self_attn",
+                    "norm",
+                    "cross_attn",
+                    "norm",
+                    "ffn",
+                    "norm",
+                ),
+            ),
         ),
         # Dense_decoder
         with_decoder=True,
-        decoder_mode='cvt',  # ['fiery', 'cvt']
-
-
+        decoder_mode="cvt",  # ['fiery', 'cvt']
         # Query
         query_only_last_layer=True,
         query_dim=256,  # Motion Query dim: 768
@@ -355,11 +372,9 @@ model = dict(
         query_mlp_layers=3,
         with_multi_query_fuser=True,
         bev_input_size=(bev_h_, bev_w_),
-
-        sample_ignore_mode='past_valid',
-
+        sample_ignore_mode="past_valid",
         loss_mask=dict(
-            type='FieryBinarySegmentationLoss',
+            type="FieryBinarySegmentationLoss",
             use_top_k=True,
             top_k_ratio=0.25,
             future_discount=0.95,
@@ -367,29 +382,27 @@ model = dict(
             ignore_index=255,
         ),
         loss_dice=dict(
-            type='MyDiceLoss',
+            type="MyDiceLoss",
             use_sigmoid=True,
             activate=True,
-            reduction='mean',
+            reduction="mean",
             naive_dice=True,
             eps=1.0,
             ignore_index=255,
-            loss_weight=1.0),
-
+            loss_weight=1.0,
+        ),
         with_flow=False,
-        
         pan_eval=True,
         # test_topk=30,
         test_seg_thresh=0.1,
         test_with_track_score=True,
-        pred_ins_score_thres=-1, # vpq
-        pred_seg_score_thres=-1, # iou
-        ins_mask_alpha=2.0, # vpq
-        seg_mask_alpha=2.0, # iou
-        
+        pred_ins_score_thres=-1,  # vpq
+        pred_seg_score_thres=-1,  # iou
+        ins_mask_alpha=2.0,  # vpq
+        seg_mask_alpha=2.0,  # iou
     ),
     motion_head=dict(
-        type='MotionHead',
+        type="MotionHead",
         bev_h=bev_h_,
         bev_w=bev_w_,
         num_query=300,
@@ -398,12 +411,14 @@ model = dict(
         predict_modes=predict_modes,
         embed_dims=_dim_,
         sync_cls_avg_factor=True,
-        loss_traj=dict(type='TrajLoss', 
-            use_variance=True, 
-            cls_loss_weight=0.5, 	
-            nll_loss_weight=0.5, 	
-            loss_weight_minade=0., 	
-            loss_weight_minfde=0.25),
+        loss_traj=dict(
+            type="TrajLoss",
+            use_variance=True,
+            cls_loss_weight=0.5,
+            nll_loss_weight=0.5,
+            loss_weight_minade=0.0,
+            loss_weight_minfde=0.25,
+        ),
         num_cls_fcs=3,
         use_last_query=True,
         use_kmeans_anchor=True,
@@ -413,16 +428,16 @@ model = dict(
         group_id_list=group_id_list,
         num_anchor=6,
         use_future_states=False,
-        anchor_info_path='/mnt/petrelfs/share_data/yangjiazhi/to_keyu/anchor_infos_mode6.pkl',
+        anchor_info_path="/mnt/petrelfs/share_data/yangjiazhi/to_keyu/anchor_infos_mode6.pkl",
         transformerlayers=dict(
-            type='MotionTransformerDecoder',
+            type="MotionTransformerDecoder",
             pc_range=point_cloud_range,
             embed_dims=_dim_,
             num_layers=3,
             return_intermediate=True,
             with_map=True,
             transformerlayers=dict(
-                type='TrajTransformerAttentionLayer',
+                type="TrajTransformerAttentionLayer",
                 batch_first=True,
                 attn_cfgs=[
                     # dict(
@@ -431,18 +446,19 @@ model = dict(
                     #     num_heads=8,
                     #     dropout=0.1),
                     dict(
-                        type='TrajDeformableAttention',
+                        type="TrajDeformableAttention",
                         num_steps=predict_steps,
                         embed_dims=_dim_,
                         num_levels=1,
                         num_heads=8,
                         num_points=4,
-                        sample_index=-1),
+                        sample_index=-1,
+                    ),
                 ],
-
                 feedforward_channels=_ffn_dim_,
                 ffn_dropout=0.1,
-                operation_order=('cross_attn', 'norm', 'ffn', 'norm')),
+                operation_order=("cross_attn", "norm", "ffn", "norm"),
+            ),
         ),
     ),
     # model training and testing settings
@@ -483,35 +499,44 @@ data_root = "/mnt/lustre/chenli1/data/nuscenes/"
 info_root = "/mnt/lustre/chenli1/data/infos/"
 # file_client_args = dict(backend="disk")
 file_client_args = dict(
-    backend='petrel',
-    path_mapping=dict({
-        # './data/nuscenes/': 's3://nus_bevf/',
-        # 'data/nuscenes/': 's3://nus_bevf/',
-        '/mnt/lustre/chenli1/data/nuscenes/': 's3://nus_bevf/',
-    }))
+    backend="petrel",
+    path_mapping=dict(
+        {
+            # './data/nuscenes/': 's3://nus_bevf/',
+            # 'data/nuscenes/': 's3://nus_bevf/',
+            "/mnt/lustre/chenli1/data/nuscenes/": "s3://nus_bevf/",
+        }
+    ),
+)
 
-ann_file_train=info_root + f"nuscenes_infos_temporal_train.pkl"
-ann_file_val=info_root + f"nuscenes_infos_temporal_val.pkl"
-ann_file_test=info_root + f"nuscenes_infos_temporal_val.pkl"
+ann_file_train = info_root + f"nuscenes_infos_temporal_train.pkl"
+ann_file_val = info_root + f"nuscenes_infos_temporal_val.pkl"
+ann_file_test = info_root + f"nuscenes_infos_temporal_val.pkl"
 
 
 train_pipeline = [
-    dict(type="LoadMultiViewImageFromFilesInCeph", to_float32=True,file_client_args=file_client_args),
+    dict(
+        type="LoadMultiViewImageFromFilesInCeph",
+        to_float32=True,
+        file_client_args=file_client_args,
+    ),
     dict(type="PhotoMetricDistortionMultiViewImage"),
     dict(
         type="LoadAnnotations3D_E2E",
         with_bbox_3d=True,
         with_label_3d=True,
         with_attr_label=False,
-
         with_future_anns=True,  # occ_flow gt
-        with_ins_inds_3d=True,  # ins_inds 
-        ins_inds_add_1=True,    # ins_inds start from 1
+        with_ins_inds_3d=True,  # ins_inds
+        ins_inds_add_1=True,  # ins_inds start from 1
     ),
-
-    dict(type='GenerateOccFlowLabels', grid_conf=occflow_grid_conf, ignore_index=255, only_vehicle=True, 
-                                    filter_invisible=False),  # NOTE: Currently vis_token is not in pkl 
-
+    dict(
+        type="GenerateOccFlowLabels",
+        grid_conf=occflow_grid_conf,
+        ignore_index=255,
+        only_vehicle=True,
+        filter_invisible=False,
+    ),  # NOTE: Currently vis_token is not in pkl
     dict(type="ObjectRangeFilterTrack", point_cloud_range=point_cloud_range),
     dict(type="ObjectNameFilterTrack", classes=class_names),
     dict(type="NormalizeMultiviewImage", **img_norm_cfg),
@@ -538,11 +563,11 @@ train_pipeline = [
             "gt_lane_labels",
             "gt_lane_bboxes",
             "gt_lane_masks",
-             # Occ gt
+            # Occ gt
             "gt_segmentation",
-            "gt_instance", 
-            "gt_centerness", 
-            "gt_offset", 
+            "gt_instance",
+            "gt_centerness",
+            "gt_offset",
             "gt_flow",
             "gt_backward_flow",
             # "gt_occ_future_egomotions",
@@ -553,21 +578,29 @@ train_pipeline = [
 ]
 test_pipeline = [
     # dict(type="LoadMultiViewImageFromFiles", to_float32=True),
-    dict(type='LoadMultiViewImageFromFilesInCeph', to_float32=True,
-            file_client_args=file_client_args),
+    dict(
+        type="LoadMultiViewImageFromFilesInCeph",
+        to_float32=True,
+        file_client_args=file_client_args,
+    ),
     dict(type="NormalizeMultiviewImage", **img_norm_cfg),
     dict(type="PadMultiViewImage", size_divisor=32),
-    dict(type='LoadAnnotations3D_E2E', 
-         with_bbox_3d=False,  # NOTE: NO need for gt_bboxes and gt_labels for testing, only need occ_gt for evaluation
-         with_label_3d=False, 
-         with_attr_label=False,
-
-         with_future_anns=True,  # occ_flow gt
-         with_ins_inds_3d=False,  # No need to use matching in test
-         ins_inds_add_1=True,    # ins_inds start from 1
-         ),
-    dict(type='GenerateOccFlowLabels', grid_conf=occflow_grid_conf, ignore_index=255, only_vehicle=True, 
-                                       filter_invisible=False),  # NOTE: Currently vis_token is not in pkl
+    dict(
+        type="LoadAnnotations3D_E2E",
+        with_bbox_3d=False,  # NOTE: NO need for gt_bboxes and gt_labels for testing, only need occ_gt for evaluation
+        with_label_3d=False,
+        with_attr_label=False,
+        with_future_anns=True,  # occ_flow gt
+        with_ins_inds_3d=False,  # No need to use matching in test
+        ins_inds_add_1=True,  # ins_inds start from 1
+    ),
+    dict(
+        type="GenerateOccFlowLabels",
+        grid_conf=occflow_grid_conf,
+        ignore_index=255,
+        only_vehicle=True,
+        filter_invisible=False,
+    ),  # NOTE: Currently vis_token is not in pkl
     dict(
         type="MultiScaleFlipAug3D",
         img_scale=(1600, 900),
@@ -578,24 +611,25 @@ test_pipeline = [
                 type="DefaultFormatBundle3D", class_names=class_names, with_label=False
             ),
             dict(
-                type="CustomCollect3D", keys=[
-                                            "img",
-                                            "timestamp",
-                                            "l2g_r_mat",
-                                            "l2g_t",
-                                            "gt_lane_labels",
-                                            "gt_lane_bboxes",
-                                            "gt_lane_masks",
-                                            "gt_segmentation",
-                                            "gt_instance", 
-                                            "gt_centerness", 
-                                            "gt_offset", 
-                                            "gt_flow",
-                                            "gt_backward_flow",
-                                            # "gt_occ_future_egomotions",
-                                            "gt_occ_has_invalid_frame",
-                                            "gt_occ_img_is_valid",
-                                        ]
+                type="CustomCollect3D",
+                keys=[
+                    "img",
+                    "timestamp",
+                    "l2g_r_mat",
+                    "l2g_t",
+                    "gt_lane_labels",
+                    "gt_lane_bboxes",
+                    "gt_lane_masks",
+                    "gt_segmentation",
+                    "gt_instance",
+                    "gt_centerness",
+                    "gt_offset",
+                    "gt_flow",
+                    "gt_backward_flow",
+                    # "gt_occ_future_egomotions",
+                    "gt_occ_has_invalid_frame",
+                    "gt_occ_img_is_valid",
+                ],
             ),
         ],
     ),
@@ -605,10 +639,8 @@ data = dict(
     workers_per_gpu=8,
     train=dict(
         type=dataset_type,
-
         # is_debug=True,
         # len_debug=0,
-        
         file_client_args=file_client_args,
         data_root=data_root,
         ann_file=ann_file_train,
@@ -625,9 +657,7 @@ data = dict(
         past_steps=past_steps,
         fut_steps=fut_steps,
         use_nonlinear_optimizer=use_nonlinear_optimizer,
-
         fix_track_coor_bug=fix_track_coor_bug,
-
         occ_receptive_field=3,
         occ_n_future=4,
         occ_filter_invalid_sample=False,
@@ -652,10 +682,11 @@ data = dict(
         classes=class_names,
         modality=input_modality,
         samples_per_gpu=1,
-        eval_mod=['det', 'track',],
-
+        eval_mod=[
+            "det",
+            "track",
+        ],
         fix_track_coor_bug=fix_track_coor_bug,
-
         occ_receptive_field=3,
         occ_n_future=4,
         occ_filter_invalid_sample=False,
@@ -677,9 +708,8 @@ data = dict(
         use_nonlinear_optimizer=use_nonlinear_optimizer,
         classes=class_names,
         modality=input_modality,
-        eval_mod=['det', 'map', 'track', 'motion'],
+        eval_mod=["det", "map", "track", "motion"],
         fix_track_coor_bug=fix_track_coor_bug,
-
     ),
     shuffler_sampler=dict(type="DistributedGroupSampler"),
     nonshuffler_sampler=dict(type="DistributedSampler"),

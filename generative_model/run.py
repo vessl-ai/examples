@@ -1,7 +1,7 @@
-import torch
 import streamlit as st
-from stqdm import stqdm
+import torch
 from diffusers import DiffusionPipeline
+from stqdm import stqdm
 
 MODEL_REPO = "OFA-Sys/small-stable-diffusion-v0"
 LoRa_DIR = "/ckpt"
@@ -31,8 +31,12 @@ col1, col2 = st.columns(2)
 with col1:
     st.header("Prompt")
     with st.form("prompt", clear_on_submit=False):
-        prompt = st.text_area("Write prompt to generate your unique BAYC image! (e.g. An ape with golden fur)")
-        num_images = st.number_input(label="Number of images to generate", min_value=1, max_value=10)
+        prompt = st.text_area(
+            "Write prompt to generate your unique BAYC image! (e.g. An ape with golden fur)"
+        )
+        num_images = st.number_input(
+            label="Number of images to generate", min_value=1, max_value=10
+        )
         seed = st.number_input(label="Seed for images", min_value=1, max_value=10000)
         submit_button = st.form_submit_button(label="Generate")
 
@@ -43,7 +47,9 @@ with col2:
         images = []
         cols = st.columns(num_images)
         for img_idx in stqdm(range(num_images)):
-            generated_image = pipeline(prompt, num_inference_steps=30, generator=generator).images[0]
+            generated_image = pipeline(
+                prompt, num_inference_steps=30, generator=generator
+            ).images[0]
             images.append(generated_image)
             with cols[img_idx]:
                 st.image(generated_image, width=200, caption=[f"Image: {img_idx}"])

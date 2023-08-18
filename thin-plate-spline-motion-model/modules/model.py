@@ -1,10 +1,9 @@
 import numpy as np
 import torch
 import torch.nn.functional as F
+from modules.util import TPS, AntiAliasInterpolation2d
 from torch import nn
 from torchvision import models
-
-from modules.util import TPS, AntiAliasInterpolation2d
 
 
 class Vgg19(torch.nn.Module):

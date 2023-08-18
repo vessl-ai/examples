@@ -1,15 +1,15 @@
 import os
-import numpy as np
-import tensorflow as tf
-import pandas as pd
-import vessl
 import time
-
-from recommenders.utils.timer import Timer
-from recommenders.models.sasrec.model import SASREC
-from tqdm import tqdm
 from io import BytesIO
+
+import numpy as np
+import pandas as pd
+import tensorflow as tf
+import vessl
+from recommenders.models.sasrec.model import SASREC
+from recommenders.utils.timer import Timer
 from tabulate import tabulate
+from tqdm import tqdm
 
 
 class VesslLogger:
@@ -29,9 +29,12 @@ class VesslLogger:
         if metric not in self._log:
             self._log[metric] = []
         self._log[metric].append(value)
-        vessl.log(step=step, payload={
-            metric: value,
-        })
+        vessl.log(
+            step=step,
+            payload={
+                metric: value,
+            },
+        )
 
     def get_log(self):
         """Getter
@@ -57,9 +60,8 @@ class SASREC_Vessl(SASREC):
         :return:
         """
 
-        if kwargs['save_path'] is not None and not os.path.isdir(
-                kwargs['save_path']):
-            os.mkdir(kwargs['save_path'])
+        if kwargs["save_path"] is not None and not os.path.isdir(kwargs["save_path"]):
+            os.mkdir(kwargs["save_path"])
 
         vessllogger = VesslLogger()
 
@@ -114,20 +116,20 @@ class SASREC_Vessl(SASREC):
         max_ndgc = 0
         t_test = None
         for epoch in range(1, num_epochs + 1):
-
             train_loss.reset_states()
 
-            for step in tqdm(range(num_steps), total=num_steps, ncols=70,
-                             leave=False, unit="b"):
+            for step in tqdm(
+                range(num_steps), total=num_steps, ncols=70, leave=False, unit="b"
+            ):
                 u, seq, pos, neg = sampler.next_batch()
 
                 inputs, target = self.create_combined_dataset(u, seq, pos, neg)
 
                 loss = train_step(inputs, target)
 
-                vessllogger.log(step + (epoch - 1) * num_steps, 'loss', loss)
+                vessllogger.log(step + (epoch - 1) * num_steps, "loss", loss)
 
-            self.save_upload(kwargs['save_path'], epoch)
+            self.save_upload(kwargs["save_path"], epoch)
 
             if (epoch % val_epoch == 0 or epoch == num_epochs) and evaluate:
                 t0.stop()
@@ -139,23 +141,22 @@ class SASREC_Vessl(SASREC):
                 print(
                     f"\nepoch: {epoch}, time: {T}, valid (NDCG-10: {t_valid[0]}, HR-10: {t_valid[1]})"
                 )
-                vessllogger.log(epoch, 'val_NDCG-10', t_valid[0])
-                vessllogger.log(epoch, 'val_HR-10', t_valid[1])
+                vessllogger.log(epoch, "val_NDCG-10", t_valid[0])
+                vessllogger.log(epoch, "val_HR-10", t_valid[1])
                 print(
                     f"epoch: {epoch}, time: {T},  test (NDCG-10: {t_test[0]}, HR-10: {t_test[1]})"
                 )
-                vessllogger.log(epoch, 'test_NDCG-10', t_test[0])
-                vessllogger.log(epoch, 'test_HR-10', t_test[1])
+                vessllogger.log(epoch, "test_NDCG-10", t_test[0])
+                vessllogger.log(epoch, "test_HR-10", t_test[1])
 
-                if max_ndgc < t_test[1] and kwargs['save_path'] is not None:
+                if max_ndgc < t_test[1] and kwargs["save_path"] is not None:
                     max_ndgc = t_test[1]
 
-                    self.save_weights(
-                        str(os.path.join(kwargs['save_path'], 'best')))
-                    vessl.upload(str(os.path.join(kwargs['save_path'], 'best')))
+                    self.save_weights(str(os.path.join(kwargs["save_path"], "best")))
+                    vessl.upload(str(os.path.join(kwargs["save_path"], "best")))
 
                 t0.start()
-        self.load_weights(str(os.path.join(kwargs['save_path'], 'best')))
+        self.load_weights(str(os.path.join(kwargs["save_path"], "best")))
         return t_test
 
     def predict_next(self, input):
@@ -172,8 +173,7 @@ class SASREC_Vessl(SASREC):
         input_seq = np.array([seq])
         candidate = np.expand_dims(np.arange(1, self.item_num + 1, 1), axis=0)
 
-        mask = tf.expand_dims(tf.cast(tf.not_equal(input_seq, 0), tf.float32),
-                              -1)
+        mask = tf.expand_dims(tf.cast(tf.not_equal(input_seq, 0), tf.float32), -1)
         seq_embeddings, positional_embeddings = self.embedding(input_seq)
         seq_embeddings += positional_embeddings
         seq_embeddings *= mask
@@ -199,10 +199,8 @@ class SASREC_Vessl(SASREC):
         return predictions
 
     def save_upload(self, save_path, epoch):
-        self.save_weights(
-            str(os.path.join(save_path, 'epoch_{}'.format(epoch))))
-        self.load_weights(
-            str(os.path.join(save_path, 'epoch_{}'.format(epoch))))
+        self.save_weights(str(os.path.join(save_path, "epoch_{}".format(epoch))))
+        self.load_weights(str(os.path.join(save_path, "epoch_{}".format(epoch))))
 
 
 class MyRunner(vessl.RunnerBase):
@@ -232,8 +230,8 @@ class MyRunner(vessl.RunnerBase):
             num_neg_test=model_config.get("NUM_NEG_TEST"),
         )
 
-        if os.path.isfile('best.index') and os.path.isfile('best.data-00000-of-00001'):
-            model.load_weights('best')
+        if os.path.isfile("best.index") and os.path.isfile("best.data-00000-of-00001"):
+            model.load_weights("best")
 
         return model
 
@@ -251,13 +249,22 @@ class MyRunner(vessl.RunnerBase):
         predictions = -1 * data
         rec_items = predictions.argsort()[:5]
 
-        dic_result = {"Rank": [i for i in range(1, 6)],
-                      "ItemID": list(rec_items + 1),
-                      "Similarity Score": -1 * predictions[rec_items]
-                      }
+        dic_result = {
+            "Rank": [i for i in range(1, 6)],
+            "ItemID": list(rec_items + 1),
+            "Similarity Score": -1 * predictions[rec_items],
+        }
         result = pd.DataFrame(dic_result)
 
-        print(tabulate(result, headers='keys', tablefmt='psql', showindex=False, numalign='left'))
+        print(
+            tabulate(
+                result,
+                headers="keys",
+                tablefmt="psql",
+                showindex=False,
+                numalign="left",
+            )
+        )
         print(" ")
 
         time.sleep(0.5)
@@ -266,7 +273,7 @@ class MyRunner(vessl.RunnerBase):
         return output_msg
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     vessl.configure()
 
     model_repository_name = "YOUR_MODEL_REPOSITORY_NAME"
@@ -280,5 +287,5 @@ if __name__ == '__main__':
     vessl.register_model(
         repository_name=model_repository.name,
         runner_cls=MyRunner,
-        requirements=["recommenders", "vessl", "tabulate"]
+        requirements=["recommenders", "vessl", "tabulate"],
     )

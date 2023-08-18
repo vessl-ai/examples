@@ -1,18 +1,17 @@
 import argparse
-import numpy as np
 import os
 import random
 import time
-import vessl
 
+import numpy as np
 import torch
-from torch.utils.data.distributed import DistributedSampler
-from torch.utils.data import DataLoader
 import torch.nn as nn
 import torch.optim as optim
-
 import torchvision
 import torchvision.transforms as transforms
+import vessl
+from torch.utils.data import DataLoader
+from torch.utils.data.distributed import DistributedSampler
 
 
 def set_random_seeds(random_seed=0):
@@ -40,19 +39,48 @@ def evaluate(model, device, test_dataloader):
 
 def main():
     # Each process runs on 1 GPU device specified by the local_rank argument.
-    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument("--local_rank", type=int,
-                        help="Local rank. Necessary for using the torch.distributed.launch utility.")
-    parser.add_argument("--backend", type=str, help="Distributed backend (NCCL or gloo)", default="nccl")
-    parser.add_argument("--num_epochs", type=int, help="Number of training epochs.", default=10)
-    parser.add_argument("--batch_size", type=int, help="Training batch size for one process.",
-                        default=128)
-    parser.add_argument("--learning_rate", type=float, help="Learning rate.", default=0.1)
-    parser.add_argument("--accum_iter", type=int, help="Number of accumulate batches iteration", default=32)
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
+    parser.add_argument(
+        "--local_rank",
+        type=int,
+        help="Local rank. Necessary for using the torch.distributed.launch utility.",
+    )
+    parser.add_argument(
+        "--backend", type=str, help="Distributed backend (NCCL or gloo)", default="nccl"
+    )
+    parser.add_argument(
+        "--num_epochs", type=int, help="Number of training epochs.", default=10
+    )
+    parser.add_argument(
+        "--batch_size",
+        type=int,
+        help="Training batch size for one process.",
+        default=128,
+    )
+    parser.add_argument(
+        "--learning_rate", type=float, help="Learning rate.", default=0.1
+    )
+    parser.add_argument(
+        "--accum_iter",
+        type=int,
+        help="Number of accumulate batches iteration",
+        default=32,
+    )
     parser.add_argument("--random_seed", type=int, help="Random seed.", default=0)
-    parser.add_argument("--model_dir", type=str, help="Directory for saving models.", default="/output")
-    parser.add_argument("--model_filename", type=str, help="Model filename.", default="resnet_distributed.pth")
-    parser.add_argument("--resume", action="store_true", help="Resume training from saved checkpoint.")
+    parser.add_argument(
+        "--model_dir", type=str, help="Directory for saving models.", default="/output"
+    )
+    parser.add_argument(
+        "--model_filename",
+        type=str,
+        help="Model filename.",
+        default="resnet_distributed.pth",
+    )
+    parser.add_argument(
+        "--resume", action="store_true", help="Resume training from saved checkpoint."
+    )
     args = parser.parse_args()
 
     model_filepath = os.path.join(args.model_dir, args.model_filename)
@@ -68,9 +96,7 @@ def main():
     device = torch.device("cuda:{}".format(args.local_rank))
     model = model.to(device)
     ddp_model = torch.nn.parallel.DistributedDataParallel(
-        model,
-        device_ids=[args.local_rank],
-        output_device=args.local_rank
+        model, device_ids=[args.local_rank], output_device=args.local_rank
     )
 
     # To resume, load model from "cuda:0"
@@ -79,31 +105,46 @@ def main():
         ddp_model.load_state_dict(torch.load(model_filepath, map_location=map_location))
 
     # Prepare dataset and dataloader
-    transform = transforms.Compose([
-        transforms.RandomCrop(32, padding=4),
-        transforms.RandomHorizontalFlip(),
-        transforms.ToTensor(),
-        transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
-    ])
+    transform = transforms.Compose(
+        [
+            transforms.RandomCrop(32, padding=4),
+            transforms.RandomHorizontalFlip(),
+            transforms.ToTensor(),
+            transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+        ]
+    )
 
     # Data should be prefetched from https://www.cs.toronto.edu/~kriz/cifar-10-python.tar.gz
-    train_set = torchvision.datasets.CIFAR10(root="/input", train=True, download=False, transform=transform)
-    test_set = torchvision.datasets.CIFAR10(root="/input", train=False, download=False, transform=transform)
+    train_set = torchvision.datasets.CIFAR10(
+        root="/input", train=True, download=False, transform=transform
+    )
+    test_set = torchvision.datasets.CIFAR10(
+        root="/input", train=False, download=False, transform=transform
+    )
 
     # Using distributed sampler for training dataset
     train_sampler = DistributedSampler(dataset=train_set)
-    train_dataloader = DataLoader(dataset=train_set, batch_size=args.batch_size, sampler=train_sampler, num_workers=8)
+    train_dataloader = DataLoader(
+        dataset=train_set,
+        batch_size=args.batch_size,
+        sampler=train_sampler,
+        num_workers=8,
+    )
 
     # Skip sampler for test_dataset
-    test_dataloader = DataLoader(dataset=test_set, batch_size=128, shuffle=False, num_workers=8)
+    test_dataloader = DataLoader(
+        dataset=test_set, batch_size=128, shuffle=False, num_workers=8
+    )
 
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.SGD(ddp_model.parameters(), lr=args.learning_rate, momentum=0.9, weight_decay=1e-5)
+    optimizer = optim.SGD(
+        ddp_model.parameters(), lr=args.learning_rate, momentum=0.9, weight_decay=1e-5
+    )
 
     durations = []
     for epoch in range(args.num_epochs):
         print(f"Local Rank: {args.local_rank} Epoch: {epoch}, training started.")
-        loss = 0.
+        loss = 0.0
         start = time.time()
 
         ddp_model.train()
@@ -131,16 +172,20 @@ def main():
 
         # Save and evaluate model only in local_rank 0
         if args.local_rank == 0:
-            accuracy = evaluate(model=ddp_model, device=device, test_dataloader=test_dataloader)
+            accuracy = evaluate(
+                model=ddp_model, device=device, test_dataloader=test_dataloader
+            )
             torch.save(ddp_model.state_dict(), model_filepath)
             print("-" * 75)
-            print(f"Epoch: {epoch}, Accuracy: {accuracy}, Loss: {loss:.2f}, Elapsed: {duration:.2f}s")
+            print(
+                f"Epoch: {epoch}, Accuracy: {accuracy}, Loss: {loss:.2f}, Elapsed: {duration:.2f}s"
+            )
             print("-" * 75)
 
             # Logging to vessl
             vessl.log(
                 step=epoch,
-                payload={'accuracy': accuracy, 'loss': loss, 'elapsed': duration},
+                payload={"accuracy": accuracy, "loss": loss, "elapsed": duration},
             )
 
     print(f"Total training time: {sum(durations):.2f}s")

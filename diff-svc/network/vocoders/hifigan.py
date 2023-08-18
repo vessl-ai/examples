@@ -4,13 +4,12 @@ import os
 import re
 
 import torch
-
 import utils
 from modules.hifigan.hifigan import HifiGanGenerator
-from utils.hparams import hparams, set_hparams
 from network.vocoders.base_vocoder import register_vocoder
 from network.vocoders.pwg import PWG
 from network.vocoders.vocoder_utils import denoise
+from utils.hparams import hparams, set_hparams
 
 
 def load_model(config_path, file_path):
@@ -49,7 +48,9 @@ class HifiGAN(PWG):
             file_path = sorted(
                 glob.glob(f"{base_dir}/model_ckpt_steps_*.*"),
                 key=lambda x: int(
-                    re.findall(f"{base_dir}/model_ckpt_steps_(\d+).*", x.replace("\\", "/"))[0]
+                    re.findall(
+                        f"{base_dir}/model_ckpt_steps_(\d+).*", x.replace("\\", "/")
+                    )[0]
                 ),
             )[-1]
             # print("| load HifiGAN: ", file_path)

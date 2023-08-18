@@ -16,19 +16,18 @@ $ torchrun --nproc_per_node=8 --nnodes=2 --node_rank=1 --master_addr=123.456.123
 (If your cluster does not have Infiniband interconnect prepend NCCL_IB_DISABLE=1)
 """
 
-import os
-import time
 import math
-import vessl
+import os
 import pickle
+import time
 from contextlib import nullcontext
 
 import numpy as np
 import torch
+import vessl
+from model import GPT, GPTConfig
+from torch.distributed import destroy_process_group, init_process_group
 from torch.nn.parallel import DistributedDataParallel as DDP
-from torch.distributed import init_process_group, destroy_process_group
-
-from model import GPTConfig, GPT
 
 # -----------------------------------------------------------------------------
 # default config values designed to train a gpt2 (124M) on OpenWebText
@@ -66,7 +65,9 @@ min_lr = 6e-5  # minimum learning rate, should be ~= learning_rate/10 per Chinch
 # DDP settings
 backend = "nccl"  # 'nccl', 'gloo', etc.
 # system
-device = "cuda"  # examples: 'cpu', 'cuda', 'cuda:0', 'cuda:1' etc., or try 'mps' on macbooks
+device = (
+    "cuda"  # examples: 'cpu', 'cuda', 'cuda:0', 'cuda:1' etc., or try 'mps' on macbooks
+)
 dtype = (
     "bfloat16" if torch.cuda.is_bf16_supported() else "float16"
 )  # 'float32', 'bfloat16', or 'float16', the latter will auto implement a GradScaler
@@ -109,7 +110,11 @@ torch.backends.cuda.matmul.allow_tf32 = True  # allow tf32 on matmul
 torch.backends.cudnn.allow_tf32 = True  # allow tf32 on cudnn
 device_type = "cuda" if "cuda" in device else "cpu"  # for later use in torch.autocast
 # note: float16 data type will automatically use a GradScaler
-ptdtype = {"float32": torch.float32, "bfloat16": torch.bfloat16, "float16": torch.float16}[dtype]
+ptdtype = {
+    "float32": torch.float32,
+    "bfloat16": torch.bfloat16,
+    "float16": torch.float16,
+}[dtype]
 ctx = (
     nullcontext()
     if device_type == "cpu"
@@ -125,9 +130,14 @@ val_data = np.memmap(os.path.join(data_dir, "val.bin"), dtype=np.uint16, mode="r
 def get_batch(split):
     data = train_data if split == "train" else val_data
     ix = torch.randint(len(data) - block_size, (batch_size,))
-    x = torch.stack([torch.from_numpy((data[i : i + block_size]).astype(np.int64)) for i in ix])
+    x = torch.stack(
+        [torch.from_numpy((data[i : i + block_size]).astype(np.int64)) for i in ix]
+    )
     y = torch.stack(
-        [torch.from_numpy((data[i + 1 : i + 1 + block_size]).astype(np.int64)) for i in ix]
+        [
+            torch.from_numpy((data[i + 1 : i + 1 + block_size]).astype(np.int64))
+            for i in ix
+        ]
     )
     if device_type == "cuda":
         # pin arrays x,y, which allows us to move them to GPU asynchronously (non_blocking=True)
@@ -167,7 +177,9 @@ if init_from == "scratch":
     print("Initializing a new model from scratch")
     # determine the vocab size we'll use for from-scratch training
     if meta_vocab_size is None:
-        print("defaulting to vocab_size of GPT-2 to 50304 (50257 rounded up for efficiency)")
+        print(
+            "defaulting to vocab_size of GPT-2 to 50304 (50257 rounded up for efficiency)"
+        )
     model_args["vocab_size"] = meta_vocab_size if meta_vocab_size is not None else 50304
     gptconf = GPTConfig(**model_args)
     model = GPT(gptconf)
@@ -205,14 +217,18 @@ elif init_from.startswith("gpt2"):
 # crop down the model block size if desired, using model surgery
 if block_size < model.config.block_size:
     model.crop_block_size(block_size)
-    model_args["block_size"] = block_size  # so that the checkpoint will have the right value
+    model_args[
+        "block_size"
+    ] = block_size  # so that the checkpoint will have the right value
 model.to(device)
 
 # initialize a GradScaler. If enabled=False scaler is a no-op
 scaler = torch.cuda.amp.GradScaler(enabled=(dtype == "float16"))
 
 # optimizer
-optimizer = model.configure_optimizers(weight_decay, learning_rate, (beta1, beta2), device_type)
+optimizer = model.configure_optimizers(
+    weight_decay, learning_rate, (beta1, beta2), device_type
+)
 if init_from == "resume":
     optimizer.load_state_dict(checkpoint["optimizer"])
 checkpoint = None  # free up memory
@@ -275,10 +291,16 @@ while True:
     # evaluate the loss on train/val sets and write checkpoints
     if iter_num % eval_interval == 0 and master_process:
         losses = estimate_loss()
-        print(f"step {iter_num}: train loss {losses['train']:.4f}, val loss {losses['val']:.4f}")
+        print(
+            f"step {iter_num}: train loss {losses['train']:.4f}, val loss {losses['val']:.4f}"
+        )
         vessl.log(
             step=iter_num,
-            payload={"train_loss": losses["train"], "val_loss": losses["val"], "lr": lr},
+            payload={
+                "train_loss": losses["train"],
+                "val_loss": losses["val"],
+                "lr": lr,
+            },
         )
 
         if losses["val"] < best_val_loss or always_save_checkpoint:
@@ -305,7 +327,9 @@ while True:
             # the official way to do this is with model.no_sync() context manager, but
             # I really dislike that this bloats the code and forces us to repeat code
             # looking at the source of that context manager, it just toggles this variable
-            model.require_backward_grad_sync = micro_step == gradient_accumulation_steps - 1
+            model.require_backward_grad_sync = (
+                micro_step == gradient_accumulation_steps - 1
+            )
         with ctx:
             logits, loss = model(X, Y)
             loss = (

@@ -10,7 +10,6 @@ from time import gmtime, strftime
 
 import torch
 import yaml
-
 from frames_dataset import FramesDataset
 from modules.avd_network import AVDNetwork
 from modules.bg_motion_predictor import BGMotionPredictor
@@ -22,7 +21,6 @@ from train import train
 from train_avd import train_avd
 
 if __name__ == "__main__":
-
     if sys.version_info[0] < 3:
         raise Exception(
             "You must use Python 3 or higher. Recommended version is Python 3.9"

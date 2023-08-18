@@ -1,10 +1,10 @@
+import math
+
+import numpy as np
 import torch
 from modules.commons.common_layers import *
-from modules.commons.common_layers import Embedding
-from modules.commons.common_layers import SinusoidalPositionalEmbedding
+from modules.commons.common_layers import Embedding, SinusoidalPositionalEmbedding
 from utils.hparams import hparams
-import numpy as np
-import math
 
 
 class LayerNorm(torch.nn.LayerNorm):

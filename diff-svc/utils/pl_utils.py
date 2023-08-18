@@ -1,14 +1,14 @@
-import vessl
+import copy
 import itertools
+import os
+from pathlib import Path
 
+import torch
+import torch.distributed as dist
 import torch.optim
 import torch.utils.data
-import copy
-import os
-import torch
 import tqdm
-from pathlib import Path
-import torch.distributed as dist
+import vessl
 from infer import infer_on_target
 
 
@@ -252,7 +252,9 @@ class BaseTrainer:
                     vessl.log(
                         payload={
                             f"audio": [
-                                vessl.Audio(save_path, caption=f"infer {file} epoch {epoch+1}")
+                                vessl.Audio(
+                                    save_path, caption=f"infer {file} epoch {epoch+1}"
+                                )
                             ]
                         }
                     )
@@ -286,7 +288,9 @@ class BaseTrainer:
             model.on_epoch_end()
             vessl.log(
                 step=self.current_epoch,
-                payload={"train-epoch-loss": epoch_loss / len(self.get_train_dataloader)},
+                payload={
+                    "train-epoch-loss": epoch_loss / len(self.get_train_dataloader)
+                },
             )
 
     def run_training_batch(self, batch, batch_idx):

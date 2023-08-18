@@ -1,10 +1,11 @@
 import math
+
 import torch
+import torch.nn.functional as F
+import torch.onnx.operators
+import utils
 from torch import nn
 from torch.nn import Parameter
-import torch.onnx.operators
-import torch.nn.functional as F
-import utils
 
 
 class Reshape(nn.Module):

@@ -1,7 +1,8 @@
+import os
+
+import numpy as np
 import torch
 from utils.hparams import hparams
-import numpy as np
-import os
 
 
 class BaseDataset(torch.utils.data.Dataset):
@@ -57,7 +58,9 @@ class BaseDataset(torch.utils.data.Dataset):
         if self.shuffle:
             indices = np.random.permutation(len(self))
             if self.sort_by_len:
-                indices = indices[np.argsort(np.array(self._sizes)[indices], kind="mergesort")]
+                indices = indices[
+                    np.argsort(np.array(self._sizes)[indices], kind="mergesort")
+                ]
         else:
             indices = np.arange(len(self))
         return indices

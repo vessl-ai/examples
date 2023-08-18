@@ -39,7 +39,9 @@ def set_hparams(
     """
     if config == "":
         parser = argparse.ArgumentParser(description="set hparam")
-        parser.add_argument("--config", type=str, default="", help="location of the data corpus")
+        parser.add_argument(
+            "--config", type=str, default="", help="location of the data corpus"
+        )
         parser.add_argument("--reset", action="store_true", help="reset hparams")
         parser.add_argument("--exp_name", type=str, default="", help="exp_name")
         parser.add_argument(
@@ -54,7 +56,9 @@ def set_hparams(
             default=0,
         )
         parser.add_argument("--org", help="VESSL organization", type=str, default="")
-        parser.add_argument("--vessl_project_name", help="VESSL project name", type=str, default="")
+        parser.add_argument(
+            "--vessl_project_name", help="VESSL project name", type=str, default=""
+        )
         parser.add_argument(
             "--log_interval",
             help="interval for logging audio and checkpoints",

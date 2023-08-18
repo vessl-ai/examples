@@ -5,9 +5,8 @@ from inspect import isfunction
 import numpy as np
 import torch
 import torch.nn.functional as F
-from torch import nn
-
 from modules.fastspeech.fs2 import FastSpeech2
+from torch import nn
 from training.train_pipeline import Batch2Loss
 from utils.hparams import hparams
 
@@ -88,7 +87,11 @@ class GaussianDiffusion(nn.Module):
         self.mel_bins = out_dims
 
         if exists(betas):
-            betas = betas.detach().cpu().numpy() if isinstance(betas, torch.Tensor) else betas
+            betas = (
+                betas.detach().cpu().numpy()
+                if isinstance(betas, torch.Tensor)
+                else betas
+            )
         else:
             if "schedule_type" in hparams.keys():
                 betas = beta_schedule[hparams["schedule_type"]](timesteps)
@@ -117,14 +120,20 @@ class GaussianDiffusion(nn.Module):
         self.register_buffer(
             "sqrt_one_minus_alphas_cumprod", to_torch(np.sqrt(1.0 - alphas_cumprod))
         )
-        self.register_buffer("log_one_minus_alphas_cumprod", to_torch(np.log(1.0 - alphas_cumprod)))
-        self.register_buffer("sqrt_recip_alphas_cumprod", to_torch(np.sqrt(1.0 / alphas_cumprod)))
+        self.register_buffer(
+            "log_one_minus_alphas_cumprod", to_torch(np.log(1.0 - alphas_cumprod))
+        )
+        self.register_buffer(
+            "sqrt_recip_alphas_cumprod", to_torch(np.sqrt(1.0 / alphas_cumprod))
+        )
         self.register_buffer(
             "sqrt_recipm1_alphas_cumprod", to_torch(np.sqrt(1.0 / alphas_cumprod - 1))
         )
 
         # calculations for posterior q(x_{t-1} | x_t, x_0)
-        posterior_variance = betas * (1.0 - alphas_cumprod_prev) / (1.0 - alphas_cumprod)
+        posterior_variance = (
+            betas * (1.0 - alphas_cumprod_prev) / (1.0 - alphas_cumprod)
+        )
         # above: equal to 1. / (1. / (1. - alpha_cumprod_tm1) + alpha_t / beta_t)
         self.register_buffer("posterior_variance", to_torch(posterior_variance))
         # below: log calculation clipped because the posterior variance is 0 at the beginning of the diffusion chain
@@ -138,7 +147,9 @@ class GaussianDiffusion(nn.Module):
         )
         self.register_buffer(
             "posterior_mean_coef2",
-            to_torch((1.0 - alphas_cumprod_prev) * np.sqrt(alphas) / (1.0 - alphas_cumprod)),
+            to_torch(
+                (1.0 - alphas_cumprod_prev) * np.sqrt(alphas) / (1.0 - alphas_cumprod)
+            ),
         )
 
         self.register_buffer(
@@ -166,7 +177,9 @@ class GaussianDiffusion(nn.Module):
             + extract(self.posterior_mean_coef2, t, x_t.shape) * x_t
         )
         posterior_variance = extract(self.posterior_variance, t, x_t.shape)
-        posterior_log_variance_clipped = extract(self.posterior_log_variance_clipped, t, x_t.shape)
+        posterior_log_variance_clipped = extract(
+            self.posterior_log_variance_clipped, t, x_t.shape
+        )
         return posterior_mean, posterior_variance, posterior_log_variance_clipped
 
     def p_mean_variance(self, x, t, cond, clip_denoised: bool):
@@ -193,7 +206,9 @@ class GaussianDiffusion(nn.Module):
         return model_mean + nonzero_mask * (0.5 * model_log_variance).exp() * noise
 
     @torch.no_grad()
-    def p_sample_plms(self, x, t, interval, cond, clip_denoised=True, repeat_noise=False):
+    def p_sample_plms(
+        self, x, t, interval, cond, clip_denoised=True, repeat_noise=False
+    ):
         """
         Use the PLMS method from [Pseudo Numerical Methods for Diffusion Models on Manifolds](https://arxiv.org/abs/2202.09778).
         """
@@ -227,10 +242,15 @@ class GaussianDiffusion(nn.Module):
         elif len(noise_list) == 1:
             noise_pred_prime = (3 * noise_pred - noise_list[-1]) / 2
         elif len(noise_list) == 2:
-            noise_pred_prime = (23 * noise_pred - 16 * noise_list[-1] + 5 * noise_list[-2]) / 12
+            noise_pred_prime = (
+                23 * noise_pred - 16 * noise_list[-1] + 5 * noise_list[-2]
+            ) / 12
         elif len(noise_list) >= 3:
             noise_pred_prime = (
-                55 * noise_pred - 59 * noise_list[-1] + 37 * noise_list[-2] - 9 * noise_list[-3]
+                55 * noise_pred
+                - 59 * noise_list[-1]
+                + 37 * noise_list[-2]
+                - 9 * noise_list[-3]
             ) / 24
 
         x_prev = get_x_pred(x, noise_pred_prime, t)
@@ -324,7 +344,9 @@ class GaussianDiffusion(nn.Module):
                 fs2_mels = ref_mels
                 fs2_mels = self.norm_spec(fs2_mels)
                 fs2_mels = fs2_mels.transpose(1, 2)[:, None, :, :]
-                x = self.q_sample(x_start=fs2_mels, t=torch.tensor([t - 1], device=device).long())
+                x = self.q_sample(
+                    x_start=fs2_mels, t=torch.tensor([t - 1], device=device).long()
+                )
                 # for i in tqdm(reversed(range(0, t)), desc='sample time step', total=t):
                 #     x = self.p_sample(x, torch.full((b,), i, device=device, dtype=torch.long), cond)
             else:
@@ -344,10 +366,14 @@ class GaussianDiffusion(nn.Module):
                     )
             else:
                 for i in reversed(range(0, t)):
-                    x = self.p_sample(x, torch.full((b,), i, device=device, dtype=torch.long), cond)
+                    x = self.p_sample(
+                        x, torch.full((b,), i, device=device, dtype=torch.long), cond
+                    )
             x = x[:, 0].transpose(1, 2)
             if mel2ph is not None:  # for singing
-                ret["mel_out"] = self.denorm_spec(x) * ((mel2ph > 0).float()[:, :, None])
+                ret["mel_out"] = self.denorm_spec(x) * (
+                    (mel2ph > 0).float()[:, :, None]
+                )
             else:
                 ret["mel_out"] = self.denorm_spec(x)
         return ret

@@ -1,14 +1,14 @@
+import math
 from collections import deque
 from functools import partial
 
-import math
 import numpy as np
 import torch
-from torch import nn
 import torch.nn.functional as F
-from torch.nn import Conv1d
 from modules.commons.common_layers import Mish
 from modules.encoder import SvcEncoder
+from torch import nn
+from torch.nn import Conv1d
 from utils.hparams import hparams
 
 

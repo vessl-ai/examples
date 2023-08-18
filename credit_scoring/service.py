@@ -1,8 +1,6 @@
 import bentoml
-
+from bentoml.io import JSON, Text
 from model import *
-
-from bentoml.io import Text, JSON
 
 # 2. simple service generation
 credit_scoring_runner = bentoml.sklearn.get("credit_scoring_model:latest").to_runner()
@@ -11,7 +9,6 @@ svc = bentoml.Service("credit_classifier", runners=[credit_scoring_runner])
 
 @svc.api(input=JSON(), output=Text())
 def scoring(inputs) -> str:
-
     model = CreditScoringModel(output_path="ouput")
     request = inputs
 
@@ -25,9 +22,9 @@ def scoring(inputs) -> str:
     features_df = pd.DataFrame.from_dict(features)
 
     data = {
-            "df": features_df,
-            "fs": fs,
-        }
+        "df": features_df,
+        "fs": fs,
+    }
 
     model.set_feast(data["fs"])
 

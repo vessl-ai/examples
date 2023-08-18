@@ -4,7 +4,6 @@ from math import sqrt
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
 from modules.commons.common_layers import Mish
 from utils.hparams import hparams
 

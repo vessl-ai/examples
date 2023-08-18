@@ -2,40 +2,47 @@
 import argparse
 import glob
 import multiprocessing as mp
-import numpy as np
 import os
+import sys
 import tempfile
 import time
 import warnings
+
 import cv2
-import tqdm
-import sys
 import mss
+import numpy as np
+import tqdm
 
 from detectron2.config import get_cfg
 from detectron2.data.detection_utils import read_image
 from detectron2.utils.logger import setup_logger
 
-sys.path.insert(0, 'third_party/CenterNet2/')
+sys.path.insert(0, "third_party/CenterNet2/")
 from centernet.config import add_centernet_config
 from detic.config import add_detic_config
-
 from detic.predictor import VisualizationDemo
+
 
 # Fake a video capture object OpenCV style - half width, half height of first screen using MSS
 class ScreenGrab:
     def __init__(self):
         self.sct = mss.mss()
         m0 = self.sct.monitors[0]
-        self.monitor = {'top': 0, 'left': 0, 'width': m0['width'] / 2, 'height': m0['height'] / 2}
+        self.monitor = {
+            "top": 0,
+            "left": 0,
+            "width": m0["width"] / 2,
+            "height": m0["height"] / 2,
+        }
 
     def read(self):
-        img =  np.array(self.sct.grab(self.monitor))
+        img = np.array(self.sct.grab(self.monitor))
         nf = cv2.cvtColor(img, cv2.COLOR_BGRA2BGR)
         return (True, nf)
 
     def isOpened(self):
         return True
+
     def release(self):
         return True
 
@@ -43,10 +50,11 @@ class ScreenGrab:
 # constants
 WINDOW_NAME = "Detic"
 
+
 def setup_cfg(args):
     cfg = get_cfg()
     if args.cpu:
-        cfg.MODEL.DEVICE="cpu"
+        cfg.MODEL.DEVICE = "cpu"
     add_centernet_config(cfg)
     add_detic_config(cfg)
     cfg.merge_from_file(args.config_file)
@@ -54,8 +62,10 @@ def setup_cfg(args):
     # Set score_threshold for builtin models
     cfg.MODEL.RETINANET.SCORE_THRESH_TEST = args.confidence_threshold
     cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = args.confidence_threshold
-    cfg.MODEL.PANOPTIC_FPN.COMBINE.INSTANCES_CONFIDENCE_THRESH = args.confidence_threshold
-    cfg.MODEL.ROI_BOX_HEAD.ZEROSHOT_WEIGHT_PATH = 'rand' # load later
+    cfg.MODEL.PANOPTIC_FPN.COMBINE.INSTANCES_CONFIDENCE_THRESH = (
+        args.confidence_threshold
+    )
+    cfg.MODEL.ROI_BOX_HEAD.ZEROSHOT_WEIGHT_PATH = "rand"  # load later
     if not args.pred_all_class:
         cfg.MODEL.ROI_HEADS.ONE_CLASS_PER_PROPOSAL = True
     cfg.freeze()
@@ -71,7 +81,7 @@ def get_parser():
         help="path to config file",
     )
     parser.add_argument("--webcam", help="Take inputs from webcam.")
-    parser.add_argument("--cpu", action='store_true', help="Use CPU only.")
+    parser.add_argument("--cpu", action="store_true", help="Use CPU only.")
     parser.add_argument("--video-input", help="Path to video file.")
     parser.add_argument(
         "--input",
@@ -87,7 +97,7 @@ def get_parser():
     parser.add_argument(
         "--vocabulary",
         default="lvis",
-        choices=['lvis', 'openimages', 'objects365', 'coco', 'custom'],
+        choices=["lvis", "openimages", "objects365", "coco", "custom"],
         help="",
     )
     parser.add_argument(
@@ -95,7 +105,7 @@ def get_parser():
         default="",
         help="",
     )
-    parser.add_argument("--pred_all_class", action='store_true')
+    parser.add_argument("--pred_all_class", action="store_true")
     parser.add_argument(
         "--confidence-threshold",
         type=float,
@@ -162,7 +172,9 @@ if __name__ == "__main__":
                     assert os.path.isdir(args.output), args.output
                     out_filename = os.path.join(args.output, os.path.basename(path))
                 else:
-                    assert len(args.input) == 1, "Please specify a directory with args.output"
+                    assert (
+                        len(args.input) == 1
+                    ), "Please specify a directory with args.output"
                     out_filename = args.output
                 visualized_output.save(out_filename)
             else:
@@ -192,7 +204,9 @@ if __name__ == "__main__":
         num_frames = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
         basename = os.path.basename(args.video_input)
         codec, file_ext = (
-            ("x264", ".mkv") if test_opencv_video_format("x264", ".mkv") else ("mp4v", ".mp4")
+            ("x264", ".mkv")
+            if test_opencv_video_format("x264", ".mkv")
+            else ("mp4v", ".mp4")
         )
         if codec == ".mp4v":
             warnings.warn("x264 codec not available, switching to mp4v")

@@ -1,7 +1,6 @@
 import librosa
-
-from utils.hparams import hparams
 import numpy as np
+from utils.hparams import hparams
 
 
 def denoise(wav, v=0.1):

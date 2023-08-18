@@ -17,7 +17,6 @@ class KPDetector(nn.Module):
         self.fg_encoder.fc = nn.Linear(num_features, num_tps * 5 * 2)
 
     def forward(self, image):
-
         fg_kp = self.fg_encoder(image)
         (
             bs,

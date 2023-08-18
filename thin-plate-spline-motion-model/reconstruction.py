@@ -3,10 +3,9 @@ import os
 import imageio
 import numpy as np
 import torch
+from logger import Logger, Visualizer
 from torch.utils.data import DataLoader
 from tqdm import tqdm
-
-from logger import Logger, Visualizer
 
 
 def reconstruction(

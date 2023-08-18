@@ -18,7 +18,7 @@ from utils.pitch_utils import f0_to_coarse
 warnings.filterwarnings("ignore")
 PUNCS = "!,.?;:"
 
-int16_max = (2 ** 15) - 1
+int16_max = (2**15) - 1
 
 
 def trim_long_silences(

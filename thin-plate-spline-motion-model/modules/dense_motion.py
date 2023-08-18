@@ -2,8 +2,6 @@ import math
 
 import torch
 import torch.nn.functional as F
-from torch import nn
-
 from modules.util import (
     TPS,
     AntiAliasInterpolation2d,
@@ -14,6 +12,7 @@ from modules.util import (
     make_coordinate_grid,
     to_homogeneous,
 )
+from torch import nn
 
 
 class DenseMotionNetwork(nn.Module):
@@ -93,7 +92,6 @@ class DenseMotionNetwork(nn.Module):
         self.kp_variance = kp_variance
 
     def create_heatmap_representations(self, source_image, kp_driving, kp_source):
-
         spatial_size = source_image.shape[2:]
         gaussian_driving = kp2gaussian(
             kp_driving["fg_kp"], spatial_size=spatial_size, kp_variance=self.kp_variance
@@ -138,7 +136,6 @@ class DenseMotionNetwork(nn.Module):
         return transformations
 
     def create_deformed_source_image(self, source_image, transformations):
-
         bs, _, h, w = source_image.shape
         source_repeat = (
             source_image.unsqueeze(1)

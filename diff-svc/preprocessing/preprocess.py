@@ -69,7 +69,9 @@ if __name__ == "__main__":
                 frame_rate = wave_file.getframerate()
                 if frame_rate > 24000:
                     print(f"===== Convert Framerate from {frame_rate}Hz to 24kHz =====")
-                    sound = AudioSegment.from_file(file_path, format="wav", frame_rate=frame_rate)
+                    sound = AudioSegment.from_file(
+                        file_path, format="wav", frame_rate=frame_rate
+                    )
                     sound = sound.set_frame_rate(24000)
                     sound.export(file_path, format="wav")
                 elif frame_rate == 24000:

@@ -13,12 +13,11 @@ import numpy as np
 import torch
 import torchvision.transforms as transforms
 from cog import BasePredictor, Input, Path
+from demo import load_checkpoints, make_animation
 from ffhq_dataset.face_alignment import image_align
 from ffhq_dataset.landmarks_detector import LandmarksDetector
 from skimage import img_as_ubyte
 from skimage.transform import resize
-
-from demo import load_checkpoints, make_animation
 
 warnings.filterwarnings("ignore")
 
@@ -29,7 +28,6 @@ LANDMARKS_DETECTOR = LandmarksDetector("shape_predictor_68_face_landmarks.dat")
 
 class Predictor(BasePredictor):
     def setup(self):
-
         self.device = torch.device("cuda:0")
         datasets = ["vox", "taichi", "ted", "mgif"]
         (
@@ -66,7 +64,6 @@ class Predictor(BasePredictor):
             description="Choose a dataset.",
         ),
     ) -> Path:
-
         predict_mode = "relative"  # ['standard', 'relative', 'avd']
         # find_best_frame = False
 

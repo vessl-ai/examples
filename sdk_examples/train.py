@@ -1,6 +1,7 @@
-import vessl
 import os
 import time
+
+import vessl
 
 access_token = os.environ.get("VESSL_ACCESS_TOKEN")
 
@@ -67,10 +68,10 @@ if __name__ == "__main__":
         dataset="floyd/mnist-s3-test",
         command="pip install -r mnist/keras/requirements.txt && python mnist/keras/main.py --save-model --save-image",
     )
-    #run_with_local_file_upload(
+    # run_with_local_file_upload(
     #    dataset="floyd/mnist-s3-test",
     #    command="pip install -r mnist/keras/requirements.txt && python mnist/keras/main.py --save-model --save-image",
-    #)
+    # )
     # run(
     #     dataset="floyd/mnist-s3-test",
     #     command="pip install -r mnist/keras/requirements.txt && python mnist/keras/main.py --save-model --save-image",

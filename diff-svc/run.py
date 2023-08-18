@@ -1,11 +1,11 @@
 import importlib
 import os
-import torch
-from pathlib import Path
-import torch.distributed as dist
 import re
-import vessl
+from pathlib import Path
 
+import torch
+import torch.distributed as dist
+import vessl
 from utils.hparams import hparams, set_hparams
 
 set_hparams(print_hparams=False)
@@ -26,7 +26,9 @@ if __name__ == "__main__":
     vessl_project_name = hparams["vessl_project_name"]
     exp_name = hparams["exp_name"]
 
-    vessl.configure(organization_name=organization_name, project_name=vessl_project_name)
+    vessl.configure(
+        organization_name=organization_name, project_name=vessl_project_name
+    )
 
     dataset_path = "/input/vessl-diff-svc"
     logging_dir = f"{dataset_path}/assets/logging"
@@ -65,7 +67,11 @@ if __name__ == "__main__":
             for file in os.listdir(logging_dir):
                 audio_path = f"{logging_dir}/{file}"
                 vessl.log(
-                    payload={"audio": [vessl.Audio(audio_path, caption=f"original audio - {file}")]}
+                    payload={
+                        "audio": [
+                            vessl.Audio(audio_path, caption=f"original audio - {file}")
+                        ]
+                    }
                 )
 
         run_task()
@@ -88,7 +94,11 @@ if __name__ == "__main__":
             infer_on_target(exp_name, ckpt_path, file_path, out_path)
 
             vessl.log(
-                payload={f"audio": [vessl.Audio(file_path, caption=f"original audio for {file}")]}
+                payload={
+                    f"audio": [
+                        vessl.Audio(file_path, caption=f"original audio for {file}")
+                    ]
+                }
             )
 
             vessl.log(

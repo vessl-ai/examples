@@ -1,12 +1,12 @@
 import argparse
 import os
-import vessl
 
 import torch
-import torchvision
-import torchvision.transforms as transforms
 import torch.nn as nn
 import torch.nn.functional as F
+import torchvision
+import torchvision.transforms as transforms
+import vessl
 from torch import optim
 from torch.utils.data import random_split
 
@@ -32,33 +32,38 @@ class Net(nn.Module):
 
 
 def load_data(input_path):
-    transform = transforms.Compose([
-        transforms.ToTensor(),
-        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
-    ])
+    transform = transforms.Compose(
+        [transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))]
+    )
 
     train_data = torchvision.datasets.CIFAR10(
-        root=input_path, train=True, download=True, transform=transform)
+        root=input_path, train=True, download=True, transform=transform
+    )
 
     test_data = torchvision.datasets.CIFAR10(
-        root=input_path, train=False, download=True, transform=transform)
+        root=input_path, train=False, download=True, transform=transform
+    )
 
     return train_data, test_data
 
 
 def get_dataloader(data, batch_size, shuffle, num_workers):
-    return torch.utils.data.DataLoader(data, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers)
+    return torch.utils.data.DataLoader(
+        data, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers
+    )
 
 
 def load_checkpoint(checkpoint_file_path):
     print(f"=> Loading checkpoint '{checkpoint_file_path}' ...")
-    if device == 'cuda':
+    if device == "cuda":
         checkpoint = torch.load(checkpoint_file_path)
     else:
-        checkpoint = torch.load(checkpoint_file_path, map_location=lambda storage, loc: storage)
-    model.load_state_dict(checkpoint.get('state_dict'))
+        checkpoint = torch.load(
+            checkpoint_file_path, map_location=lambda storage, loc: storage
+        )
+    model.load_state_dict(checkpoint.get("state_dict"))
     print(f"=> Loaded checkpoint (trained for {checkpoint.get('epoch')} epochs)")
-    return checkpoint.get('epoch'), checkpoint.get('best_accuracy')
+    return checkpoint.get("epoch"), checkpoint.get("best_accuracy")
 
 
 def save_checkpoint(state, is_best, filename):
@@ -81,15 +86,18 @@ def train(model, device, train_dataloader, optimizer, epoch, start_epoch):
         optimizer.step()
 
         if batch_idx % 128 == 0:
-            print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
-                epoch + 1, batch_idx * len(data), len(train_dataloader.dataset),
-                100. * batch_idx / len(train_dataloader), loss.item()))
+            print(
+                "Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}".format(
+                    epoch + 1,
+                    batch_idx * len(data),
+                    len(train_dataloader.dataset),
+                    100.0 * batch_idx / len(train_dataloader),
+                    loss.item(),
+                )
+            )
 
     # Logging loss metrics to Vessl
-    vessl.log(
-        step=epoch + start_epoch + 1,
-        payload={'loss': loss.item()}
-    )
+    vessl.log(step=epoch + start_epoch + 1, payload={"loss": loss.item()})
 
 
 def valid(model, device, val_dataloader, start_epoch):
@@ -109,15 +117,18 @@ def valid(model, device, val_dataloader, start_epoch):
             val_loss += loss.cpu().numpy()
 
     val_loss /= len(val_dataloader.dataset)
-    val_accuracy = 100. * correct / len(val_dataloader.dataset)
+    val_accuracy = 100.0 * correct / len(val_dataloader.dataset)
 
-    print('\nValid set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
-        val_loss, correct, len(val_dataloader.dataset), val_accuracy))
+    print(
+        "\nValid set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n".format(
+            val_loss, correct, len(val_dataloader.dataset), val_accuracy
+        )
+    )
 
     # Logging loss metrics to Vessl
     vessl.log(
         step=epoch + start_epoch + 1,
-        payload={'val_loss': val_loss, 'val_accuracy': val_accuracy}
+        payload={"val_loss": val_loss, "val_accuracy": val_accuracy},
     )
 
     return val_accuracy
@@ -147,37 +158,50 @@ def test_accuracy(model, device, test_data):
     return correct / total
 
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='PyTorch cifar Example')
-    parser.add_argument('--input-path', type=str, default='/input',
-                        help='input dataset path')
-    parser.add_argument('--output-path', type=str, default='/output',
-                        help='output files path')
-    parser.add_argument('--checkpoint-path', type=str, default='/output/checkpoint',
-                        help='checkpoint path')
-    parser.add_argument('--save-model', action='store_true', default=False,
-                        help='For saving the current model')
-    parser.add_argument('--save-image', action='store_true', default=False,
-                        help='For saving the images')
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="PyTorch cifar Example")
+    parser.add_argument(
+        "--input-path", type=str, default="/input", help="input dataset path"
+    )
+    parser.add_argument(
+        "--output-path", type=str, default="/output", help="output files path"
+    )
+    parser.add_argument(
+        "--checkpoint-path",
+        type=str,
+        default="/output/checkpoint",
+        help="checkpoint path",
+    )
+    parser.add_argument(
+        "--save-model",
+        action="store_true",
+        default=False,
+        help="For saving the current model",
+    )
+    parser.add_argument(
+        "--save-image", action="store_true", default=False, help="For saving the images"
+    )
     args = parser.parse_args()
 
     # hyperparameters
-    l1 = int(os.environ.get('l1', 2))
-    l2 = int(os.environ.get('l2', 2))
-    lr = float(os.environ.get('lr', 0.01))
-    epochs = int(os.environ.get('epochs', 10))
-    batch_size = int(os.environ.get('batch_size', 128))
+    l1 = int(os.environ.get("l1", 2))
+    l2 = int(os.environ.get("l2", 2))
+    lr = float(os.environ.get("lr", 0.01))
+    epochs = int(os.environ.get("epochs", 10))
+    batch_size = int(os.environ.get("batch_size", 128))
 
     # Load data from input
     train_data, test_data = load_data(args.input_path)
 
     # Split train and validation sets
     test_abs = int(len(train_data) * 0.8)
-    train_subset, val_subset = random_split(train_data, [test_abs, len(train_data) - test_abs])
+    train_subset, val_subset = random_split(
+        train_data, [test_abs, len(train_data) - test_abs]
+    )
 
-    print(f'The number of train data: {len(train_subset)}')
-    print(f'The number of val data: {len(val_subset)}')
-    print(f'The number of test set: {len(test_data)}')
+    print(f"The number of train data: {len(train_subset)}")
+    print(f"The number of val data: {len(val_subset)}")
+    print(f"The number of test set: {len(test_data)}")
 
     # Prepare dataloader
     train_dataloader = get_dataloader(train_subset, batch_size, True, 8)
@@ -185,8 +209,8 @@ if __name__ == '__main__':
 
     # Validate device
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print(f'Device: {device}')
-    print(f'Device count: {torch.cuda.device_count()}')
+    print(f"Device: {device}")
+    print(f"Device count: {torch.cuda.device_count()}")
 
     model = Net(l1, l2).to(device)
 
@@ -194,7 +218,7 @@ if __name__ == '__main__':
     optimizer = optim.SGD(model.parameters(), lr=lr, momentum=0.9)
 
     # Load checkpoint if exists
-    checkpoint_file_path = os.path.join(args.checkpoint_path, 'checkpoints.pt')
+    checkpoint_file_path = os.path.join(args.checkpoint_path, "checkpoints.pt")
     if os.path.exists(args.checkpoint_path) and os.path.isfile(checkpoint_file_path):
         start_epoch, best_accuracy = load_checkpoint(checkpoint_file_path)
     else:
@@ -211,12 +235,18 @@ if __name__ == '__main__':
         # Save the best checkpoint
         val_accuracy = torch.FloatTensor([val_accuracy])
         is_best = bool(val_accuracy.numpy() > best_accuracy.numpy())
-        best_accuracy = torch.FloatTensor(max(val_accuracy.numpy(), best_accuracy.numpy()))
-        save_checkpoint({
-            'epoch': start_epoch + epoch + 1,
-            'state_dict': model.state_dict(),
-            'best_accuracy': best_accuracy,
-        }, is_best, checkpoint_file_path)
+        best_accuracy = torch.FloatTensor(
+            max(val_accuracy.numpy(), best_accuracy.numpy())
+        )
+        save_checkpoint(
+            {
+                "epoch": start_epoch + epoch + 1,
+                "state_dict": model.state_dict(),
+                "best_accuracy": best_accuracy,
+            },
+            is_best,
+            checkpoint_file_path,
+        )
 
     if args.save_model:
         save(model, args.output_path)

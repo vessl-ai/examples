@@ -5,7 +5,6 @@ import pandas as pd
 import shap
 import streamlit as st
 from matplotlib import pyplot as plt
-
 from model import CreditScoringModel, MyFeast
 
 st.set_page_config(layout="wide")

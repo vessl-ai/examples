@@ -1,7 +1,8 @@
 import os
-import torch.distributed as dist
+
 import numpy as np
 import torch
+import torch.distributed as dist
 import utils
 from network.diff.candidate_decoder import FFT
 from network.diff.diffusion import GaussianDiffusion
@@ -35,7 +36,9 @@ class SVCDataset(BaseDataset):
         # pitch stats
         f0_stats_fn = f"{self.data_dir}/train_f0s_mean_std.npy"
         if os.path.exists(f0_stats_fn):
-            hparams["f0_mean"], hparams["f0_std"] = self.f0_mean, self.f0_std = np.load(f0_stats_fn)
+            hparams["f0_mean"], hparams["f0_std"] = self.f0_mean, self.f0_std = np.load(
+                f0_stats_fn
+            )
             hparams["f0_mean"] = float(hparams["f0_mean"])
             hparams["f0_std"] = float(hparams["f0_std"])
         else:
@@ -57,7 +60,9 @@ class SVCDataset(BaseDataset):
         max_frames = hparams["max_frames"]
         spec = torch.Tensor(item["mel"])[:max_frames]
         energy = (spec.exp() ** 2).sum(-1).sqrt()
-        mel2ph = torch.LongTensor(item["mel2ph"])[:max_frames] if "mel2ph" in item else None
+        mel2ph = (
+            torch.LongTensor(item["mel2ph"])[:max_frames] if "mel2ph" in item else None
+        )
         f0, uv = norm_interp_f0(item["f0"][:max_frames], hparams)
         hubert = torch.Tensor(item["hubert"][: hparams["max_input_tokens"]])
         pitch = torch.LongTensor(item.get("pitch"))[:max_frames]
@@ -131,7 +136,9 @@ class SVCTask(BaseTask):
         if shuffle:
             batches = shuffle_batches(list(batch_sampler))
             if endless:
-                batches = [b for _ in range(1000) for b in shuffle_batches(list(batch_sampler))]
+                batches = [
+                    b for _ in range(1000) for b in shuffle_batches(list(batch_sampler))
+                ]
         else:
             batches = batch_sampler
             if endless:
@@ -255,14 +262,20 @@ class SVCTask(BaseTask):
     def _training_step(self, sample, batch_idx):
         log_outputs = self.run_model(self.model, sample)
         total_loss = sum(
-            [v for v in log_outputs.values() if isinstance(v, torch.Tensor) and v.requires_grad]
+            [
+                v
+                for v in log_outputs.values()
+                if isinstance(v, torch.Tensor) and v.requires_grad
+            ]
         )
         log_outputs["batch_size"] = sample["hubert"].size()[0]
         log_outputs["lr"] = self.scheduler.get_lr()[0]
         return total_loss, log_outputs
 
     def build_scheduler(self, optimizer):
-        return torch.optim.lr_scheduler.StepLR(optimizer, hparams["decay_steps"], gamma=0.5)
+        return torch.optim.lr_scheduler.StepLR(
+            optimizer, hparams["decay_steps"], gamma=0.5
+        )
 
     def optimizer_step(self, epoch, batch_idx, optimizer):
         if optimizer is None:

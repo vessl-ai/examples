@@ -13,7 +13,9 @@ st.title("Image animation using Thin-Plate-Spline-Motion-Model")
 
 
 def inference(vid):
-    os.system(f"python demo.py --config config/vox-256.yaml --checkpoint /ckpt/vox.pth.tar --source_image 'temp/image.jpg' --driving_video {vid} --result_video './temp/result.mp4'")
+    os.system(
+        f"python demo.py --config config/vox-256.yaml --checkpoint /ckpt/vox.pth.tar --source_image 'temp/image.jpg' --driving_video {vid} --result_video './temp/result.mp4'"
+    )
     return "./temp/result.mp4"
 
 

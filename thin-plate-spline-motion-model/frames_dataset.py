@@ -3,14 +3,13 @@ import os
 from functools import partial
 
 import numpy as np
+from augmentation import AllAugmentationTransform
 from imageio import mimread
 from skimage import img_as_float32, io
 from skimage.color import gray2rgb
 from skimage.transform import resize
 from sklearn.model_selection import train_test_split
 from torch.utils.data import Dataset
-
-from augmentation import AllAugmentationTransform
 
 
 def read_video(name, frame_shape):
@@ -125,7 +124,6 @@ class FramesDataset(Dataset):
         return len(self.videos)
 
     def __getitem__(self, idx):
-
         if self.is_train and self.id_sampling:
             name = self.videos[idx]
             path = np.random.choice(
@@ -137,7 +135,6 @@ class FramesDataset(Dataset):
 
         video_name = os.path.basename(path)
         if self.is_train and os.path.isdir(path):
-
             frames = os.listdir(path)
             num_frames = len(frames)
             frame_idx = np.sort(np.random.choice(num_frames, replace=True, size=2))
@@ -160,7 +157,6 @@ class FramesDataset(Dataset):
                     for idx in frame_idx
                 ]
         else:
-
             video_array = read_video(path, frame_shape=self.frame_shape)
 
             num_frames = len(video_array)

@@ -1,7 +1,7 @@
-from utils.hparams import hparams
 import torch
 from torch.nn import functional as F
-from utils.pitch_utils import f0_to_coarse, denorm_f0
+from utils.hparams import hparams
+from utils.pitch_utils import denorm_f0, f0_to_coarse
 
 
 class Batch2Loss:
@@ -24,7 +24,9 @@ class Batch2Loss:
         midi_embedding = midi_embed(pitch_midi)
         midi_dur_embedding, slur_embedding = 0, 0
         if midi_dur is not None:
-            midi_dur_embedding = midi_dur_layer(midi_dur[:, :, None])  # [B, T, 1] -> [B, T, H]
+            midi_dur_embedding = midi_dur_layer(
+                midi_dur[:, :, None]
+            )  # [B, T, 1] -> [B, T, H]
         if is_slur is not None:
             slur_embedding = is_slur_embed(is_slur)
         return midi_embedding, midi_dur_embedding, slur_embedding
@@ -40,7 +42,9 @@ class Batch2Loss:
         """
         get *encoder_out* == fs2_encoder(*txt_tokens*, some embeddings)
         """
-        encoder_out = fs2_encoder(txt_tokens, midi_embedding, midi_dur_embedding, slur_embedding)
+        encoder_out = fs2_encoder(
+            txt_tokens, midi_embedding, midi_dur_embedding, slur_embedding
+        )
         return encoder_out
 
     @staticmethod
@@ -64,7 +68,9 @@ class Batch2Loss:
         # encoder_out_dur denotes encoder outputs for duration predictor
         # in speech adaptation, duration predictor use old speaker embedding
         if hparams["use_spk_embed"]:
-            spk_embed_dur = spk_embed_f0 = spk_embed = spk_embed_proj(spk_embed_id)[:, None, :]
+            spk_embed_dur = spk_embed_f0 = spk_embed = spk_embed_proj(spk_embed_id)[
+                :, None, :
+            ]
         elif hparams["use_spk_id"]:
             if spk_embed_dur_id is None:
                 spk_embed_dur_id = spk_embed_id
@@ -109,7 +115,10 @@ class Batch2Loss:
             for i in range(len(dur)):
                 for j in range(len(dur[i])):
                     if txt_tokens[i, j] in all_vowel_tokens:
-                        if j < len(dur[i]) - 1 and txt_tokens[i, j + 1] not in all_vowel_tokens:
+                        if (
+                            j < len(dur[i]) - 1
+                            and txt_tokens[i, j + 1] not in all_vowel_tokens
+                        ):
                             dur[i, j] = midi_dur[i, j] - dur[i, j + 1]
                             if dur[i, j] < 0:
                                 dur[i, j] = 0
@@ -138,7 +147,9 @@ class Batch2Loss:
         """
         decoder_inp = F.pad(encoder_out, [0, 0, 1, 0])
         mel2ph_ = mel2ph[..., None].repeat([1, 1, encoder_out.shape[-1]])
-        decoder_inp = decoder_inp_origin = torch.gather(decoder_inp, 1, mel2ph_)  # [B, T, H]
+        decoder_inp = decoder_inp_origin = torch.gather(
+            decoder_inp, 1, mel2ph_
+        )  # [B, T, H]
 
         pitch_inp = (decoder_inp_origin + var_embed + spk_embed_f0) * tgt_nonpadding
         pitch_inp_ph = (encoder_out + var_embed + spk_embed_f0) * src_nonpadding
@@ -197,7 +208,9 @@ class Batch2Loss:
                     f0 = pitch_pred[:, :, 0]
                 if hparams["use_uv"] and uv is None:
                     uv = pitch_pred[:, :, 1] > 0
-            ret["f0_denorm"] = f0_denorm = denorm_f0(f0, uv, hparams, pitch_padding=pitch_padding)
+            ret["f0_denorm"] = f0_denorm = denorm_f0(
+                f0, uv, hparams, pitch_padding=pitch_padding
+            )
             if pitch_padding is not None:
                 f0[pitch_padding] = 0
 
@@ -227,7 +240,9 @@ class Batch2Loss:
                     f0 = torch.cat(
                         (
                             f0,
-                            torch.FloatTensor([[x[-1]] * delta_l for x in f0]).to(f0.device),
+                            torch.FloatTensor([[x[-1]] * delta_l for x in f0]).to(
+                                f0.device
+                            ),
                         ),
                         1,
                     )
@@ -238,12 +253,16 @@ class Batch2Loss:
                     uv = torch.cat(
                         (
                             uv,
-                            torch.FloatTensor([[x[-1]] * delta_l for x in uv]).to(uv.device),
+                            torch.FloatTensor([[x[-1]] * delta_l for x in uv]).to(
+                                uv.device
+                            ),
                         ),
                         1,
                     )
                 uv = uv[:, :nframes]
-            pitch_embedding = add_pitch(pitch_inp, f0, uv, mel2ph, ret, encoder_out=pitch_inp_ph)
+            pitch_embedding = add_pitch(
+                pitch_inp, f0, uv, mel2ph, ret, encoder_out=pitch_inp_ph
+            )
 
         energy_embedding = 0
         if hparams["use_energy_embed"]:
@@ -265,7 +284,9 @@ class Batch2Loss:
         return pitch_embedding, energy_embedding
 
     @staticmethod
-    def insert4(decoder_inp, pitch_embedding, energy_embedding, spk_embed, ret, tgt_nonpadding):
+    def insert4(
+        decoder_inp, pitch_embedding, energy_embedding, spk_embed, ret, tgt_nonpadding
+    ):
         """
         *decoder_inp* ~= *decoder_inp* + embeddings for spk, pitch, energy
         """

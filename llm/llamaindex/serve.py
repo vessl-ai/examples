@@ -21,7 +21,9 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 # custom LLM class for llamaindex
 class Llama2Model(CustomLLM):
     def __init__(self):
-        model = AutoModelForCausalLM.from_pretrained("/data/llama-2-7b-hf", device_map="auto", torch_dtype=torch.float16)
+        model = AutoModelForCausalLM.from_pretrained(
+            "/data/llama-2-7b-hf", device_map="auto", torch_dtype=torch.float16
+        )
         model.eval()
         self.model = model
         tokenizer = AutoTokenizer.from_pretrained("/data/llama-2-7b-hf", legacy=False)
@@ -35,8 +37,12 @@ class Llama2Model(CustomLLM):
 
     def complete(self, prompt: str, **kwargs: Any) -> CompletionResponse:
         tokenized = self.tokenizer(prompt)
-        tokenized["input_ids"] = torch.tensor(tokenized["input_ids"]).unsqueeze(0).to("cuda")
-        tokenized["attention_mask"] = torch.ones(tokenized["input_ids"].size(1)).unsqueeze(0).to("cuda")
+        tokenized["input_ids"] = (
+            torch.tensor(tokenized["input_ids"]).unsqueeze(0).to("cuda")
+        )
+        tokenized["attention_mask"] = (
+            torch.ones(tokenized["input_ids"].size(1)).unsqueeze(0).to("cuda")
+        )
         outputs = self.model.generate(
             input_ids=tokenized["input_ids"],
             max_new_tokens=1024,
@@ -90,7 +96,9 @@ class LlamaIndex(bentoml.Runnable):
             embed_model=InstructorEmbeddings(embed_batch_size=2),
             chunk_size=512,
         )
-        self.index = VectorStoreIndex.from_documents(documents, service_context=service_context)
+        self.index = VectorStoreIndex.from_documents(
+            documents, service_context=service_context
+        )
 
     @bentoml.Runnable.method(batchable=False)
     def generate(self, input_text: str) -> bool:

@@ -2,20 +2,19 @@ import argparse
 import sys
 
 from model import *
-
-from recommenders.utils.timer import Timer
 from recommenders.datasets.split_utils import filter_k_core
 from recommenders.models.sasrec.sampler import WarpSampler
 from recommenders.models.sasrec.util import SASRecDataSet
+from recommenders.utils.timer import Timer
 
-tf.get_logger().setLevel('ERROR')
+tf.get_logger().setLevel("ERROR")
 vessl.init()
 
 
 def env_info():
     print("System version: {}".format(sys.version))
     print("tensorflow version : {}".format(tf.__version__))
-    print(tf.config.list_physical_devices('GPU'))
+    print(tf.config.list_physical_devices("GPU"))
     return
 
 
@@ -40,14 +39,17 @@ def get_model(dataset, model_config: dict):
     )
 
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Recommender SASREC Example')
-    parser.add_argument('--input-path', type=str, default='/input',
-                        help='input dataset path')
-    parser.add_argument('--output-path', type=str, default='/output',
-                        help='output dataset path')
-    parser.add_argument('--evaluate', action='store_true', default=True,
-                        help='evaluate during training')
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Recommender SASREC Example")
+    parser.add_argument(
+        "--input-path", type=str, default="/input", help="input dataset path"
+    )
+    parser.add_argument(
+        "--output-path", type=str, default="/output", help="output dataset path"
+    )
+    parser.add_argument(
+        "--evaluate", action="store_true", default=True, help="evaluate during training"
+    )
     args = parser.parse_args()
 
     env_info()
@@ -64,36 +66,39 @@ if __name__ == '__main__':
     }
 
     # Set hyperparameters from environment variables
-    lr = float(os.environ.get('lr', 0.0005))
-    batch_size = int(os.environ.get('batch_size', 64))
-    num_epochs = int(os.environ.get('num_epochs', 20))
+    lr = float(os.environ.get("lr", 0.0005))
+    batch_size = int(os.environ.get("batch_size", 64))
+    num_epochs = int(os.environ.get("num_epochs", 20))
 
     # Load data from VESSL dataset
-    df = load_data(args.input_path + '/train', "amazon-beauty.csv")
+    df = load_data(args.input_path + "/train", "amazon-beauty.csv")
 
     # Data preprocessing
-    df['Timestamp'] = pd.to_datetime(df['Timestamp'], unit='s')
-    df.rename(columns={'UserId': 'userID', 'ProductId': 'itemID'}, inplace=True)
+    df["Timestamp"] = pd.to_datetime(df["Timestamp"], unit="s")
+    df.rename(columns={"UserId": "userID", "ProductId": "itemID"}, inplace=True)
 
-    df = df.sort_values(by=["userID", "Timestamp"]).reset_index().drop(
-        columns=['index', 'Timestamp', 'Rating'])
+    df = (
+        df.sort_values(by=["userID", "Timestamp"])
+        .reset_index()
+        .drop(columns=["index", "Timestamp", "Rating"])
+    )
     df = filter_k_core(df, 5)
-    item_hashing = {item: idx + 1
-                    for idx, item in enumerate(df.loc[:, 'itemID'].unique())}
-    user_hashing = {user: idx + 1
-                    for idx, user in enumerate(df.loc[:, 'userID'].unique())}
+    item_hashing = {
+        item: idx + 1 for idx, item in enumerate(df.loc[:, "itemID"].unique())
+    }
+    user_hashing = {
+        user: idx + 1 for idx, user in enumerate(df.loc[:, "userID"].unique())
+    }
     df["itemID"] = df["itemID"].apply(lambda x: item_hashing[x])
     df["userID"] = df["userID"].apply(lambda x: user_hashing[x])
 
     preprocessed_input_data_path = os.path.join(
-        args.input_path, "ratings_Beauty_preprocessed.txt")
+        args.input_path, "ratings_Beauty_preprocessed.txt"
+    )
     df.to_csv(preprocessed_input_data_path, index=False, header=False, sep="\t")
 
     # Generate recsystem dataset for training
-    rec_data = SASRecDataSet(
-        filename=preprocessed_input_data_path,
-        col_sep="\t"
-    )
+    rec_data = SASRecDataSet(filename=preprocessed_input_data_path, col_sep="\t")
     rec_data.split()
 
     # Get model with config
@@ -104,8 +109,8 @@ if __name__ == '__main__':
     cc = 0.0
     for u in rec_data.user_train:
         cc += len(rec_data.user_train[u])
-    print('%g Users and %g items' % (rec_data.usernum, rec_data.itemnum))
-    print('average sequence length: %.2f' % (cc / len(rec_data.user_train)))
+    print("%g Users and %g items" % (rec_data.usernum, rec_data.itemnum))
+    print("average sequence length: %.2f" % (cc / len(rec_data.user_train)))
 
     # Create negative samples from the training data for each batch
     sampler = WarpSampler(
@@ -114,7 +119,7 @@ if __name__ == '__main__':
         rec_data.itemnum,
         batch_size=batch_size,
         maxlen=config.get("MAXLEN"),
-        n_workers=2
+        n_workers=2,
     )
 
     print("train model")
@@ -127,7 +132,7 @@ if __name__ == '__main__':
             lr=lr,
             val_epoch=4,
             save_path=args.output_path,
-            evaluate=True
+            evaluate=True,
         )
 
     # Print sample input -> top10 next item prediction
@@ -135,15 +140,16 @@ if __name__ == '__main__':
     predictions = -1 * model.predict_next(input=sample_input)
     rec_items = predictions.argsort()[:5]
 
-    dic_result = {"Rank": [i for i in range(1, 6)],
-                  "ItemID": list(rec_items + 1),
-                  "Similarity Score": -1 * predictions[rec_items]
-                  }
+    dic_result = {
+        "Rank": [i for i in range(1, 6)],
+        "ItemID": list(rec_items + 1),
+        "Similarity Score": -1 * predictions[rec_items],
+    }
 
     result = pd.DataFrame(dic_result)
 
-    print(tabulate(result, headers='keys', tablefmt='psql', showindex=False, numalign='left'))
-
-
-
-
+    print(
+        tabulate(
+            result, headers="keys", tablefmt="psql", showindex=False, numalign="left"
+        )
+    )

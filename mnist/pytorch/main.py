@@ -4,10 +4,10 @@ import random
 
 import pandas as pd
 import torch.nn.functional as F
+from model import *
 from torch import optim
 from torch.optim.lr_scheduler import StepLR
 from torchvision import datasets, transforms
-from model import *
 
 vessl.init()
 
@@ -28,19 +28,23 @@ def preprocess(raw_data):
 
 def get_dataloader(data, label, batch_size, shuffle):
     dataset = torch.utils.data.TensorDataset(
-        torch.from_numpy(data).unsqueeze(1), torch.from_numpy(label).type(torch.LongTensor))
+        torch.from_numpy(data).unsqueeze(1),
+        torch.from_numpy(label).type(torch.LongTensor),
+    )
     return torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=shuffle)
 
 
 def load_checkpoint(checkpoint_file_path):
     print(f"=> Loading checkpoint '{checkpoint_file_path}' ...")
-    if device == 'cuda':
+    if device == "cuda":
         checkpoint = torch.load(checkpoint_file_path)
     else:
-        checkpoint = torch.load(checkpoint_file_path, map_location=lambda storage, loc: storage)
-    model.load_state_dict(checkpoint.get('state_dict'))
+        checkpoint = torch.load(
+            checkpoint_file_path, map_location=lambda storage, loc: storage
+        )
+    model.load_state_dict(checkpoint.get("state_dict"))
     print(f"=> Loaded checkpoint (trained for {checkpoint.get('epoch')} epochs)")
-    return checkpoint.get('epoch'), checkpoint.get('best_accuracy')
+    return checkpoint.get("epoch"), checkpoint.get("best_accuracy")
 
 
 def save_checkpoint(state, is_best, filename):
@@ -62,15 +66,18 @@ def train(model, device, train_loader, optimizer, epoch, start_epoch):
         loss.backward()
         optimizer.step()
         if batch_idx % 128 == 0:
-            print('Train Epoch: {} [{}/{} ({:.0f}%)]  Loss: {:.6f}'.format(
-                epoch + 1, batch_idx * len(data), len(train_loader.dataset),
-                100. * batch_idx / len(train_loader), loss.item()))
+            print(
+                "Train Epoch: {} [{}/{} ({:.0f}%)]  Loss: {:.6f}".format(
+                    epoch + 1,
+                    batch_idx * len(data),
+                    len(train_loader.dataset),
+                    100.0 * batch_idx / len(train_loader),
+                    loss.item(),
+                )
+            )
 
     # Logging loss metrics to VESSL
-    vessl.log(
-        step=epoch + start_epoch + 1,
-        payload={'loss': loss.item()}
-    )
+    vessl.log(step=epoch + start_epoch + 1, payload={"loss": loss.item()})
 
 
 def test(model, device, test_loader, save_image):
@@ -82,26 +89,35 @@ def test(model, device, test_loader, save_image):
         for data, target in test_loader:
             data, target = data.to(device), target.to(device)
             output = model(data)
-            test_loss += F.nll_loss(output, target, reduction='sum').item()
+            test_loss += F.nll_loss(output, target, reduction="sum").item()
             pred = output.argmax(dim=1, keepdim=True)
             correct += pred.eq(target.view_as(pred)).sum().item()
-            random_i = random.randint(0, len(data)-1)
-            test_images.append(vessl.Image(
-                data[random_i], caption="Pred: {} Truth: {}".format(pred[random_i].item(), target[random_i])))
+            random_i = random.randint(0, len(data) - 1)
+            test_images.append(
+                vessl.Image(
+                    data[random_i],
+                    caption="Pred: {} Truth: {}".format(
+                        pred[random_i].item(), target[random_i]
+                    ),
+                )
+            )
 
     test_loss /= len(test_loader.dataset)
-    test_accuracy = 100. * correct / len(test_loader.dataset)
+    test_accuracy = 100.0 * correct / len(test_loader.dataset)
 
-    print('  Test set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)'.format(
-        test_loss, correct, len(test_loader.dataset), test_accuracy))
-    vessl.log(
-        payload={'test_loss': test_loss, 'test_accuracy': test_accuracy}
+    print(
+        "  Test set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)".format(
+            test_loss, correct, len(test_loader.dataset), test_accuracy
+        )
     )
+    vessl.log(payload={"test_loss": test_loss, "test_accuracy": test_accuracy})
 
     if save_image:
-        vessl.log({
-            "Examples": test_images,
-        })
+        vessl.log(
+            {
+                "Examples": test_images,
+            }
+        )
 
     return test_accuracy
 
@@ -115,30 +131,41 @@ def save(model, path):
     print(f" [*] Saved model in : {artifact_path}")
 
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='PyTorch MNIST Example')
-    parser.add_argument('--input-path', type=str, default='/input',
-                        help='input dataset path')
-    parser.add_argument('--output-path', type=str, default='/output',
-                        help='output files path')
-    parser.add_argument('--checkpoint-path', type=str, default='/output/checkpoint',
-                        help='checkpoint path')
-    parser.add_argument('--save-model', action='store_true', default=False,
-                        help='For saving the current model')
-    parser.add_argument('--save-image', action='store_true', default=False,
-                        help='For saving the images')
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="PyTorch MNIST Example")
+    parser.add_argument(
+        "--input-path", type=str, default="/input", help="input dataset path"
+    )
+    parser.add_argument(
+        "--output-path", type=str, default="/output", help="output files path"
+    )
+    parser.add_argument(
+        "--checkpoint-path",
+        type=str,
+        default="/output/checkpoint",
+        help="checkpoint path",
+    )
+    parser.add_argument(
+        "--save-model",
+        action="store_true",
+        default=False,
+        help="For saving the current model",
+    )
+    parser.add_argument(
+        "--save-image", action="store_true", default=False, help="For saving the images"
+    )
     args = parser.parse_args()
 
     # hyperparameters
-    epochs = int(os.environ.get('epochs', 5))
-    batch_size = int(os.environ.get('batch_size', 128))
-    optimizer = str(os.environ.get('optimizer', 'adadelta'))
-    learning_rate = float(os.environ.get('learning_rate', 0.1))
+    epochs = int(os.environ.get("epochs", 5))
+    batch_size = int(os.environ.get("batch_size", 128))
+    optimizer = str(os.environ.get("optimizer", "adadelta"))
+    learning_rate = float(os.environ.get("learning_rate", 0.1))
 
     # Validate device
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print(f'Device: {device}')
-    print(f'Device count: {torch.cuda.device_count()}')
+    print(f"Device: {device}")
+    print(f"Device count: {torch.cuda.device_count()}")
 
     model = Net().to(device)
 
@@ -147,14 +174,15 @@ if __name__ == '__main__':
 
     # Load dataset
     use_mount_dataset = False
-    if os.path.exists(os.path.join(args.input_path, "train.csv")) and \
-            os.path.exists(os.path.join(args.input_path, 'test.csv')):
+    if os.path.exists(os.path.join(args.input_path, "train.csv")) and os.path.exists(
+        os.path.join(args.input_path, "test.csv")
+    ):
         use_mount_dataset = True
 
     if use_mount_dataset:
-        print('=> Mount dataset found!')
+        print("=> Mount dataset found!")
         train_df = load_data(args.input_path, "train.csv")
-        test_df = load_data(args.input_path, 'test.csv')
+        test_df = load_data(args.input_path, "test.csv")
         y_train, x_train = preprocess(train_df)
         y_test, x_test = preprocess(test_df)
 
@@ -162,25 +190,22 @@ if __name__ == '__main__':
         train_dataloader = get_dataloader(x_train, y_train, batch_size, True)
         test_dataloader = get_dataloader(x_test, y_test, batch_size, False)
     else:
-        print('=> Mount dataset not found! Use torchvision dataset instead.')
+        print("=> Mount dataset not found! Use torchvision dataset instead.")
 
-        train_kwargs = {'batch_size': batch_size}
-        test_kwargs = {'batch_size': batch_size}
+        train_kwargs = {"batch_size": batch_size}
+        test_kwargs = {"batch_size": batch_size}
 
-        transform = transforms.Compose([
-            transforms.ToTensor(),
-            transforms.Normalize((0.1307,), (0.3081,))
-        ])
-        train_dataset = datasets.MNIST(args.input_path, train=True, download=True,
-                                       transform=transform)
-        test_dataset = datasets.MNIST(args.input_path, train=False,
-                                      transform=transform)
+        transform = transforms.Compose(
+            [transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))]
+        )
+        train_dataset = datasets.MNIST(
+            args.input_path, train=True, download=True, transform=transform
+        )
+        test_dataset = datasets.MNIST(args.input_path, train=False, transform=transform)
 
         # Prepare dataloader
-        train_dataloader = torch.utils.data.DataLoader(
-            train_dataset, **train_kwargs)
-        test_dataloader = torch.utils.data.DataLoader(
-            test_dataset, **test_kwargs)
+        train_dataloader = torch.utils.data.DataLoader(train_dataset, **train_kwargs)
+        test_dataloader = torch.utils.data.DataLoader(test_dataset, **test_kwargs)
 
     if optimizer == "sgd":
         optimizer = optim.SGD(model.parameters(), lr=learning_rate)
@@ -189,9 +214,8 @@ if __name__ == '__main__':
     scheduler = StepLR(optimizer, step_size=1, gamma=0.7)
 
     # Load checkpoint if exists
-    checkpoint_file_path = os.path.join(args.checkpoint_path, 'checkpoints.pt')
-    if os.path.exists(args.checkpoint_path) and \
-            os.path.isfile(checkpoint_file_path):
+    checkpoint_file_path = os.path.join(args.checkpoint_path, "checkpoints.pt")
+    if os.path.exists(args.checkpoint_path) and os.path.isfile(checkpoint_file_path):
         start_epoch, best_accuracy = load_checkpoint(checkpoint_file_path)
     else:
         print("=> No checkpoint has been found! Train from scratch.")
@@ -208,12 +232,17 @@ if __name__ == '__main__':
         test_accuracy = torch.FloatTensor([test_accuracy])
         is_best = bool(test_accuracy.numpy() > best_accuracy.numpy())
         best_accuracy = torch.FloatTensor(
-            max(test_accuracy.numpy(), best_accuracy.numpy()))
-        save_checkpoint({
-            'epoch': start_epoch + epoch + 1,
-            'state_dict': model.state_dict(),
-            'best_accuracy': best_accuracy,
-        }, is_best, checkpoint_file_path)
+            max(test_accuracy.numpy(), best_accuracy.numpy())
+        )
+        save_checkpoint(
+            {
+                "epoch": start_epoch + epoch + 1,
+                "state_dict": model.state_dict(),
+                "best_accuracy": best_accuracy,
+            },
+            is_best,
+            checkpoint_file_path,
+        )
 
         scheduler.step()
 

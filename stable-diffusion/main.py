@@ -1,5 +1,5 @@
-import torch
 import streamlit as st
+import torch
 from diffusers import DPMSolverMultistepScheduler, StableDiffusionPipeline
 
 # Load model from Hugging Face Diffusers
@@ -17,13 +17,13 @@ st.title("Stable Diffusion with VESSL Run")
 
 col1, col2 = st.columns(2)
 
-with col1: 
+with col1:
     st.header("Prompt")
     with st.form("prompt", clear_on_submit=False):
         prompt = st.text_area("Enter your prompt here")
         submit_button = st.form_submit_button(label="Generate")
 
-with col2: 
+with col2:
     st.header("Image")
     if submit_button:
         image = pipe(prompt).images[0]

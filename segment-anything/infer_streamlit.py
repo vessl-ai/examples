@@ -1,9 +1,10 @@
-import cv2
 import warnings
+
+import cv2
+import matplotlib.pyplot as plt
 import numpy as np
 import streamlit as st
-import matplotlib.pyplot as plt
-from segment_anything import sam_model_registry, SamAutomaticMaskGenerator
+from segment_anything import SamAutomaticMaskGenerator, sam_model_registry
 
 VESSL_LOGO_URL = (
     "https://vessl-public-apne2.s3.ap-northeast-2.amazonaws.com/vessl-logo/vessl-ai_color_light"
@@ -15,9 +16,9 @@ st.image(VESSL_LOGO_URL, width=400)
 intro = [
     "Manage your own Segment Anything session!",
     'One major hurdle in machine learning projects is establishing an environment. <a href="https://vessl.ai/floyd">VESSL AI</a> provides a solution to this bottleneck through YAML configuration. Using YAML configuration for a machine learning can offer a number of benefits:',
-    '♻️ <strong>Reproducibility</strong>: Clearly define and save configurations as a file ensures that your experiments can be reproduced exactly.',
-    '😉 <strong>Ease of Use</strong>: YAML files use a straightforward text format. This makes it easy for you to understand and modify the configurations as needed',
-    '🚀 <strong>Scalability</strong>: A consistent method of using YAML files can be easily version-controlled, shared, and reused, which simplifies scaling.',
+    "♻️ <strong>Reproducibility</strong>: Clearly define and save configurations as a file ensures that your experiments can be reproduced exactly.",
+    "😉 <strong>Ease of Use</strong>: YAML files use a straightforward text format. This makes it easy for you to understand and modify the configurations as needed",
+    "🚀 <strong>Scalability</strong>: A consistent method of using YAML files can be easily version-controlled, shared, and reused, which simplifies scaling.",
     "Try your own Segment Anything session with simple yaml we provide.",
 ]
 
@@ -105,7 +106,11 @@ with col5:
         f'<p style="font-family:system-ui; color:Black; font-size: 20px;">You can save the YAML into a file and run it by yourself! Try:</p>',
         unsafe_allow_html=True,
     )
-    st.code("pip install vessl\nvessl run -f segment-anything.yaml", language="bash", line_numbers=False)
+    st.code(
+        "pip install vessl\nvessl run -f segment-anything.yaml",
+        language="bash",
+        line_numbers=False,
+    )
 
 st.markdown(
     f'<p style="font-family:system-ui; color:Black; font-size: 20px;">For further details, visit <a href="https://vesslai.mintlify.app/docs/reference/yaml">VESSL Run Docs</a>',

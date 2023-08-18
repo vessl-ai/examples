@@ -1,15 +1,17 @@
 """
     file -> temporary_dict -> processed_input -> batch
 """
-from utils.hparams import hparams
-from network.vocoders.base_vocoder import VOCODERS
-import numpy as np
 import traceback
 from pathlib import Path
-from .data_gen_utils import get_pitch_crepe
-from .base_binarizer import BinarizationError
+
+import numpy as np
 import torch
 import utils
+from network.vocoders.base_vocoder import VOCODERS
+from utils.hparams import hparams
+
+from .base_binarizer import BinarizationError
+from .data_gen_utils import get_pitch_crepe
 
 
 class File2Batch:
@@ -39,7 +41,9 @@ class File2Batch:
         return all_temp_dict
 
     @staticmethod
-    def temporary_dict2processed_input(item_name, temp_dict, encoder, binarization_args):
+    def temporary_dict2processed_input(
+        item_name, temp_dict, encoder, binarization_args
+    ):
         """
         process data in temporary_dicts
         """
@@ -92,7 +96,9 @@ class File2Batch:
                 get_pitch(wav, mel)
             if binarization_args["with_hubert"]:
                 try:
-                    hubert_encoded = processed_input["hubert"] = encoder.encode(temp_dict["wav_fn"])
+                    hubert_encoded = processed_input["hubert"] = encoder.encode(
+                        temp_dict["wav_fn"]
+                    )
                 except:
                     traceback.print_exc()
                     raise Exception(f"hubert encode error")
@@ -101,7 +107,9 @@ class File2Batch:
             else:
                 raise NotImplementedError
         except Exception as e:
-            print(f"| Skip item ({e}). item_name: {item_name}, wav_fn: {temp_dict['wav_fn']}")
+            print(
+                f"| Skip item ({e}). item_name: {item_name}, wav_fn: {temp_dict['wav_fn']}"
+            )
             return None
         return processed_input
 

@@ -2,18 +2,21 @@ import matplotlib
 
 matplotlib.use("Agg")
 
-from utils.hparams import hparams, set_hparams
-import random
-import sys
-import numpy as np
-from utils.pl_utils import BaseTrainer
-from torch import nn
-import torch.utils.data
-import utils
 import logging
 import os
+import random
+import sys
 
-torch.multiprocessing.set_sharing_strategy(os.getenv("TORCH_SHARE_STRATEGY", "file_system"))
+import numpy as np
+import torch.utils.data
+import utils
+from torch import nn
+from utils.hparams import hparams, set_hparams
+from utils.pl_utils import BaseTrainer
+
+torch.multiprocessing.set_sharing_strategy(
+    os.getenv("TORCH_SHARE_STRATEGY", "file_system")
+)
 
 log_format = "%(asctime)s %(message)s"
 logging.basicConfig(
@@ -140,7 +143,9 @@ class BaseTask(nn.Module):
             self.scheduler.step(self.global_step)
 
     def on_epoch_end(self):
-        loss_outputs = {k: round(v.avg, 4) for k, v in self.training_losses_meter.items()}
+        loss_outputs = {
+            k: round(v.avg, 4) for k, v in self.training_losses_meter.items()
+        }
         print(
             f"\n==============\n "
             f"Epoch {self.current_epoch} ended. Steps: {self.global_step}. {loss_outputs}"
@@ -166,7 +171,9 @@ class BaseTask(nn.Module):
 
     def validation_end(self, outputs):
         loss_output = self._validation_end(outputs)
-        print(f"\n==============\n " f"valid results: {loss_output}" f"\n==============\n")
+        print(
+            f"\n==============\n " f"valid results: {loss_output}" f"\n==============\n"
+        )
         return {
             "log": {f"val/{k}": v for k, v in loss_output.items()},
             "val_loss": loss_output["total_loss"],

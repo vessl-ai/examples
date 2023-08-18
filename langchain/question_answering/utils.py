@@ -1,18 +1,18 @@
-import os
 import logging
+import os
 
-from langchain.llms import OpenAI
+from langchain.chains import *
 from langchain.document_loaders import *
+from langchain.embeddings import *
+from langchain.llms import OpenAI
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.vectorstores import Chroma
-from langchain.embeddings import *
-from langchain.chains import *
 
 
 def get_embeddings(embedding_type="openai"):
     if embedding_type == "openai":
         assert os.getenv("OPENAI_API_KEY") is not None, "OPENAI_API_KEY is None"
-        return OpenAIEmbeddings(allowed_special={'<|endoftext|>'})
+        return OpenAIEmbeddings(allowed_special={"<|endoftext|>"})
     elif embedding_type == "AlephAlpha":
         return AlephAlphaAsymmetricSemanticEmbedding()
     elif embedding_type == "Cohere":
@@ -32,16 +32,28 @@ def set_api_keys(keys):
             os.environ[key[0]] = key[1]
 
 
-def make_qa(repo_url=None, branch="main", files=None, file_dir=None, chunk_size=500, chunk_overlap=100,
-            embedding_type="openai"):
+def make_qa(
+    repo_url=None,
+    branch="main",
+    files=None,
+    file_dir=None,
+    chunk_size=500,
+    chunk_overlap=100,
+    embedding_type="openai",
+):
     embeddings = get_embeddings(embedding_type=embedding_type)
     documents = []
     if repo_url is not None:
-        if os.path.exists(repo_url.split('/')[-1]):
+        if os.path.exists(repo_url.split("/")[-1]):
             os.system(f"rm -rf {repo_url.split('/')[-1]}")
         try:
             documents.extend(
-                GitLoader(clone_url=repo_url, repo_path=f"./{repo_url.split('/')[-1]}", branch=branch).load())
+                GitLoader(
+                    clone_url=repo_url,
+                    repo_path=f"./{repo_url.split('/')[-1]}",
+                    branch=branch,
+                ).load()
+            )
         except:
             logging.log(logging.WARNING, f"Failed in cloning repo: {repo_url}")
             pass
@@ -65,7 +77,9 @@ def make_qa(repo_url=None, branch="main", files=None, file_dir=None, chunk_size=
                 try:
                     documents.extend(PythonLoader(file_path=file).load())
                 except:
-                    logging.log(logging.WARNING, f"Failed in loading python file: {file}")
+                    logging.log(
+                        logging.WARNING, f"Failed in loading python file: {file}"
+                    )
                     pass
             elif file_format == "csv":
                 try:
@@ -80,11 +94,14 @@ def make_qa(repo_url=None, branch="main", files=None, file_dir=None, chunk_size=
                     logging.log(logging.WARNING, f"Failed in loading file: {file}")
                     pass
 
-    text_splitter = CharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
+    text_splitter = CharacterTextSplitter(
+        chunk_size=chunk_size, chunk_overlap=chunk_overlap
+    )
     texts = text_splitter.split_documents(documents)
     docsearch = Chroma.from_documents(texts, embeddings)
     # make chain
-    qa = ConversationalRetrievalChain.from_llm(llm=get_llm(llm_type="openai", temperature=0.9, n=1, max_tokens=-1),
-                                               retriever=docsearch.as_retriever()
-                                               )
+    qa = ConversationalRetrievalChain.from_llm(
+        llm=get_llm(llm_type="openai", temperature=0.9, n=1, max_tokens=-1),
+        retriever=docsearch.as_retriever(),
+    )
     return qa

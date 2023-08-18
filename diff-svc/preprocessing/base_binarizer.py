@@ -5,11 +5,10 @@ import random
 
 import numpy as np
 import yaml
+from preprocessing.data_gen_utils import get_pitch_crepe
 from tqdm import tqdm
 from utils.hparams import hparams, set_hparams
 from utils.indexed_datasets import IndexedDatasetBuilder
-
-from preprocessing.data_gen_utils import get_pitch_crepe
 
 
 class BinarizationError(Exception):
@@ -50,7 +49,12 @@ class BaseBinarizer:
 
         self.load_meta_data()
 
-        assert all([attr in self.item_attributes for attr in list(self.items.values())[0].keys()])
+        assert all(
+            [
+                attr in self.item_attributes
+                for attr in list(self.items.values())[0].keys()
+            ]
+        )
         self.item_names = sorted(list(self.items.keys()))
 
         if self.binarization_args["shuffle"]:

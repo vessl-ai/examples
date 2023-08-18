@@ -2,14 +2,14 @@ import hashlib
 import json
 import os
 import time
+from collections import defaultdict
 from io import BytesIO
 from pathlib import Path
-from collections import defaultdict
+
 import librosa
 import numpy as np
 import soundfile
 import torch
-
 import utils
 from network.diff.candidate_decoder import FFT
 from network.diff.diffusion import GaussianDiffusion
@@ -38,7 +38,10 @@ def read_temp(file_name):
                 f_name = file_name.split("/")[-1]
                 print(f"clean {f_name}")
                 for wav_hash in list(data_dict.keys()):
-                    if int(time.time()) - int(data_dict[wav_hash]["time"]) > 14 * 24 * 3600:
+                    if (
+                        int(time.time()) - int(data_dict[wav_hash]["time"])
+                        > 14 * 24 * 3600
+                    ):
                         del data_dict[wav_hash]
         except Exception as e:
             print(e)
@@ -146,7 +149,11 @@ class Svc:
         **kwargs,
     ):
         batch = self.pre(in_path, acc, use_crepe, thre)
-        spk_embed = batch.get("spk_embed") if not hparams["use_spk_id"] else batch.get("spk_ids")
+        spk_embed = (
+            batch.get("spk_embed")
+            if not hparams["use_spk_id"]
+            else batch.get("spk_ids")
+        )
         hubert = batch["hubert"]
         ref_mels = batch["mels"]
         energy = batch["energy"]
@@ -213,7 +220,9 @@ class Svc:
         wav_pred = self.vocoder.spec2wav(mel_pred, f0=f0_pred)
         return f0_gt, f0_pred, wav_pred
 
-    def temporary_dict2processed_input(self, item_name, temp_dict, use_crepe=True, thre=0.05):
+    def temporary_dict2processed_input(
+        self, item_name, temp_dict, use_crepe=True, thre=0.05
+    ):
         """
         process data in temporary_dicts
         """
@@ -256,7 +265,9 @@ class Svc:
         if hparams["vocoder"] in VOCODERS:
             wav, mel = VOCODERS[hparams["vocoder"]].wav2spec(temp_dict["wav_fn"])
         else:
-            wav, mel = VOCODERS[hparams["vocoder"].split(".")[-1]].wav2spec(temp_dict["wav_fn"])
+            wav, mel = VOCODERS[hparams["vocoder"].split(".")[-1]].wav2spec(
+                temp_dict["wav_fn"]
+            )
         processed_input = {
             "item_name": item_name,
             "mel": mel,
@@ -269,9 +280,13 @@ class Svc:
             get_pitch(wav, mel)
         if binarization_args["with_hubert"]:
             st = time.time()
-            hubert_encoded = processed_input["hubert"] = self.hubert.encode(temp_dict["wav_fn"])
+            hubert_encoded = processed_input["hubert"] = self.hubert.encode(
+                temp_dict["wav_fn"]
+            )
             et = time.time()
-            dev = "cuda" if hparams["hubert_gpu"] and torch.cuda.is_available() else "cpu"
+            dev = (
+                "cuda" if hparams["hubert_gpu"] and torch.cuda.is_available() else "cpu"
+            )
             # print(f"hubert (on {dev}) time used {et - st}")
 
             if binarization_args["with_align"]:
@@ -286,7 +301,9 @@ class Svc:
             item_name = song_info[-1].split(".")[-2]
         temp_dict = {"wav_fn": wav_fn}
 
-        temp_dict = self.temporary_dict2processed_input(item_name, temp_dict, use_crepe, thre)
+        temp_dict = self.temporary_dict2processed_input(
+            item_name, temp_dict, use_crepe, thre
+        )
         hparams["pndm_speedup"] = accelerate
         batch = processed_input2batch([getitem(temp_dict)])
         return batch

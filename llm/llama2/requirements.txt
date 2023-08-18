@@ -1,0 +1,8 @@
+accelerate
+peft
+tqdm
+datasets
+transformers
+deepspeed
+sentencepiece
+bentoml

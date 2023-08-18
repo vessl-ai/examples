@@ -36,7 +36,9 @@ class AvgrageMeter(object):
         self.avg = self.sum / self.cnt
 
 
-def collate_1d(values, pad_idx=0, left_pad=False, shift_right=False, max_len=None, shift_id=1):
+def collate_1d(
+    values, pad_idx=0, left_pad=False, shift_right=False, max_len=None, shift_id=1
+):
     """Convert a list of 1d tensors into a padded 2d tensor."""
     size = max(v.size(0) for v in values) if max_len is None else max_len
     res = values[0].new(len(values), size).fill_(pad_idx)
@@ -173,7 +175,9 @@ def unpack_dict_to_list(samples):
     return samples_
 
 
-def load_ckpt(cur_model, ckpt_base_dir, prefix_in_ckpt="model", force=True, strict=True):
+def load_ckpt(
+    cur_model, ckpt_base_dir, prefix_in_ckpt="model", force=True, strict=True
+):
     if os.path.isfile(ckpt_base_dir):
         base_dir = os.path.dirname(ckpt_base_dir)
         checkpoint_path = [ckpt_base_dir]
@@ -182,7 +186,9 @@ def load_ckpt(cur_model, ckpt_base_dir, prefix_in_ckpt="model", force=True, stri
         checkpoint_path = sorted(
             glob.glob(f"{base_dir}/model_ckpt_steps_*.ckpt"),
             key=lambda x: int(
-                re.findall(f"{base_dir}/model_ckpt_steps_(\d+).ckpt", x.replace("\\", "/"))[0]
+                re.findall(
+                    f"{base_dir}/model_ckpt_steps_(\d+).ckpt", x.replace("\\", "/")
+                )[0]
             ),
         )
     if len(checkpoint_path) > 0:

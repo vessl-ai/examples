@@ -1,15 +1,16 @@
 import glob
 import re
+
+import numpy as np
 import torch
 import yaml
-from sklearn.preprocessing import StandardScaler
-from torch import nn
 from modules.parallel_wavegan.models import ParallelWaveGANGenerator
 from modules.parallel_wavegan.utils import read_hdf5
+from network.vocoders.base_vocoder import BaseVocoder, register_vocoder
+from sklearn.preprocessing import StandardScaler
+from torch import nn
 from utils.hparams import hparams
 from utils.pitch_utils import f0_to_coarse
-from network.vocoders.base_vocoder import BaseVocoder, register_vocoder
-import numpy as np
 
 
 def load_pwg_model(config_path, checkpoint_path, stats_path):
@@ -26,7 +27,9 @@ def load_pwg_model(config_path, checkpoint_path, stats_path):
 
     ckpt_dict = torch.load(checkpoint_path, map_location="cpu")
     if "state_dict" not in ckpt_dict:  # official vocoder
-        model.load_state_dict(torch.load(checkpoint_path, map_location="cpu")["model"]["generator"])
+        model.load_state_dict(
+            torch.load(checkpoint_path, map_location="cpu")["model"]["generator"]
+        )
         scaler = StandardScaler()
         if config["format"] == "hdf5":
             scaler.mean_ = read_hdf5(stats_path, "mean")
@@ -59,7 +62,9 @@ class PWG(BaseVocoder):
             ckpts = glob.glob(f"{base_dir}/checkpoint-*steps.pkl")
             ckpt = sorted(
                 ckpts,
-                key=lambda x: int(re.findall(f"{base_dir}/checkpoint-(\d+)steps.pkl", x)[0]),
+                key=lambda x: int(
+                    re.findall(f"{base_dir}/checkpoint-(\d+)steps.pkl", x)[0]
+                ),
             )[-1]
             config_path = f"{base_dir}/config.yaml"
             print("| load PWG: ", ckpt)
@@ -74,7 +79,9 @@ class PWG(BaseVocoder):
             config_path = f"{base_dir}/config.yaml"
             ckpt = sorted(
                 glob.glob(f"{base_dir}/model_ckpt_steps_*.ckpt"),
-                key=lambda x: int(re.findall(f"{base_dir}/model_ckpt_steps_(\d+).ckpt", x)[0]),
+                key=lambda x: int(
+                    re.findall(f"{base_dir}/model_ckpt_steps_(\d+).ckpt", x)[0]
+                ),
             )[-1]
             print("| load PWG: ", ckpt)
             self.scaler = None

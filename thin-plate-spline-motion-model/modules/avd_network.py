@@ -52,7 +52,6 @@ class AVDNetwork(nn.Module):
         )
 
     def forward(self, kp_source, kp_random):
-
         bs = kp_source["fg_kp"].shape[0]
 
         pose_emb = self.pose_encoder(kp_random["fg_kp"].view(bs, -1))

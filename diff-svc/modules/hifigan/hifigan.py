@@ -1,12 +1,11 @@
-import torch
-import torch.nn.functional as F
-import torch.nn as nn
-from torch.nn import Conv1d, ConvTranspose1d, AvgPool1d, Conv2d
-from torch.nn.utils import weight_norm, remove_weight_norm, spectral_norm
-
-from modules.parallel_wavegan.layers import UpsampleNetwork, ConvInUpsampleNetwork
-from modules.parallel_wavegan.models.source import SourceModuleHnNSF
 import numpy as np
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+from modules.parallel_wavegan.layers import ConvInUpsampleNetwork, UpsampleNetwork
+from modules.parallel_wavegan.models.source import SourceModuleHnNSF
+from torch.nn import AvgPool1d, Conv1d, Conv2d, ConvTranspose1d
+from torch.nn.utils import remove_weight_norm, spectral_norm, weight_norm
 
 LRELU_SLOPE = 0.1
 
@@ -180,19 +179,27 @@ class HifiGanGenerator(torch.nn.Module):
 
         if h["use_pitch_embed"]:
             self.harmonic_num = 8
-            self.f0_upsamp = torch.nn.Upsample(scale_factor=np.prod(h["upsample_rates"]))
+            self.f0_upsamp = torch.nn.Upsample(
+                scale_factor=np.prod(h["upsample_rates"])
+            )
             self.m_source = SourceModuleHnNSF(
                 sampling_rate=h["audio_sample_rate"], harmonic_num=self.harmonic_num
             )
             self.noise_convs = nn.ModuleList()
-        self.conv_pre = weight_norm(Conv1d(80, h["upsample_initial_channel"], 7, 1, padding=3))
+        self.conv_pre = weight_norm(
+            Conv1d(80, h["upsample_initial_channel"], 7, 1, padding=3)
+        )
         resblock = ResBlock1 if h["resblock"] == "1" else ResBlock2
 
         self.ups = nn.ModuleList()
-        for i, (u, k) in enumerate(zip(h["upsample_rates"], h["upsample_kernel_sizes"])):
+        for i, (u, k) in enumerate(
+            zip(h["upsample_rates"], h["upsample_kernel_sizes"])
+        ):
             c_cur = h["upsample_initial_channel"] // (2 ** (i + 1))
             self.ups.append(
-                weight_norm(ConvTranspose1d(c_cur * 2, c_cur, k, u, padding=(k - u) // 2))
+                weight_norm(
+                    ConvTranspose1d(c_cur * 2, c_cur, k, u, padding=(k - u) // 2)
+                )
             )
             if h["use_pitch_embed"]:
                 if i + 1 < len(h["upsample_rates"]):
@@ -274,7 +281,9 @@ class DiscriminatorP(torch.nn.Module):
             from utils.hparams import hparams
 
             t = hparams["hop_size"]
-            self.cond_net = torch.nn.ConvTranspose1d(80, 1, t * 2, stride=t, padding=t // 2)
+            self.cond_net = torch.nn.ConvTranspose1d(
+                80, 1, t * 2, stride=t, padding=t // 2
+            )
             c_in = 2
 
         self.period = period
@@ -376,12 +385,16 @@ class MultiPeriodDiscriminator(torch.nn.Module):
 
 
 class DiscriminatorS(torch.nn.Module):
-    def __init__(self, use_spectral_norm=False, use_cond=False, upsample_rates=None, c_in=1):
+    def __init__(
+        self, use_spectral_norm=False, use_cond=False, upsample_rates=None, c_in=1
+    ):
         super(DiscriminatorS, self).__init__()
         self.use_cond = use_cond
         if use_cond:
             t = np.prod(upsample_rates)
-            self.cond_net = torch.nn.ConvTranspose1d(80, 1, t * 2, stride=t, padding=t // 2)
+            self.cond_net = torch.nn.ConvTranspose1d(
+                80, 1, t * 2, stride=t, padding=t // 2
+            )
             c_in = 2
         norm_f = weight_norm if use_spectral_norm == False else spectral_norm
         self.convs = nn.ModuleList(
@@ -438,7 +451,9 @@ class MultiScaleDiscriminator(torch.nn.Module):
                 ),
             ]
         )
-        self.meanpools = nn.ModuleList([AvgPool1d(4, 2, padding=1), AvgPool1d(4, 2, padding=1)])
+        self.meanpools = nn.ModuleList(
+            [AvgPool1d(4, 2, padding=1), AvgPool1d(4, 2, padding=1)]
+        )
 
     def forward(self, y, y_hat, mel=None):
         y_d_rs = []

@@ -1,9 +1,6 @@
 from feast import Entity, ValueType
 
-zipcode = Entity(
-    name="zipcode",
-    value_type=ValueType.INT64
-)
+zipcode = Entity(name="zipcode", value_type=ValueType.INT64)
 
 dob_ssn = Entity(
     name="dob_ssn",
