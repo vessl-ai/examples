@@ -36,7 +36,14 @@ class MyRunner(vessl.RunnerBase):
     @staticmethod
     def load_model(props, artifacts):
         model = Net()
-        model.load_state_dict(torch.load("model.pt"))
+        if torch.backends.mps.is_available():
+            model.load_state_dict(torch.load("model.pt", map_location="mps"))
+        elif torch.cuda.is_available():
+            device = torch.device("cuda")
+            model.load_state_dict(torch.load("model.pt", map_location="cuda:0"))
+            model.to(device)
+        else:
+            model.load_state_dict(torch.load("model.pt", map_location="cpu"))
         model.eval()
         return model
 
@@ -94,5 +101,5 @@ if __name__ == "__main__":
         repository_name=args.model_repository,
         model_number=model.number,
         runner_cls=MyRunner,
-        requirements=["torch==1.13.1"],
+        requirements=["torch<2.0.0"],
     )
