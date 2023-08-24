@@ -1,3 +1,4 @@
+import argparse
 from io import BytesIO
 
 import numpy as np
@@ -75,10 +76,23 @@ class MyRunner(vessl.RunnerBase):
         return {"result": data.item()}
 
 
-vessl.configure()
-vessl.register_model(
-    repository_name="model-service-qa",
-    model_number=1,
-    runner_cls=MyRunner,
-    requirements=["torch"],
-)
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="PyTorch MNIST Model Register")
+    parser.add_argument("--checkpoint", type=str, default="./output/model.pt", help="checkpoint path")
+    parser.add_argument("--model-repository", type=str, help="Model repository name to save model in VESSL")
+    args = parser.parse_args()
+
+    print("=> Registering trained model to VESSL")
+    model = vessl.create_model(repository_name=args.model_repository)
+    vessl.upload_model_volume_file(
+        repository_name=args.model_repository,
+        model_number=model.number,
+        source_path=args.checkpoint,
+        dest_path="model.pt",
+    )
+    vessl.register_model(
+        repository_name=args.model_repository,
+        model_number=model.number,
+        runner_cls=MyRunner,
+        requirements=["torch==1.13.1"],
+    )

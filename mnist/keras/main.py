@@ -83,6 +83,12 @@ if __name__ == "__main__":
     parser.add_argument(
         "--save-image", action="store_true", default=False, help="save the images"
     )
+    parser.add_argument(
+        "--vessl-model-repository",
+        type=str,
+        default="",
+        help="Model repository name to save model in VESSL. If not specified, model will not be saved.",
+    )
     args = parser.parse_args()
 
     # hyperparameters
