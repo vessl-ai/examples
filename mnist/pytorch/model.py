@@ -36,14 +36,17 @@ class MyRunner(vessl.RunnerBase):
     @staticmethod
     def load_model(props, artifacts):
         model = Net()
-        if torch.backends.mps.is_available():
-            model.load_state_dict(torch.load("model.pt", map_location="mps"))
-        elif torch.cuda.is_available():
+
+        if torch.cuda.is_available():
             device = torch.device("cuda")
-            model.load_state_dict(torch.load("model.pt", map_location="cuda:0"))
+            model.load_state_dict(torch.load("model.pt", map_location=device))
             model.to(device)
+        elif torch.backends.mps.is_available():
+            model.load_state_dict(torch.load("model.pt", map_location="mps"))
         else:
+            device = torch.device('cpu')
             model.load_state_dict(torch.load("model.pt", map_location="cpu"))
+
         model.eval()
         return model
 
