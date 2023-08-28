@@ -1,0 +1,19 @@
+name: lora_training
+image: quay.io/vessl-ai/ngc-pytorch-kernel:22.12-py3-202301160809
+resources:
+  cluster: vessl-dgx-a100
+  accelerators: NVIDIA-A100-SXM4-80GB:1
+volumes:
+  /root/examples: git://github.com/vessl-ai/examples
+  /output:
+    artifact: true
+run:
+  - workdir: /root/examples/lora
+    command: |
+             pip install diffusers
+             pip install -r requirements.txt
+             accelerate launch --mixed_precision=bf16 --multi_gpu \
+             LoRa.py --random_flip --on_vessl=True  \
+             --train_batch_size=1 --num_train_epochs=1  \
+             --learning_rate=5e-5 --seed=42 \
+             --output_dir=/output --validation_prompt='An ape with red hair.'

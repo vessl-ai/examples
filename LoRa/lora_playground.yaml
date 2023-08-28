@@ -1,0 +1,15 @@
+name: lora_playground
+resources:
+  cluster: aws-apne2
+  accelerators: V100:1
+image: quay.io/vessl-ai/ngc-pytorch-kernel:22.12-py3-202301160809
+volumes:
+  /root/examples: git://github.com/vessl-ai/examples
+run:
+  - workdir: /root/examples/lora
+    command: |
+             mkdir /ckpt && cd /ckpt && wget https://vessl-public-apne2.s3.ap-northeast-2.amazonaws.com/lora_weight/lora_weight.gz  && tar -xvf lora_weight.gz && cd /root/examples/lora && pip install diffusers streamlit stqdm && pip install -r requirements.txt && streamlit run run.py
+interactive:
+  runtime: 24h
+  ports:
+    - 8501
