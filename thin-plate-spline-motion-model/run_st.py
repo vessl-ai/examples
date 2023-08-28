@@ -20,7 +20,8 @@ def inference(vid):
 
 
 st.header("Use predefined driving video or upload your own!")
-_col1, _col2, _col3 = st.columns(3)
+_col1, _col2 = st.columns(3)
+# _col1, _col2, _col3 = st.columns(3)
 video_file = open("./assets/driving.mp4", "rb")
 video_bytes = video_file.read()
 with _col1:
