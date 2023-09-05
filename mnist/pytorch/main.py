@@ -2,15 +2,18 @@ import argparse
 import os
 import random
 
+import numpy as np
 import pandas as pd
 import torch.nn.functional as F
-from model import *
+import torch
 from torch import optim
 from torch.optim.lr_scheduler import StepLR
 from torchvision import datasets, transforms
+import vessl
+
+from model import Net, MyRunner, register_vessl_model
 
 vessl.init()
-
 
 def load_data(data_dir, filename):
     data_path = os.path.join(data_dir, filename)
@@ -49,7 +52,7 @@ def load_checkpoint(checkpoint_file_path):
 
 def save_checkpoint(state, is_best, filename):
     if is_best:
-        print("=> Saving a new best")
+        print(f"=> Saving a new best to {filename}")
         torch.save(state, filename)
     else:
         print("=> Validation Accuracy did not improve")
@@ -113,11 +116,7 @@ def test(model, device, test_loader, save_image):
     vessl.log(payload={"test_loss": test_loss, "test_accuracy": test_accuracy})
 
     if save_image:
-        vessl.log(
-            {
-                "Examples": test_images,
-            }
-        )
+        vessl.log({"Examples": test_images})
 
     return test_accuracy
 
@@ -163,10 +162,16 @@ if __name__ == "__main__":
     learning_rate = float(os.environ.get("learning_rate", 0.1))
 
     # Validate device
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device_type = "cpu"
+    device_count = 1
+    if torch.backends.mps.is_available():
+        device_type = "mps"
+    if torch.cuda.is_available():
+        device_type = "cuda"
+        device_count = torch.cuda.device_count()
+    device = torch.device(device_type)
     print(f"Device: {device}")
-    print(f"Device count: {torch.cuda.device_count()}")
-
+    print(f"Device count: {device_count}")
     model = Net().to(device)
 
     if torch.cuda.device_count() > 1:
@@ -247,4 +252,5 @@ if __name__ == "__main__":
         scheduler.step()
 
     if args.save_model:
+        print(f"=> Saving the model to {args.output_path}")
         save(model, args.output_path)

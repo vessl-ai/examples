@@ -1,49 +1,75 @@
 # MNIST
-Run MNIST example on [VESSL](https://vessl.ai):
-> Noted that you should add [hyperparameters](../README.md) as arguments to the start command
+Run MNIST example on [VESSL](https://vessl.ai).
 
-## PyTorch
-### Dataset mount
-  1. Create a new dataset with a public S3 bucket directory `s3://vessl-public-apne2/mnist`.
-  2. Mount the dataset to `/input` at the experiment create form.
-### Start Command
-  ```bash
-  pip install -r examples/mnist/pytorch/requirements.txt && python examples/mnist/pytorch/main.py --save-model --save-image 
-  ```
+## Train Model Locally
+
+Train model with the following command.
+```sh
+# PyTorch
+pip install -r pytorch/requirements.txt
+python examples/mnist/pytorch/main.py --save-model --save-image 
+
+# Keras
+pip install -r examples/mnist/keras/requirements.txt
+python examples/mnist/keras/main.py --save-model --save-image 
+```
+
 ### Hyperparameters
-```bash
-epochs # [defaults: 5]
-optimizer # adadelta, sgd [defaults: adadelta]
-batch_size # [defaults: 128]
-learning_rate # [defaults: 0.1]
-```
-### Serving
-#### 1. Create a model
-Once you finished training, [create a model](https://docs.vessl.ai/user-guide/model-registry/creating-a-model) with the `model.pt` file in the VESSL Web Console.
-#### 2. Register a model 
-On your local machine, change directory to the `vessl-ai/examples/mnist/pytorch`. Then, replace the `repository_name` and `model_number` parameter of `vessl.register()` method with your model repository name and model number in `model.py`. You can [register the model](https://docs.vessl.ai/user-guide/model-registry/deploying-a-model) by running `model.py`.   
-```bash
-cd examples/mnist/pytorch
-python model.py
-```
-#### 3. Deploy a model
-After deploying the registered model on Web Console, you can curl HTTP POST request with sample mnist image.
-```bash
-curl -X POST -H "X-AUTH-KEY:[YOUR-AUTHENTICATION-TOKEN]" --data-binary @sample/mnist_7.png [SERVICE ENDPOINT]
-```
-
-
-## Keras
-### Dataset mount  
-* No dataset needed
-### Start Command
-  ```bash
-  pip install -r examples/mnist/keras/requirements.txt && python examples/mnist/keras/main.py --save-model --save-image 
-  ```
-### Hyperparameters
-```bash
+```sh
 epochs # [defaults: 10]
 optimizer # adam, sgd, adadelta [defaults: adam]
 batch_size # [defaults: 128]
 learning_rate # [defaults: 0.01]
 ```
+
+
+## Train Model by VESSL Run
+
+### Keras
+```sh
+# PyTorch
+vessl run "pip install -r pytorch/requirements.txt; python pytorch/main.py --save-model --save-image"
+
+# Keras
+vessl run "pip install -r keras/requirements.txt; python keras/main.py --save-model --save-image"
+```
+
+## Saving Model to VESSL model registry (PyTorch)
+
+### Save the Model
+1. Create a model repository in [VESSL model registry](https://docs.vessl.ai/user-guide/model-registry/creating-a-model) if you don't have one.
+    - Use model repository name as `{VESSL_MODEL_REPO_NAME}` in the following steps.
+2. Train a PyTorch model with `--save-model` option.
+    - Use `{SAVED_MODEL_PATH}` as the path to the saved model in the following steps.
+3. Run a script to register the model:
+
+```sh
+# PyTorch
+python pytorch/model.py --checkpoint {SAVED_MODEL_PATH} --model-repository {VESSL_MODEL_REPO_NAME}
+```
+
+This will register the model to the model repository and yield the following output:
+```sh
+Successfully registered model: https://vessl.ai/{ORGANIZATION_NAME}/models/{VESSL_MODEL_REPO_NAME}/{NUMBER}
+```
+Keep the number in the URL as `{MODEL_NUMBER}` in the following steps.
+
+### Serve Model in Local
+
+Run the following command to serve the model previously registered.
+```sh
+vessl model serve vessl-mnist-example {MODEL_NUMBER} --install-reqs
+```
+
+After deploying the registered model, you can curl HTTP POST request with sample mnist image.
+```sh
+curl -X POST --data-binary @pytorch/sample_img/mnist_7.png localhost:8000
+```
+
+This will yield the following output:
+```sh
+{"result": 7}
+```
+
+### Serve Model in remote using VESSL Serving
+See [VESSL Serving](https://docs.vessl.ai/user-guide/serving) docs for more details.
