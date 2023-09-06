@@ -11,7 +11,7 @@ from torch.optim.lr_scheduler import StepLR
 from torchvision import datasets, transforms
 import vessl
 
-from model import Net, MyRunner, register_vessl_model
+from model import Net, MyRunner
 
 vessl.init()
 
