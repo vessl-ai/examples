@@ -5,8 +5,7 @@ from streamlit_chat import message as msg
 from utils import *
 
 VESSL_LOGO_URL = (
-    "https://vessl-public-apne2.s3.ap-northeast-2.amazonaws.com/vessl-logo/vessl-ai_color_light"
-    "-background.png"
+    "https://vessl-public-apne2.s3.ap-northeast-2.amazonaws.com/vessl-logo/new_vessl-ai_color.png"
 )
 st.set_page_config(layout="wide")
 
@@ -160,22 +159,23 @@ def main():
     col4, col5 = st.columns(2)
     with col4:
         yaml = """name : langchain
+description: "Generate your own assistant trained on your data with an interactive run on VESSL."
 resources:
-  cluster: aws-uw2-prod1
-  cpu: 1
-  memory: 16Gi
-  disk: 10Gi
+  cluster: aws-apne2
+  preset: v1.cpu-4.mem-13
 image: quay.io/vessl-ai/kernels:py38-202303150331
 run:
   - workdir: /root/examples/langchain/question_answering/
     command: |
       bash ./run.sh
-volumes:
+import:
   /root/examples: git://github.com/vessl-ai/examples
 interactive:
-  runtime: 24h
-  ports:
-    - 8501
+  max_runtime: 24h
+  jupyter:
+    idle_timeout: 120m
+ports:
+  - 8501
         """
         st.markdown(
             f'<p style="font-family:system-ui; color:Black; font-size: 20px;">Here is the YAML we used for setting up this streamlit session.</p>',
