@@ -1,4 +1,4 @@
-apt install ffmpeg -y
+apt update && apt install ffmpeg -y
 git clone https://github.com/facebookresearch/co-tracker
 cd co-tracker
 pip install -e .
@@ -12,4 +12,3 @@ wget https://dl.fbaipublicfiles.com/cotracker/cotracker_stride_4_wind_8.pth
 cd ..
 
 wget -P assets https://storage.googleapis.com/dm-tapnet/horsejump-high.mp4
-
