@@ -2,3 +2,6 @@ detectron2 @ git+https://github.com/facebookresearch/detectron2.git@60fd488
 vessl
 streamlit
 opencv-python
+
+# temporary workaround for protobuf conflict
+protobuf==3.20.3
