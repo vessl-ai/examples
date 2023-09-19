@@ -1,8 +1,7 @@
 detectron2 @ git+https://github.com/facebookresearch/detectron2.git@60fd488
-vessl
-streamlit
-opencv-python
+vessl==0.1.140
+streamlit==1.26.0
+opencv-python==4.8.0.74
 
 # temporary workaround for dependency conflict
 protobuf==3.20.3
-opencv-python==4.8.0.74
