@@ -4,5 +4,6 @@ streamlit
 opencv-python
 torch
 
-# temporary workaround for protobuf conflict
+# temporary workaround for dependency conflict
 protobuf==3.20.3
+opencv-python==4.8.0.74
