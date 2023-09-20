@@ -130,6 +130,7 @@ def main():
 
         edited_image = ImageOps.fit(edited_image, (width, height), method=Image.Resampling.LANCZOS)
         edited_image.save(output_dir+'/output_'+args.input.split('/')[-1].split('.')[0]+'_seed'+str(seed)+'.jpg')
+        edited_image.save(output_dir+'/output_'+args.input.split('/')[-1].split('.')[0]+'.jpg')
 
 
 if __name__ == "__main__":
