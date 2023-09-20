@@ -38,9 +38,9 @@ with col2:
         result.stdout.decode('utf-8')
         st.write(result.stdout.decode('utf-8'))
         
-        #result_image_path = '.logs/output_animals.jpg'
-        #output_img = Image.open(result_image_path)
-        #st.image(output_img)
+        result_image_path = './logs/output_animals.jpg'
+        output_img = Image.open(result_image_path)
+        st.image(output_img)
         
     else:
         st.write("Click button to change the image")
