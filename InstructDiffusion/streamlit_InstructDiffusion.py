@@ -34,7 +34,7 @@ with col2:
         st.write("Inference working.. Please wait moment")
         
         process=f"python edit_cli.py --input figure/animals.png --ckpt /root/ckpt/v1-5-pruned-emaonly-adaption-task.ckpt --edit 'Transform it to van Gogh, starry night style.'"
-        result = subprocess.run(process,shell=True, stdout=subprocess.PIPE)
+        result = subprocess.run(process,stdout=subprocess.PIPE)
         
         result_image_path = './logs/output_animals.jpg'
         output_img = Image.open(result_image_path)
