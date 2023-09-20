@@ -35,8 +35,6 @@ with col2:
         
         process=f"python edit_cli.py --input figure/animals.png --ckpt /root/ckpt/v1-5-pruned-emaonly-adaption-task.ckpt --edit 'Transform it to van Gogh, starry night style.'"
         result = subprocess.run(process,shell=True, stdout=subprocess.PIPE)
-        result.stdout.decode('utf-8')
-        st.write(result.stdout.decode('utf-8'))
         
         result_image_path = './logs/output_animals.jpg'
         output_img = Image.open(result_image_path)
