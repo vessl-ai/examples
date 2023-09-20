@@ -33,7 +33,7 @@ with col2:
     if st.button('This image is changing to...'):
         st.write("Inference working.. Please wait moment")
         
-        process=f"python edit_cli.py --input figure/animals.png --ckpt v1-5-pruned-emaonly-adaption-task.ckpt --edit 'Transform it to van Gogh, starry night style.'"
+        process=f"python edit_cli.py --input figure/animals.png --ckpt ../ckpt/v1-5-pruned-emaonly-adaption-task.ckpt --edit 'Transform it to van Gogh, starry night style.'"
         result = subprocess.run(process,shell=True, stdout=subprocess.PIPE)
         result.stdout.decode('utf-8')
         st.write(result.stdout.decode('utf-8'))
