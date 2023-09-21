@@ -10,7 +10,10 @@ run:
   - workdir: /root/examples/nougat
     command: |
         pip install nougat-ocr==0.1.8
-        nougat nougat_test.pdf -o output
+        apt-get update && apt-get -y install libgl1-mesa-glx
+        pip install "opencv-python-headless<4.3"
+        nougat --recompute --no-skipping example_calculus.pdf -o output
+        nougat --recompute --no-skipping example_MIT.pdf -o output
 interactive:
   max_runtime: 24h      # required if interactive
   jupyter:              # required if interactive
