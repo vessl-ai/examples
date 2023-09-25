@@ -1,5 +1,11 @@
 # MNIST
+
 Run MNIST example on [VESSL](https://vessl.ai).
+
+This example will walk through how to
+- train model on VESSL Run
+- save model in VESSL Models
+- serve model using VESSL Serve.
 
 ## Train Model Locally
 
@@ -23,9 +29,9 @@ learning_rate # [defaults: 0.01]
 ```
 
 
-## Train Model by VESSL Run
+## Train Model on VESSL
 
-### Keras
+Use VESSL Run to train model on VESSL's clusters (or any other cluster you configure on VESSL).
 ```sh
 # PyTorch
 vessl run "pip install -r pytorch/requirements.txt; python pytorch/main.py --save-model --save-image"
