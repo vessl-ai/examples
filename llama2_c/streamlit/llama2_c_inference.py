@@ -28,7 +28,7 @@ with col2:
 
     prepare()
 
-    process = f"{model_path} -t 0.8 -n 256 -i '{input_query}'"
+    process = f"cd ./llama2_c && ./run {model_path} -t 0.8 -n 256 -i '{input_query}'"
     result = subprocess.run(process, shell=True, stdout=subprocess.PIPE)
     result.stdout.decode('utf-8')
     st.write(result.stdout.decode('utf-8'))
