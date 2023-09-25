@@ -20,17 +20,12 @@ with col1:
     st.image(input_img)
 
 with col2:
-    temperature = st.text_input('Temperature', '0.8')
+    temperature = st.text_input('Temperature', '0.9')
     steps = st.text_input('Steps', '256')
-    person_1 = st.text_input('The first hobbit\'s name', 'David')
-    st.write('The name of the hobbit is', person_1)
-    person_2 = st.text_input('The second hobbit\'s name', 'Floyd')
-    st.write('A long time ago in a galaxy far, far away....')
-    input_query = 'One day, ' + person_1 + ' met a ' + person_2
 
     prepare()
 
-    process = f"cd ./llama2_c && ./run {model_path} -t {temperature} -n {steps} -i '{input_query}'"
-    result = subprocess.run(process, shell=True, stdout=subprocess.PIPE)
+    command = f"cd ./llama2_c && ./run {model_path} {temperature} {steps}"
+    result = subprocess.run(command, shell=True, stdout=subprocess.PIPE)
     result.stdout.decode('utf-8')
     st.write(result.stdout.decode('utf-8'))
