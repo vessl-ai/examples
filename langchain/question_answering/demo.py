@@ -188,7 +188,7 @@ ports:
             unsafe_allow_html=True,
         )
         st.code(
-            "pip install vessl\nvessl run -f langchain.yaml",
+            "pip install vessl\nvessl run create -f langchain.yaml",
             language="bash",
             line_numbers=False,
         )

@@ -1,12 +1,11 @@
-openai
-langchain
+openai==0.28.1
+langchain==0.0.308
 GitPython
-chromadb
+chromadb==0.4.13
 tiktoken
 deeplake
 
 faiss-cpu
-faiss-gpu
 google-search-results
 
 streamlit
