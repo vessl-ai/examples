@@ -12,3 +12,4 @@ streamlit
 streamlit-chat
 
 pypdf
+pysqlite3-binary
