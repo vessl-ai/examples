@@ -47,4 +47,4 @@ if __name__ == "__main__":
 
     model = load_model(args.model_path)
 
-    uvicorn.run(app)
+    uvicorn.run(app, port=5000)
