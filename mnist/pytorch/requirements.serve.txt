@@ -1,0 +1,8 @@
+fastapi[all]
+python-multipart
+pillow
+vessl==0.1.143
+numpy
+pandas
+torch==2.0.1
+torchvision==0.15.2
