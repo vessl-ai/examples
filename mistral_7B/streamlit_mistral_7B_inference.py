@@ -23,7 +23,7 @@ with col2:
     st.write('Input: ' + input_query)
     input_query = input_query.encode()
     
-    process=f"python main.py interactive mistral-7B-v0.1/ --max_tokens 256 --temperature 1.0 --prompt '{input_query}'"
+    process=f"python main.py interactive /root/ckpt/mistral-7B-v0.1/ --max_tokens 256 --temperature 1.0 --prompt '{input_query}'"
     result = subprocess.run(process,shell=True, input=input_query, stdout=subprocess.PIPE)
     output_sentences = result.stdout.decode('utf-8')
     print(output_sentences)
