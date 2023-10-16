@@ -19,6 +19,7 @@ $ torchrun --nproc_per_node=8 --nnodes=2 --node_rank=1 --master_addr=123.456.123
 import math
 import os
 import time
+import vessl
 from contextlib import nullcontext
 from datetime import datetime
 from functools import partial
@@ -289,6 +290,15 @@ while True:
                 )
             except Exception as e:
                 print(f"logging to wandb failed: {e}")
+        vessl.log(
+            step=iter_num,
+            payload={
+                "train_loss": losses['train'],
+                "val_loss": losses['val'],
+                "lr": lr,
+                "mfu": running_mfu * 100,
+            }
+        )
         if losses["val"] < best_val_loss or always_save_checkpoint:
             best_val_loss = losses["val"]
             if iter_num > 0:
