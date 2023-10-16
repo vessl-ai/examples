@@ -32,7 +32,7 @@ from torch.nn.parallel import DistributedDataParallel as DDP
 
 # -----------------------------------------------------------------------------
 # I/O
-out_dir = "out"
+out_dir = "/output"
 eval_interval = 2000
 log_interval = 1
 eval_iters = 100
