@@ -17,7 +17,7 @@ import torch.distributed as dist
 from tokenizer import Tokenizer
 from tqdm import tqdm
 
-DATA_CACHE_DIR = "data"
+DATA_CACHE_DIR = "/input-dataset"
 
 
 def download_file(url: str, fname: str, chunk_size=1024):
