@@ -2,6 +2,7 @@ import huggingface_hub
 from huggingface_hub import login
 huggingface_hub.login(token='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')
 
+
 import json
 from pathlib import Path
 from typing import Callable, Mapping
@@ -17,6 +18,7 @@ from transformers import (
     Trainer,
     TrainingArguments,
 )
+
 
 # dataset codes
 # https://github.com/jeremyarancio/llm-tolkien/blob/main/llm/prepare_dataset.py
@@ -95,8 +97,8 @@ def tokenize(element: Mapping, tokenizer: Callable, context_length: int) -> str:
             inputs_batch.append(input_ids)
     return {"input_ids": inputs_batch}
 
-# training_util
 
+# training_util
 
 class CastOutputToFloat(nn.Sequential):
     def forward(self, x):
@@ -127,7 +129,7 @@ def print_trainable_parameters(model):
             trainable_params += param.numel()
     return f"trainable params: {trainable_params} || all params: {all_param} || trainable%: {100 * trainable_params / all_param}"
 
-model_name = "llama-2-7b-hf"
+model_name = "/ckpt/llama-2-7b-hf"
 
 # load dataset
 dataset_dict = prepare_dataset(
