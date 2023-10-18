@@ -205,6 +205,7 @@ tokens = trained_model.generate(
     do_sample=False,
     pad_token_id=tokenizer.eos_token_id,
 )
+print('prompt: The hobbits were so suprised seeing their friend')
 print(tokenizer.decode(tokens[0]))
 
 # Generate text 2
@@ -217,6 +218,7 @@ tokens = trained_model.generate(
     do_sample=False,
     pad_token_id=tokenizer.eos_token_id,
 )
+print('prompt: Aragorn picked up the sword, and')
 print(tokenizer.decode(tokens[0]))
 
 # Generate text 3
@@ -229,4 +231,5 @@ tokens = trained_model.generate(
     do_sample=True,
     pad_token_id=tokenizer.eos_token_id,
 )
+print('prompt: The orks are gathering to Rohan, and the hobbits are')
 print(tokenizer.decode(tokens[0]))
