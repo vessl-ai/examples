@@ -162,7 +162,7 @@ trainer_config = {
     "gradient_accumulation_steps": 1,
     "warmup_steps": 100,
     "weight_decay": 0.1,
-    "num_train_epochs": 1,
+    "num_train_epochs": 5,
     "learning_rate": 2e-4,
     "fp16": True,
     "logging_steps": 1,
