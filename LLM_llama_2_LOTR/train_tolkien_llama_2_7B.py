@@ -201,8 +201,8 @@ inputs = tokenizer(prompt, return_tensors="pt")
 tokens = trained_model.generate(
     **inputs,
     max_new_tokens=100,
-    temperature=1,
-    do_sample=False,
+    temperature=0.75,
+    do_sample=True,
     pad_token_id=tokenizer.eos_token_id,
 )
 print('prompt: The hobbits were so suprised seeing their friend')
@@ -214,8 +214,8 @@ inputs = tokenizer(prompt, return_tensors="pt")
 tokens = trained_model.generate(
     **inputs,
     max_new_tokens=100,
-    temperature=1,
-    do_sample=False,
+    temperature=0.75,
+    do_sample=True,
     pad_token_id=tokenizer.eos_token_id,
 )
 print('prompt: Aragorn picked up the sword, and')
