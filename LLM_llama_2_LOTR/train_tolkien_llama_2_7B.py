@@ -129,6 +129,7 @@ def print_trainable_parameters(model):
             trainable_params += param.numel()
     return f"trainable params: {trainable_params} || all params: {all_param} || trainable%: {100 * trainable_params / all_param}"
 
+
 model_name = "/ckpt/llama-2-7b-hf"
 
 # load dataset
@@ -159,6 +160,7 @@ if tokenizer.pad_token is None:
     tokenizer.add_special_tokens({'pad_token': '[PAD]'})
     model.resize_token_embeddings(len(tokenizer))
 data_collator = DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=False)
+
 
 trainer_config = {
     "per_device_train_batch_size": 1,
