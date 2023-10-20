@@ -4,7 +4,7 @@ from PIL import Image
 
 st.set_page_config(layout="wide")
 
-image_path = "llama_cute.jpg"
+image_path = "llama2_c/streamlit/llama_cute.jpg"
 model_path = "stories15M.bin"
 
 
