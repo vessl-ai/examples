@@ -26,7 +26,7 @@ with col2:
 
     prepare()
 
-    command = f"cd ./llama2_c && ./run {model_path} {temperature} {steps} -i {prompts}"
+    command = f"cd ./llama2_c && ./run {model_path} -t {temperature} -n {steps} -i \"{prompts}\""
     result = subprocess.run(command, shell=True, stdout=subprocess.PIPE)
     result.stdout.decode('utf-8')
     st.write(result.stdout.decode('utf-8'))
