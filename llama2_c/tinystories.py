@@ -17,8 +17,6 @@ import torch.distributed as dist
 from tokenizer import Tokenizer
 from tqdm import tqdm
 
-DATA_CACHE_DIR = "/input-dataset"
-
 
 def download_file(url: str, fname: str, chunk_size=1024):
     """Helper function to download a file from a given url"""
@@ -36,13 +34,13 @@ def download_file(url: str, fname: str, chunk_size=1024):
             bar.update(size)
 
 
-def download():
+def download(dataset_dir):
     """Downloads the dataset to disk."""
-    os.makedirs(DATA_CACHE_DIR, exist_ok=True)
+    os.makedirs(dataset_dir, exist_ok=True)
 
     # download the TinyStories dataset, unless it's already downloaded
     data_url = "https://huggingface.co/datasets/roneneldan/TinyStories/resolve/main/TinyStories_all_data.tar.gz"
-    data_filename = os.path.join(DATA_CACHE_DIR, "TinyStories_all_data.tar.gz")
+    data_filename = os.path.join(dataset_dir, "TinyStories_all_data.tar.gz")
     if not os.path.exists(data_filename):
         print(f"Downloading {data_url} to {data_filename}...")
         download_file(data_url, data_filename)
@@ -50,7 +48,7 @@ def download():
         print(f"{data_filename} already exists, skipping download...")
 
     # unpack the tar.gz file into all the data shards (json files)
-    data_dir = os.path.join(DATA_CACHE_DIR, "TinyStories_all_data")
+    data_dir = os.path.join(dataset_dir, "TinyStories_all_data")
     if not os.path.exists(data_dir):
         os.makedirs(data_dir, exist_ok=True)
         print(f"Unpacking {data_filename}...")
@@ -67,7 +65,7 @@ def download():
     print(f"Example story:\n{data[0]}")
 
 
-def pretokenize():
+def pretokenize(dataset_dir):
     enc = Tokenizer()
 
     def process_shard(shard):
@@ -88,7 +86,7 @@ def pretokenize():
         print(f"Saved {tokenized_filename}")
 
     # iterate the shards and tokenize all of them one by one
-    data_dir = os.path.join(DATA_CACHE_DIR, "TinyStories_all_data")
+    data_dir = os.path.join(dataset_dir, "TinyStories_all_data")
     shard_filenames = sorted(glob.glob(os.path.join(data_dir, "*.json")))
 
     # process all the shards in a threadpool
@@ -101,9 +99,10 @@ def pretokenize():
 class PretokDataset(torch.utils.data.IterableDataset):
     """Loads pretokenized examples from disk and yields them as PyTorch tensors."""
 
-    def __init__(self, split, max_seq_len):
+    def __init__(self, split, dataset_dir, max_seq_len):
         super().__init__()
         self.split = split
+        self.dataset_dir = dataset_dir
         self.max_seq_len = max_seq_len
 
     def __iter__(self):
@@ -116,7 +115,7 @@ class PretokDataset(torch.utils.data.IterableDataset):
         seed = 42 + worker_id + 1337 * rank
         rng = random.Random(seed)
         print(f"Created a PretokDataset with rng seed {seed}")
-        data_dir = os.path.join(DATA_CACHE_DIR, "TinyStories_all_data")
+        data_dir = os.path.join(self.dataset_dir, "TinyStories_all_data")
         shard_filenames = sorted(glob.glob(os.path.join(data_dir, "*.bin")))
         # train/test split. let's use only shard 0 for test split, rest train
         shard_filenames = (
@@ -144,8 +143,8 @@ class PretokDataset(torch.utils.data.IterableDataset):
 
 class Task:
     @staticmethod
-    def iter_batches(split, batch_size, max_seq_len, device, num_workers=0):
-        ds = PretokDataset(split, max_seq_len)
+    def iter_batches(split, dataset_dir, batch_size, max_seq_len, device, num_workers=0):
+        ds = PretokDataset(split, dataset_dir, max_seq_len)
         dl = torch.utils.data.DataLoader(
             ds, batch_size=batch_size, pin_memory=True, num_workers=num_workers
         )
@@ -160,11 +159,14 @@ if __name__ == "__main__":
     parser.add_argument(
         "stage", type=str, choices=["download", "train_tokenizer", "pretokenize"]
     )
+    parser.add_argument(
+        "--dataset-dir", type=str, default="/input-dataset", help="input dataset path"
+    )
     args = parser.parse_args()
 
     # depending on the stage call the appropriate function
     fun = {
-        "download": download,
-        "pretokenize": pretokenize,
+        "download": download(args.dataset_dir),
+        "pretokenize": pretokenize(args.dataset_dir),
     }
     fun[args.stage]()

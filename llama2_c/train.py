@@ -32,6 +32,7 @@ from torch.nn.parallel import DistributedDataParallel as DDP
 
 # -----------------------------------------------------------------------------
 # I/O
+dataset_dir = "/input-dataset"
 out_dir = "/output"
 eval_interval = 2000
 log_interval = 1
@@ -133,6 +134,7 @@ ctx = (
 # task-specific setup
 iter_batches = partial(
     Task.iter_batches,
+    dataset_dir,
     batch_size=batch_size,
     max_seq_len=max_seq_len,
     device=device,
