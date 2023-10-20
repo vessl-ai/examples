@@ -5,7 +5,7 @@ from PIL import Image
 st.set_page_config(layout="wide")
 
 image_path = "llama2_c/streamlit/llama_cute.jpg"
-model_path = "llama2_c/streamlit/stories15M.bin"
+model_path = "/root/examples/llama2_c/stories15M.bin"
 
 
 @st.cache_data
@@ -22,10 +22,11 @@ with col1:
 with col2:
     temperature = st.text_input('Temperature', '0.9')
     steps = st.text_input('Steps', '256')
+    prompts = st.text_input('Prompts', 'One day, Lily met a Shoggoth')
 
     prepare()
 
-    command = f"cd ./llama2_c && ./run {model_path} {temperature} {steps}"
+    command = f"cd ./llama2_c && ./run {model_path} {temperature} {steps} -i {prompts}"
     result = subprocess.run(command, shell=True, stdout=subprocess.PIPE)
     result.stdout.decode('utf-8')
     st.write(result.stdout.decode('utf-8'))
