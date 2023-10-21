@@ -160,13 +160,14 @@ if __name__ == "__main__":
         "stage", type=str, choices=["download", "train_tokenizer", "pretokenize"]
     )
     parser.add_argument(
-        "--dataset-dir", type=str, default="/input-dataset", help="input dataset path"
+        "--dataset_dir", type=str, default="/input-dataset", help="input dataset path"
     )
     args = parser.parse_args()
 
     # depending on the stage call the appropriate function
     fun = {
-        "download": download(args.dataset_dir),
-        "pretokenize": pretokenize(args.dataset_dir),
+        "download": download,
+        "pretokenize": pretokenize,
     }
-    fun[args.stage]()
+
+    fun[args.stage](args.dataset_dir)
