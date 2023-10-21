@@ -19,21 +19,23 @@ $ torchrun --nproc_per_node=8 --nnodes=2 --node_rank=1 --master_addr=123.456.123
 import math
 import os
 import time
-import vessl
 from contextlib import nullcontext
 from datetime import datetime
 from functools import partial
 
 import torch
-from model import ModelArgs, Transformer
-from tinystories import Task
+from model import Transformer, ModelArgs
 from torch.distributed import destroy_process_group, init_process_group
 from torch.nn.parallel import DistributedDataParallel as DDP
 
+from tinystories import Task
+from export import model_export
+
+import vessl
+
 # -----------------------------------------------------------------------------
 # I/O
-dataset_dir = "/input-dataset"
-out_dir = "/output"
+out_dir = "out"
 eval_interval = 2000
 log_interval = 1
 eval_iters = 100
@@ -47,10 +49,13 @@ wandb_run_name = "run" + datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
 # data
 batch_size = 128  # if gradient_accumulation_steps > 1, this is the micro-batch size
 max_seq_len = 256
+vocab_source = "llama2" # llama2|custom; use Lllama 2 vocab from Meta, or custom trained
+vocab_size = 32000 # the Llama 2 tokenizer has 32K tokens
 # model
 dim = 288
 n_layers = 6
 n_heads = 6
+n_kv_heads = 6
 multiple_of = 32
 dropout = 0.0
 # adamw optimizer
@@ -65,10 +70,8 @@ grad_clip = 1.0  # clip gradients at this value, or disable if == 0.0
 decay_lr = True  # whether to decay the learning rate
 warmup_iters = 1000  # how many steps to warm up for
 # system
-device = (
-    "cuda"  # examples: 'cpu', 'cuda', 'cuda:0', 'cuda:1' etc., or try 'mps' on macbooks
-)
-dtype = "float16"  # float32|bfloat16|float16
+device = "cuda"  # examples: 'cpu', 'cuda', 'cuda:0', 'cuda:1' etc., or try 'mps' on macbooks
+dtype = "bfloat16"  # float32|bfloat16|float16
 compile = True  # use PyTorch 2.0 to compile the model to be faster
 # -----------------------------------------------------------------------------
 config_keys = [
@@ -83,6 +86,10 @@ config = {k: globals()[k] for k in config_keys}  # will be useful for logging
 # fixing some hyperparams to sensible defaults
 lr_decay_iters = max_iters  # should be ~= max_iters per Chinchilla
 min_lr = 0.0  # minimum learning rate, should be ~= learning_rate/10 per Chinchilla
+
+# validating checks
+assert vocab_source in ["llama2", "custom"]
+assert vocab_source == "custom" or vocab_size == 32000, "The vocab from Meta has 32K tokens"
 
 # various inits, derived attributes, I/O setup
 ddp = int(os.environ.get("RANK", -1)) != -1  # is this a ddp run?
@@ -104,14 +111,10 @@ else:
     master_process = True
     seed_offset = 0
     ddp_world_size = 1
-tokens_per_iter = (
-    gradient_accumulation_steps * ddp_world_size * batch_size * max_seq_len
-)
+tokens_per_iter = gradient_accumulation_steps * ddp_world_size * batch_size * max_seq_len
 if master_process:
     print(f"tokens per iteration will be: {tokens_per_iter:,}")
-    print(
-        f"breaks down as: {gradient_accumulation_steps} grad accum steps * {ddp_world_size} processes * {batch_size} batch size * {max_seq_len} max seq len"
-    )
+    print(f"breaks down as: {gradient_accumulation_steps} grad accum steps * {ddp_world_size} processes * {batch_size} batch size * {max_seq_len} max seq len")
 
 if master_process:
     os.makedirs(out_dir, exist_ok=True)
@@ -120,11 +123,7 @@ torch.backends.cuda.matmul.allow_tf32 = True  # allow tf32 on matmul
 torch.backends.cudnn.allow_tf32 = True  # allow tf32 on cudnn
 device_type = "cuda" if "cuda" in device else "cpu"  # for later use in torch.autocast
 # note: float16 data type will automatically use a GradScaler
-ptdtype = {
-    "float32": torch.float32,
-    "bfloat16": torch.bfloat16,
-    "float16": torch.float16,
-}[dtype]
+ptdtype = {"float32": torch.float32, "bfloat16": torch.bfloat16, "float16": torch.float16}[dtype]
 ctx = (
     nullcontext()
     if device_type == "cpu"
@@ -134,9 +133,10 @@ ctx = (
 # task-specific setup
 iter_batches = partial(
     Task.iter_batches,
-    dataset_dir,
     batch_size=batch_size,
     max_seq_len=max_seq_len,
+    vocab_size=vocab_size,
+    vocab_source=vocab_source,
     device=device,
     num_workers=0,
 )
@@ -150,11 +150,11 @@ model_args = dict(
     dim=dim,
     n_layers=n_layers,
     n_heads=n_heads,
-    n_kv_heads=n_heads,
-    vocab_size=32000,
+    n_kv_heads=n_kv_heads,
+    vocab_size=vocab_size,
     multiple_of=multiple_of,
     max_seq_len=max_seq_len,
-    # dropout=dropout,
+    dropout=dropout,
 )  # start with model_args from command line
 if init_from == "scratch":
     # init a new model from scratch
@@ -169,15 +169,7 @@ elif init_from == "resume":
     checkpoint_model_args = checkpoint["model_args"]
     # force these config attributes to be equal otherwise we can't even resume training
     # the rest of the attributes (e.g. dropout) can stay as desired from command line
-    for k in [
-        "dim",
-        "n_layers",
-        "n_heads",
-        "n_kv_heads",
-        "vocab_size",
-        "multiple_of",
-        "max_seq_len",
-    ]:
+    for k in ["dim", "n_layers", "n_heads", "n_kv_heads", "vocab_size", "multiple_of", "max_seq_len"]:
         model_args[k] = checkpoint_model_args[k]
     # create the model
     gptconf = ModelArgs(**model_args)
@@ -198,10 +190,8 @@ model.to(device)
 scaler = torch.cuda.amp.GradScaler(enabled=(dtype == "float16"))
 
 # optimizer
-optimizer = model.configure_optimizers(
-    weight_decay, learning_rate, (beta1, beta2), device_type
-)
-if init_from == "resume":
+optimizer = model.configure_optimizers(weight_decay, learning_rate, (beta1, beta2), device_type)
+if init_from == "resume" and "optimizer" in checkpoint:
     optimizer.load_state_dict(checkpoint["optimizer"])
 checkpoint = None  # free up memory
 
@@ -219,24 +209,23 @@ if ddp:
     model._ddp_params_and_buffers_to_ignore = {prefix + "freqs_cis"}
     model = DDP(model, device_ids=[ddp_local_rank])
 
-
 # helps estimate an arbitrarily accurate loss over either split using many batches
 @torch.no_grad()
 def estimate_loss():
     out = {}
     model.eval()
     for split in ["train", "val"]:
-        batch_iter = iter_batches(split)
+        batch_iter = iter_batches(split=split)
         losses = torch.zeros(eval_iters)  # keep on CPU
         for k in range(eval_iters):
             X, Y = next(batch_iter)
             with ctx:
-                logits, loss = model(X, Y)
+                logits = model(X, Y)
+                loss = raw_model.last_loss
             losses[k] = loss.item()
         out[split] = losses.mean()
     model.train()
     return out
-
 
 # learning rate decay scheduler (cosine with warmup)
 def get_lr(it):
@@ -252,15 +241,13 @@ def get_lr(it):
     coeff = 0.5 * (1.0 + math.cos(math.pi * decay_ratio))  # coeff ranges 0..1
     return min_lr + coeff * (learning_rate - min_lr)
 
-
 # logging
 if wandb_log and master_process:
     import wandb
-
     wandb.init(project=wandb_project, name=wandb_run_name, config=config)
 
 # training loop
-train_batch_iter = iter_batches("train")
+train_batch_iter = iter_batches(split="train")
 X, Y = next(train_batch_iter)  # fetch the very first batch
 t0 = time.time()
 local_iter_num = 0  # number of iterations in the lifetime of this process
@@ -275,9 +262,7 @@ while True:
     # evaluate the loss on train/val sets and write checkpoints
     if iter_num % eval_interval == 0 and master_process:
         losses = estimate_loss()
-        print(
-            f"step {iter_num}: train loss {losses['train']:.4f}, val loss {losses['val']:.4f}"
-        )
+        print(f"step {iter_num}: train loss {losses['train']:.4f}, val loss {losses['val']:.4f}")
         if wandb_log:
             try:
                 wandb.log(
@@ -288,17 +273,18 @@ while True:
                         "loss/val": losses["val"],
                         "lr": lr,
                         "mfu": running_mfu * 100,  # convert to percentage
-                    }
+                    }, step = iter_num
                 )
             except Exception as e:
                 print(f"logging to wandb failed: {e}")
+
         vessl.log(
             step=iter_num,
             payload={
-                "train_loss": losses['train'],
-                "val_loss": losses['val'],
+                "loss/train": losses["train"],
+                "loss/val": losses["val"],
                 "lr": lr,
-                "mfu": running_mfu * 100,
+                "mfu": running_mfu * 100,  # convert to percentage
             }
         )
         if losses["val"] < best_val_loss or always_save_checkpoint:
@@ -314,7 +300,7 @@ while True:
                 }
                 print(f"saving checkpoint to {out_dir}")
                 torch.save(checkpoint, os.path.join(out_dir, "ckpt.pt"))
-                raw_model.export(os.path.join(out_dir, "model.bin"))
+                model_export(raw_model, os.path.join(out_dir, "model.bin"), version=0)
     if iter_num == 0 and eval_only:
         break
 
@@ -326,11 +312,10 @@ while True:
             # the official way to do this is with model.no_sync() context manager, but
             # I really dislike that this bloats the code and forces us to repeat code
             # looking at the source of that context manager, it just toggles this variable
-            model.require_backward_grad_sync = (
-                micro_step == gradient_accumulation_steps - 1
-            )
+            model.require_backward_grad_sync = micro_step == gradient_accumulation_steps - 1
         with ctx:
-            logits, loss = model(X, Y)
+            logits = model(X, Y)
+            loss = raw_model.last_loss
             loss = loss / gradient_accumulation_steps
         # immediately async prefetch next batch while model is doing the forward pass on the GPU
         X, Y = next(train_batch_iter)
