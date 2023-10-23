@@ -45,7 +45,8 @@ class Llama2(bentoml.Runnable):
     SUPPORTS_CPU_MULTI_THREADING = False
 
     def __init__(self):
-        model_name = "/ckpt/llama-2-7b-hf"
+        model_name = "/ckpt/llama_2_7b_hf"
+        model_diff_name = "/ckpt_diff/llm_tolkien_llama_2_7B_local"
         lora_config = {
             "task_type": "CAUSAL_LM",
             "r": 16, # attention heads
@@ -63,7 +64,7 @@ class Llama2(bentoml.Runnable):
             model.resize_token_embeddings(len(tokenizer))
         data_collator = DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=False)
 
-        config = PeftConfig.from_pretrained("/ckpt_diff/llm-tolkien-llama_2_7B_local", local_files_only=True)
+        config = PeftConfig.from_pretrained(model_diff_name, local_files_only=True)
         trained_model = AutoModelForCausalLM.from_pretrained(model_name, load_in_8bit=True)
         self.trained_model = trained_model
         # tokenizer = AutoTokenizer.from_pretrained("JeremyArancio/llm-tolkien")
@@ -73,7 +74,7 @@ class Llama2(bentoml.Runnable):
     @bentoml.Runnable.method(batchable=False)
     def generate(self, input_text: str) -> bool:
 
-        trained_model = PeftModel.from_pretrained(self.trained_model, "/ckpt_diff/llm-tolkien-llama_2_7B_local", local_files_only=True)
+        trained_model = PeftModel.from_pretrained(self.trained_model, model_diff_name, local_files_only=True)
         return result
     
 llama2_runner = t.cast(
