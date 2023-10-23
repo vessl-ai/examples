@@ -31,7 +31,7 @@ def prepare_model(model):
     return model
 
 
-model_name = "/ckpt/llama-2-7b-hf"
+model_name = "/ckpt/llama_2_7b_hf"
 lora_config = {
     "task_type": "CAUSAL_LM",
     "r": 16, # attention heads
@@ -51,11 +51,11 @@ if tokenizer.pad_token is None:
     model.resize_token_embeddings(len(tokenizer))
 data_collator = DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=False)
 
-config = PeftConfig.from_pretrained("/ckpt_diff/llm-tolkien-llama_2_7B_local")
+config = PeftConfig.from_pretrained("/ckpt_diff/llm_tolkien_llama_2_7B_local")
 trained_model = AutoModelForCausalLM.from_pretrained(model_name, load_in_8bit=True)
 # tokenizer = AutoTokenizer.from_pretrained("JeremyArancio/llm-tolkien")
 # Load the Lora model
-trained_model = PeftModel.from_pretrained(trained_model, "/ckpt_diff/llm-tolkien-llama_2_7B_local")
+trained_model = PeftModel.from_pretrained(trained_model, "/ckpt_diff/llm_tolkien_llama_2_7B_local")
 
 
 # Generate text 1
