@@ -187,13 +187,13 @@ trainer = Trainer(
 model.config.use_cache = False
 trainer.train()
 model.config.use_cache = True
-model.save_pretrained("/ckpt/llm-tolkien-llama_2_7B_local")
+model.save_pretrained("/ckpt/llm_tolkien_llama_2_7B_local")
 
-config = PeftConfig.from_pretrained("/ckpt/llm-tolkien-llama_2_7B_local")
+config = PeftConfig.from_pretrained("/ckpt/llm_tolkien_llama_2_7B_local")
 trained_model = AutoModelForCausalLM.from_pretrained(model_name, load_in_8bit=True)
 # tokenizer = AutoTokenizer.from_pretrained("JeremyArancio/llm-tolkien")
 # Load the Lora model
-trained_model = PeftModel.from_pretrained(trained_model, "/ckpt/llm-tolkien-llama_2_7B_local")
+trained_model = PeftModel.from_pretrained(trained_model, "/ckpt/llm_tolkien_llama_2_7B_local")
 
 # Generate text 1
 prompt = 'The hobbits were so suprised seeing their friend'
