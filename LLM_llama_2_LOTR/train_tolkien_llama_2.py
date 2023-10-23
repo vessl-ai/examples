@@ -125,7 +125,7 @@ def print_trainable_parameters(model):
     return f"trainable params: {trainable_params} || all params: {all_param} || trainable%: {100 * trainable_params / all_param}"
 
 
-model_name = "/ckpt/llama-2-7b-hf"
+model_name = "/ckpt/llama_2_7b_hf"
 
 # load dataset
 dataset_dict = prepare_dataset(
