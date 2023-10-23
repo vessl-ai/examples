@@ -69,7 +69,8 @@ class Llama2(bentoml.Runnable):
         self.trained_model = trained_model
         # Load the Lora model
         trained_model = PeftModel.from_pretrained(self.trained_model, model_diff_name, local_files_only=True)
-        
+        self.tokenizer = tokenizer
+        self.trained_model = trained_model
 
     @bentoml.Runnable.method(batchable=False)
     def generate(self, input_text: str) -> bool:
