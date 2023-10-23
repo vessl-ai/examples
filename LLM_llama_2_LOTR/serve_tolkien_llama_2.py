@@ -63,7 +63,7 @@ class Llama2(bentoml.Runnable):
             model.resize_token_embeddings(len(tokenizer))
         data_collator = DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=False)
 
-        config = PeftConfig.from_pretrained("/ckpt/llm-tolkien-llama_2_7B_local")
+        config = PeftConfig.from_pretrained("/ckpt_diff/llm-tolkien-llama_2_7B_local")
         trained_model = AutoModelForCausalLM.from_pretrained(model_name, load_in_8bit=True)
         self.trained_model = trained_model
         # tokenizer = AutoTokenizer.from_pretrained("JeremyArancio/llm-tolkien")
@@ -73,7 +73,7 @@ class Llama2(bentoml.Runnable):
     @bentoml.Runnable.method(batchable=False)
     def generate(self, input_text: str) -> bool:
 
-        trained_model = PeftModel.from_pretrained(self.trained_model, "/ckpt/llm-tolkien-llama_2_7B_local")
+        trained_model = PeftModel.from_pretrained(self.trained_model, "/ckpt_diff/llm-tolkien-llama_2_7B_local")
         return result
     
 llama2_runner = t.cast(
