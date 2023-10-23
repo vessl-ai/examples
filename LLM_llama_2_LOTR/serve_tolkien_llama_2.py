@@ -53,17 +53,17 @@ class Llama2(bentoml.Runnable):
             "lora_dropout": 0.05,
             "bias": "none",
         }
-        model = AutoModelForCausalLM.from_pretrained(model_name, load_in_8bit=True)
+        model = AutoModelForCausalLM.from_pretrained(model_name, local_files_only=True, load_in_8bit=True)
         model = prepare_model(model)
         model = get_peft_model(model, LoraConfig(**lora_config))
-        tokenizer = AutoTokenizer.from_pretrained(model_name)
+        tokenizer = AutoTokenizer.from_pretrained(model_name, local_files_only=True)
         tokenizer.pad_token='[PAD]'
         if tokenizer.pad_token is None:
             tokenizer.add_special_tokens({'pad_token': '[PAD]'})
             model.resize_token_embeddings(len(tokenizer))
         data_collator = DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=False)
 
-        config = PeftConfig.from_pretrained("/ckpt_diff/llm-tolkien-llama_2_7B_local")
+        config = PeftConfig.from_pretrained("/ckpt_diff/llm-tolkien-llama_2_7B_local", local_files_only=True)
         trained_model = AutoModelForCausalLM.from_pretrained(model_name, load_in_8bit=True)
         self.trained_model = trained_model
         # tokenizer = AutoTokenizer.from_pretrained("JeremyArancio/llm-tolkien")
@@ -73,7 +73,7 @@ class Llama2(bentoml.Runnable):
     @bentoml.Runnable.method(batchable=False)
     def generate(self, input_text: str) -> bool:
 
-        trained_model = PeftModel.from_pretrained(self.trained_model, "/ckpt_diff/llm-tolkien-llama_2_7B_local")
+        trained_model = PeftModel.from_pretrained(self.trained_model, "/ckpt_diff/llm-tolkien-llama_2_7B_local", local_files_only=True)
         return result
     
 llama2_runner = t.cast(
