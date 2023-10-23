@@ -67,21 +67,31 @@ class Llama2(bentoml.Runnable):
         config = PeftConfig.from_pretrained(model_diff_name, local_files_only=True)
         trained_model = AutoModelForCausalLM.from_pretrained(model_name, load_in_8bit=True)
         self.trained_model = trained_model
-        # tokenizer = AutoTokenizer.from_pretrained("JeremyArancio/llm-tolkien")
         # Load the Lora model
+        trained_model = PeftModel.from_pretrained(self.trained_model, model_diff_name, local_files_only=True)
         
 
     @bentoml.Runnable.method(batchable=False)
     def generate(self, input_text: str) -> bool:
-
-        trained_model = PeftModel.from_pretrained(self.trained_model, model_diff_name, local_files_only=True)
+        prompt = 'The hobbits were so suprised seeing their friend'
+        inputs = tokenizer(prompt, return_tensors="pt")
+        tokens = trained_model.generate(
+            **inputs,
+            max_new_tokens=100,
+            temperature=0.75,
+            do_sample=True,
+            pad_token_id=tokenizer.eos_token_id,
+        )
+        print('prompt: The hobbits were so suprised seeing their friend')
+        print(tokenizer.decode(tokens[0]))
+        result = tokenizer.decode(tokens[0])
         return result
     
 llama2_runner = t.cast(
     "RunnerImpl", bentoml.Runner(Llama2, name="llama2")
 )
 
-svc = bentoml.Service('serve_llama2', runners=[llama2_runner])
+svc = bentoml.Service('ROTR_serve_llama2', runners=[llama2_runner])
 @svc.api(input=bentoml.io.Text(), output=bentoml.io.JSON())
 async def infer(text: str) -> str:
     result = await llama2_runner.generate.async_run(text)
