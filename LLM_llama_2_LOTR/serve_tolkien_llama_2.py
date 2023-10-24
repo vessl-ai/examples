@@ -74,18 +74,15 @@ class Llama2(bentoml.Runnable):
 
     @bentoml.Runnable.method(batchable=False)
     def generate(self, input_text: str) -> bool:
-        prompt = 'The hobbits were so suprised seeing their friend'
-        inputs = tokenizer(prompt, return_tensors="pt")
-        tokens = trained_model.generate(
+        inputs = self.tokenizer(input_text, return_tensors="pt")
+        tokens = self.trained_model.generate(
             **inputs,
             max_new_tokens=100,
             temperature=0.75,
             do_sample=True,
-            pad_token_id=tokenizer.eos_token_id,
+            pad_token_id=self.tokenizer.eos_token_id,
         )
-        print('prompt: The hobbits were so suprised seeing their friend')
-        print(tokenizer.decode(tokens[0]))
-        result = tokenizer.decode(tokens[0])
+        result = self.tokenizer.decode(tokens[0])
         return result
     
 llama2_runner = t.cast(
