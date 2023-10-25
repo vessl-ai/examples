@@ -7,7 +7,7 @@ from pydantic import BaseModel
 
 app = FastAPI()
 
-model_path = "/Users/floydryoo/Documents/github/vessl-ai/examples/llama2_c/stories42M.bin"
+model_path = "/root/examples/llama2_c/stories42M.bin"
 model = None
 
 

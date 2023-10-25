@@ -5,7 +5,7 @@ from PIL import Image
 st.set_page_config(layout="wide")
 
 image_path = "llama2_c/streamlit/llama_cute.jpg"
-model_path = "/Users/floydryoo/Documents/github/vessl-ai/examples/llama2_c/stories42M.bin"
+model_path = "/root/examples/llama2_c/stories42M.bin"
 
 
 @st.cache_data
