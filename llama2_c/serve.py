@@ -17,8 +17,7 @@ def prepare():
 async def generate(prompts: str):
     command = f"cd ./llama2_c && ./run {model_path} -t 0.9 -n 256 -i \"{prompts}\""
     result = subprocess.run(command, shell=True, stdout=subprocess.PIPE)
-    result.stdout.decode('utf-8')
-    return result
+    return result.stdout.decode('utf-8')
 
 
 if __name__ == "__main__":
