@@ -45,7 +45,8 @@ class Llama2(bentoml.Runnable):
     SUPPORTS_CPU_MULTI_THREADING = False
 
     def __init__(self):
-        model_name = "/ckpt/llama-2-7b-hf"
+        model_name = "/ckpt/llama_2_7b_hf"
+        model_diff_name = "/ckpt_diff/llm_tolkien_llama_2_7B_local"
         lora_config = {
             "task_type": "CAUSAL_LM",
             "r": 16, # attention heads
@@ -53,34 +54,42 @@ class Llama2(bentoml.Runnable):
             "lora_dropout": 0.05,
             "bias": "none",
         }
-        model = AutoModelForCausalLM.from_pretrained(model_name, load_in_8bit=True)
+        model = AutoModelForCausalLM.from_pretrained(model_name, local_files_only=True, load_in_8bit=True)
         model = prepare_model(model)
         model = get_peft_model(model, LoraConfig(**lora_config))
-        tokenizer = AutoTokenizer.from_pretrained(model_name)
+        tokenizer = AutoTokenizer.from_pretrained(model_name, local_files_only=True)
         tokenizer.pad_token='[PAD]'
         if tokenizer.pad_token is None:
             tokenizer.add_special_tokens({'pad_token': '[PAD]'})
             model.resize_token_embeddings(len(tokenizer))
         data_collator = DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=False)
 
-        config = PeftConfig.from_pretrained("/ckpt/llm-tolkien-llama_2_7B_local")
+        config = PeftConfig.from_pretrained(model_diff_name, local_files_only=True)
         trained_model = AutoModelForCausalLM.from_pretrained(model_name, load_in_8bit=True)
         self.trained_model = trained_model
-        # tokenizer = AutoTokenizer.from_pretrained("JeremyArancio/llm-tolkien")
         # Load the Lora model
-        
+        trained_model = PeftModel.from_pretrained(self.trained_model, model_diff_name, local_files_only=True)
+        self.tokenizer = tokenizer
+        self.trained_model = trained_model
 
     @bentoml.Runnable.method(batchable=False)
     def generate(self, input_text: str) -> bool:
-
-        trained_model = PeftModel.from_pretrained(self.trained_model, "/ckpt/llm-tolkien-llama_2_7B_local")
+        inputs = self.tokenizer(input_text, return_tensors="pt")
+        tokens = self.trained_model.generate(
+            **inputs,
+            max_new_tokens=100,
+            temperature=0.75,
+            do_sample=True,
+            pad_token_id=self.tokenizer.eos_token_id,
+        )
+        result = self.tokenizer.decode(tokens[0])
         return result
     
 llama2_runner = t.cast(
     "RunnerImpl", bentoml.Runner(Llama2, name="llama2")
 )
 
-svc = bentoml.Service('serve_llama2', runners=[llama2_runner])
+svc = bentoml.Service('ROTR_serve_llama2', runners=[llama2_runner])
 @svc.api(input=bentoml.io.Text(), output=bentoml.io.JSON())
 async def infer(text: str) -> str:
     result = await llama2_runner.generate.async_run(text)
