@@ -115,13 +115,6 @@ json5==0.9.10
 jsonpatch==1.33
 jsonpointer==2.4
 jsonschema==4.17.3
-jupyter_client==7.4.8
-jupyter_core==5.1.0
-jupyter-tensorboard==0.2.0
-jupyterlab==2.3.2
-jupyterlab-pygments==0.2.2
-jupyterlab-server==1.2.0
-jupyterlab-widgets==3.0.9
 jupytext==1.14.4
 kiwisolver==1.4.4
 kubernetes==24.2.0
@@ -298,7 +291,6 @@ torch==1.14.0a0+410ce96
 torch-tensorrt==1.3.0a0
 torchtext==0.13.0a0+fae8e8c
 torchvision==0.15.0a0
-tornado==6.1
 tqdm==4.64.1
 traitlets==5.7.1
 transformer-engine==0.3.0
