@@ -132,7 +132,7 @@ dataset_dict = prepare_dataset(
     model_name=model_name,
     dataset_path=Path("./extracted_text.jsonl"),
     min_length=100,
-    context_length = 2048,
+    context_length = 1024,
     test_size = 0.1,
     shuffle = True,
 )
