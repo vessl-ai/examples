@@ -93,15 +93,15 @@ class LlamaIndex(bentoml.Runnable):
 
         service_context = ServiceContext.from_defaults(llm=llm, context_window=context_window, num_output=num_output, embed_model=InstructorEmbeddings(embed_batch_size=embed_batch_size), chunk_size=chunk_size)
         index = VectorStoreIndex.from_documents(documents, service_context=service_context)
-        self.index = index
+        query_engine = index.as_query_engine()
+        self.query_engine = query_engine
         
     @bentoml.Runnable.method(batchable=False)
     def generate(self, input_text: str) -> bool:
         # set Logging to DEBUG for more detailed outputs
-        query_engine = self.index.as_query_engine()
-        result = query_engine.query(input_text)
+        result = self.query_engine.query(input_text)
         print("Query: " + input_text)
-        print("Answer:")
+        print("Answer:" + result)
         return result
     
 
