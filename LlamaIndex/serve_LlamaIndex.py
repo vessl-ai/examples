@@ -6,6 +6,7 @@ import bentoml
 from llama_index import VectorStoreIndex, SimpleDirectoryReader, ServiceContext
 from llama_index.llms import HuggingFaceLLM
 
+import typing as t
 from typing import Any, List
 from InstructorEmbedding import INSTRUCTOR
 
@@ -63,8 +64,6 @@ class LlamaIndex(bentoml.Runnable):
     SUPPORTS_CPU_MULTI_THREADING = False
     
     def __init__(self):
-    
-    
         # load documents
         documents = SimpleDirectoryReader("/docs/vessl-docs-dataset/").load_data()
 
@@ -98,12 +97,12 @@ class LlamaIndex(bentoml.Runnable):
         
     @bentoml.Runnable.method(batchable=False)
     def generate(self, input_text: str) -> bool:
-    # set Logging to DEBUG for more detailed outputs
-    query_engine = self.index.as_query_engine()
-    result = query_engine.query(input_text)
-    print("Query: " + input_text)
-    print("Answer:")
-    return result
+        # set Logging to DEBUG for more detailed outputs
+        query_engine = self.index.as_query_engine()
+        result = query_engine.query(input_text)
+        print("Query: " + input_text)
+        print("Answer:")
+        return result
     
 
 llamaindex_runner = t.cast("RunnerImpl", bentoml.Runner(LlamaIndex, name="llamaindex"))
