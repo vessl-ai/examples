@@ -66,7 +66,10 @@ query_wrapper_prompt = PromptTemplate(
 )
 
 context_window = 2048
+max_length =  2048
 num_output = 256
+embed_batch_size = 2
+chunk_size = 256
 
 # Custom LLM class for LlamaIndex
 llm = HuggingFaceLLM(
@@ -77,12 +80,12 @@ llm = HuggingFaceLLM(
     tokenizer_name="/data/llama-2-7b-hf",
     model_name="/data/llama-2-7b-hf",
     device_map="auto",
-    tokenizer_kwargs={"max_length": 2048},
+    tokenizer_kwargs={"max_length": max_length},
     # uncomment this if using CUDA to reduce memory usage
     # model_kwargs={"torch_dtype": torch.float16}
 )
 
-service_context = ServiceContext.from_defaults(llm=llm, context_window=context_window, num_output=num_output, embed_model=InstructorEmbeddings(embed_batch_size=2), chunk_size=256)
+service_context = ServiceContext.from_defaults(llm=llm, context_window=context_window, num_output=num_output, embed_model=InstructorEmbeddings(embed_batch_size=embed_batch_size), chunk_size=chunk_size)
 index = VectorStoreIndex.from_documents(documents, service_context=service_context)
 
 # set Logging to DEBUG for more detailed outputs
