@@ -2,8 +2,7 @@ import logging
 import sys
 import torch
 import bentoml
-from bentoml.io import JSON
-from bentoml.io import Text
+import llama_index
 
 from llama_index import VectorStoreIndex, SimpleDirectoryReader, ServiceContext
 from llama_index.llms import HuggingFaceLLM
@@ -114,4 +113,3 @@ svc = bentoml.Service("llamaindex_service", runners=[llamaindex_runner])
 @svc.api(input=bentoml.io.Text(), output=bentoml.io.JSON())
 async def infer(text: str) -> str:
     result = await llamaindex_runner.generate.async_run(text)
-    return result
