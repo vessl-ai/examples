@@ -101,14 +101,14 @@ class LlamaIndex(bentoml.Runnable):
         # set Logging to DEBUG for more detailed outputs
         result = self.query_engine.query(input_text)
         print("Query: " + input_text)
-        print("Answer:" + result)
+        print("Answer: ")
+        print(result)
         return result
     
 
 llamaindex_runner = t.cast("RunnerImpl", bentoml.Runner(LlamaIndex, name="llamaindex"))
+
 svc = bentoml.Service("llamaindex_service", runners=[llamaindex_runner])
-
-
 @svc.api(input=bentoml.io.Text(), output=bentoml.io.JSON())
 async def infer(text: str) -> str:
     result = await llamaindex_runner.generate.async_run(text)
