@@ -113,3 +113,4 @@ svc = bentoml.Service("llamaindex_service", runners=[llamaindex_runner])
 @svc.api(input=bentoml.io.Text(), output=bentoml.io.JSON())
 async def infer(text: str) -> str:
     result = await llamaindex_runner.generate.async_run(text)
+    return result
