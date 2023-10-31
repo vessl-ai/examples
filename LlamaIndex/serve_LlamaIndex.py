@@ -75,6 +75,7 @@ class LlamaIndex(bentoml.Runnable):
         )
 
         context_window = 1024
+        max_length = 1024
         num_output = 256
         embed_batch_size = 2
         chunk_size = 256
@@ -87,9 +88,9 @@ class LlamaIndex(bentoml.Runnable):
             tokenizer_name="/data/llama-2-7b-hf",
             model_name="/data/llama-2-7b-hf",
             device_map="auto",
-            tokenizer_kwargs={"max_length": 2048},
+            tokenizer_kwargs={"max_length": max_length},
             # uncomment this if using CUDA to reduce memory usage
-            # model_kwargs={"torch_dtype": torch.float16}
+            model_kwargs={"torch_dtype": torch.float16}
         )
 
         service_context = ServiceContext.from_defaults(llm=llm, context_window=context_window, num_output=num_output, embed_model=InstructorEmbeddings(embed_batch_size=embed_batch_size), chunk_size=chunk_size)
