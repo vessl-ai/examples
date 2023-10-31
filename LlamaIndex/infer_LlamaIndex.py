@@ -66,7 +66,7 @@ query_wrapper_prompt = PromptTemplate(
 )
 
 context_window = 2048
-max_length =  2048
+max_length = 2048
 num_output = 256
 embed_batch_size = 2
 chunk_size = 256
