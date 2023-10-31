@@ -17,7 +17,7 @@ logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 logging.getLogger().addHandler(logging.StreamHandler(stream=sys.stdout))
 
 
-# Setup for Custom Enbedding
+# Custom Embedder class for LlamaIndex
 class InstructorEmbeddings(BaseEmbedding):
     _model: INSTRUCTOR = PrivateAttr()
     _instruction: str = PrivateAttr()
@@ -68,6 +68,7 @@ query_wrapper_prompt = PromptTemplate(
 context_window = 2048
 num_output = 256
 
+# Custom LLM class for LlamaIndex
 llm = HuggingFaceLLM(
     context_window=context_window,
     max_new_tokens=num_output,
