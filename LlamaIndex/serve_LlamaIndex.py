@@ -2,6 +2,8 @@ import logging
 import sys
 import torch
 import bentoml
+from bentoml.io import JSON
+from bentoml.io import Text
 
 from llama_index import VectorStoreIndex, SimpleDirectoryReader, ServiceContext
 from llama_index.llms import HuggingFaceLLM
