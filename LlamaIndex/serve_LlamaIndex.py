@@ -74,7 +74,7 @@ class LlamaIndex(bentoml.Runnable):
             "### Instruction:\n{query_str}\n\n### Response:"
         )
 
-        context_window = 2048
+        context_window = 1024
         num_output = 256
         embed_batch_size = 2
         chunk_size = 256
