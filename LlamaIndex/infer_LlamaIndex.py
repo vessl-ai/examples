@@ -81,8 +81,8 @@ llm = HuggingFaceLLM(
     model_name="/data/llama-2-7b-hf",
     device_map="auto",
     tokenizer_kwargs={"max_length": max_length},
-    # uncomment this if using CUDA to reduce memory usage
-    # model_kwargs={"torch_dtype": torch.float16}
+    # uncomment below if using CUDA to reduce memory usage
+    model_kwargs={"torch_dtype": torch.float16}
 )
 
 service_context = ServiceContext.from_defaults(llm=llm, context_window=context_window, num_output=num_output, embed_model=InstructorEmbeddings(embed_batch_size=embed_batch_size), chunk_size=chunk_size)
