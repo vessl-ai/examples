@@ -166,7 +166,7 @@ trainer_config = {
     "learning_rate": 2e-4,
     "fp16": True,
     "logging_steps": 1,
-    "output_dir": "outputs",
+    "output_dir": "/output",
     "overwrite_output_dir": True,
     "evaluation_strategy": "no",
     "save_strategy": "no",
