@@ -4,8 +4,11 @@ import subprocess
 from PIL import Image
 from diffusers import StableDiffusionXLPipeline
 import torch
+
 pipe = StableDiffusionXLPipeline.from_pretrained("/data/SSD-1B", torch_dtype=torch.float16, use_safetensors=True, variant="fp16")
 pipe.to("cuda")
+
+# To run streamlit, setup streamlit port as 80 and run 'streamlit run SSD-1B_streamlit.py --server.port=80'
 
 st.set_page_config(layout="wide")
 
