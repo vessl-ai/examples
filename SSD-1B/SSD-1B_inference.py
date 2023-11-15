@@ -1,6 +1,6 @@
 from diffusers import StableDiffusionXLPipeline
 import torch
-pipe = StableDiffusionXLPipeline.from_pretrained("/root/SSD-1B", torch_dtype=torch.float16, use_safetensors=True, variant="fp16")
+pipe = StableDiffusionXLPipeline.from_pretrained("/data/SSD-1B", torch_dtype=torch.float16, use_safetensors=True, variant="fp16")
 pipe.to("cuda")
 
 # if using torch < 2.0
