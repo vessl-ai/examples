@@ -6,7 +6,6 @@ from diffusers import StableDiffusionXLPipeline
 import torch
 
 # To run streamlit, setup streamlit port as 80 and run 'streamlit run SSD-1B_streamlit.py --server.port=80'
-
 st.set_page_config(layout="wide")
 
 pipe = StableDiffusionXLPipeline.from_pretrained("/data/SSD-1B", torch_dtype=torch.float16, use_safetensors=True, variant="fp16")
