@@ -13,10 +13,11 @@ pipe.to("cuda")
 
 Input_query = "An astronaut riding a green horse" # Your prompt here
 prompt = st.text_input('Input Query', Input_query)
-neg_prompt = "ugly, blurry, poor quality, scary" # Negative prompt here
+negative = "ugly, blurry, poor quality, scary" # Negative prompt here
+neg_prompt = st.text_input('Negative Things', negative)
 image = pipe(prompt=prompt, negative_prompt=neg_prompt).images[0]
 
-process = f"python SSD-1B_inference.py --prompt '{prompt}'"
+process = f"python SSD-1B_inference.py --prompt '{prompt} --neg_prompt {neg_prompt}'"
 
 generated_image = prompt + '.jpg'
 image.save(generated_image)
