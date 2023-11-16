@@ -32,12 +32,11 @@ def main(argv):
     if len(prompt) < 1:
         print(file_name, "-p prompt is mandatory")
         sys.exit(2)
-    '''
 
     print("prompt:", prompt)
     print("neg_prompt:",  neg_prompt)
+    '''
 
-    
     pipe = StableDiffusionXLPipeline.from_pretrained("/data/SSD-1B", torch_dtype=torch.float16, use_safetensors=True, variant="fp16")
     pipe.to("cuda")
 
