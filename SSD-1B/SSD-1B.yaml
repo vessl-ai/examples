@@ -1,0 +1,30 @@
+name: inference_SSD-1B_A10G
+resources:
+  cluster: aws-apne2
+  preset: v1.a10g-1.mem-26
+image: quay.io/vessl-ai/ngc-pytorch-kernel:23.09-py3-202310300302
+import:
+  /dataset/: vessl-model://vessl-ai/SSD-1B/1
+  /root/examples/: git://github.com/vessl-ai/examples.git
+run:
+  - command: |-
+      pip install --upgrade pip
+      pip install -r requirements.txt
+      pip install git+https://github.com/huggingface/diffusers
+      mkdir /data
+      cd /dataset
+      mv SSD-1B.tar.gz /data
+      cd /data/
+      tar -xvf SSD-1B.tar.gz
+      cd /root/examples/SSD-1B
+      python SSD-1B_inference.py
+      streamlit run SSD-1B_streamlit.py --server.port=80
+    workdir: /root/examples/SSD-1B
+interactive:
+  max_runtime: 24h
+  jupyter:
+    idle_timeout: 120m
+ports:
+  - name: streamlit
+    type: http
+    port: 80
