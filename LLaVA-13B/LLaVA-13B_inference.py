@@ -10,7 +10,7 @@ import torch
 import textwrap
 
 
-model_path = "4bit/llava-v1.5-13b-3GB"
+model_path = "/data/llava-v1.5-13b-3GB"
 kwargs = {"device_map": "auto"}
 kwargs['load_in_4bit'] = True
 kwargs['quantization_config'] = BitsAndBytesConfig(
