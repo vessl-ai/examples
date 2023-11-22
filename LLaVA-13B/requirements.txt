@@ -1,3 +1,7 @@
-einops bitsandbytes accelerate lava sentencepiece
+einops
+bitsandbytes
+accelerate
+lava
+sentencepiece
 gdown
 transformers==4.31.0
