@@ -71,5 +71,5 @@ def caption_image(image_file, prompt):
 
 image, output = caption_image(f'https://llava-vl.github.io/static/images/view.jpg', 'Describe the image and color details.')
 print('Example Query: Describe the image and color details.')
-print('Result' + output)
+print('Result: ' + output)
 image.save('test' + '.jpg')
