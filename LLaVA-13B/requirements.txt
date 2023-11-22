@@ -4,4 +4,5 @@ accelerate
 lava
 sentencepiece
 gdown
+streamlit
 transformers==4.31.0
