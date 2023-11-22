@@ -20,7 +20,7 @@ import textwrap
 # To run streamlit, setup streamlit port as 80 and run 'streamlit run LLaVA-13B_streamlit.py --server.port=80'
 st.set_page_config(layout="wide")
 
-model_path = "4bit/llava-v1.5-13b-3GB"
+model_path = "/data/llava-v1.5-13b-3GB"
 kwargs = {"device_map": "auto"}
 kwargs['load_in_4bit'] = True
 kwargs['quantization_config'] = BitsAndBytesConfig(
