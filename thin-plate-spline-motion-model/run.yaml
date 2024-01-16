@@ -1,15 +1,23 @@
 name: thin-plate-spline-motion-model
+description: "Model for image Animation"
 resources:
-  cluster: aws-apne2
-  accelerators: V100:1
+  cluster: vessl-gcp-oregon
+  preset: v1.l4-1.mem-42
 image: quay.io/vessl-ai/ngc-pytorch-kernel:22.12-py3-202301160809
-volumes:
-  /root/examples: git://github.com/vessl-ai/examples
+import:
+  /ckpt/: hf://huggingface.co/VESSL/thin-plate-spline-motion-model
+  /root/examples/:
+    git:
+      url: github.com/vessl-ai/examples.git
+      ref: main
 run:
-  - workdir: /root/examples/thin-plate-spline-motion-model
-    command: |
-            mkdir /ckpt && cd /ckpt && wget https://vessl-public-apne2.s3.ap-northeast-2.amazonaws.com/thin-plate-spline-motion-model/vox.pth.tar && cd /root/examples/thin-plate-spline-motion-model && pip install -r requirements.txt && pip install streamlit && streamlit run run_st.py
+  - command: pip install -r requirements.txt && streamlit run run_st.py
+    workdir: /root/examples/thin-plate-spline-motion-model
 interactive:
-  runtime: 24h
-  ports:
-    - 8501
+  max_runtime: 24h
+  jupyter:
+    idle_timeout: 120m
+ports:
+  - name: streamlit
+    type: http
+    port: 8501
