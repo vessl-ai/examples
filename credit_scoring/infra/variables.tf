@@ -12,7 +12,7 @@ variable "project_name" {
 
 variable "S3_bucket_name" {
   type = string
-  default = "vessl-public-uw2/credit_scoring"
+  default = "vessl-public-apne2/credit_scoring"
   description = "The S3 bucket name of source data"
 }
 

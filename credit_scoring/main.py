@@ -1,11 +1,14 @@
 import argparse
 import os
 
+import vessl
 import pandas as pd
 from matplotlib import pyplot as plt
 from model import CreditScoringModel, MyFeast
 
 if __name__ == "__main__":
+    vessl.init()
+
     parser = argparse.ArgumentParser(description="Credit scoring example")
     parser.add_argument(
         "--feature-repo-path",
