@@ -9,7 +9,6 @@ import pandas as pd
 import vessl
 from sklearn import tree
 from sklearn.exceptions import NotFittedError
-from sklearn.model_selection import LearningCurveDisplay
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OrdinalEncoder
 from sklearn.utils.validation import check_is_fitted
@@ -66,20 +65,26 @@ class CreditScoringModel(Pipeline):
     model_filename = "model.bin"
     encoder_filename = "encoder.bin"
 
-    def __init__(self, output_path, fs=None):
+    def __init__(self, output_path, path_prefix=None, fs=None):
+        model_path = Path(self.model_filename)
+        encoder_path = Path(self.encoder_filename)
+        if path_prefix:
+            model_path = path_prefix / model_path
+            encoder_path = path_prefix / encoder_path
+
         # Load model
-        if Path(self.model_filename).exists():
-            self.classifier = joblib.load(self.model_filename)
+        if model_path.exists():
+            self.classifier = joblib.load(model_path)
         else:
             self.classifier = tree.DecisionTreeClassifier()
 
         # Load ordinal encoder
-        if Path(self.encoder_filename).exists():
-            self.encoder = joblib.load(self.encoder_filename)
+        if encoder_path.exists():
+            self.encoder = joblib.load(encoder_path)
         else:
             self.encoder = OrdinalEncoder()
 
-        # # Set up feature store
+        # Set up feature store
         if fs is not None:
             self.fs = fs
 
@@ -89,6 +94,8 @@ class CreditScoringModel(Pipeline):
         self.fs = fs
 
     def plot_learning_curve(self, train_X, train_Y):
+        from sklearn.model_selection import LearningCurveDisplay
+
         fig, ax = plt.subplots(1, figsize=(10, 10))
         common_params = {
             "X": train_X[sorted(train_X)],

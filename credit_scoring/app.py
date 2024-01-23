@@ -1,3 +1,4 @@
+import argparse
 import datetime
 from collections import OrderedDict
 
@@ -7,9 +8,13 @@ import streamlit as st
 from matplotlib import pyplot as plt
 from model import CreditScoringModel, MyFeast
 
+parser = argparse.ArgumentParser(description='Credit Scoring Inference')
+parser.add_argument('--model-path-prefix', type=str, default='/models', help="Trained model and encoder path")
+args = parser.parse_args()
+
 st.set_page_config(layout="wide")
 fs = MyFeast(repo_path="feature_repo")
-model = CreditScoringModel(output_path="", fs=fs)
+model = CreditScoringModel(output_path="", path_prefix=args.model_path_prefix, fs=fs)
 if not model.is_model_trained():
     raise Exception("The credit scoring model has not been trained.")
 

@@ -2,7 +2,6 @@ import argparse
 import os
 
 import pandas as pd
-from matplotlib import pyplot as plt
 from model import CreditScoringModel, MyFeast
 
 if __name__ == "__main__":
