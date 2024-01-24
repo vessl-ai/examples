@@ -1,0 +1,31 @@
+name: pdf-chatbot
+description: PDF chatbot
+tags:
+  - RAG
+  - chatbot
+  - LLM
+resources:
+  cluster: vessl-gcp-oregon
+  preset: gpu-l4-small
+image: quay.io/vessl-ai/torch:2.0.0-cuda12.1-r2
+import:
+  /code/:
+    git:
+      url: github.com/vessl-ai/examples.git
+run:
+  - command: |
+      cd /code/pdf-chatbot
+      pip install -r requirements.txt
+      python app.py --docs-folder=/docs --hf-token=$HUGGINGFACEHUB_API_TOKEN
+    workdir: /code
+interactive:
+  max_runtime: 8h
+  jupyter:
+    idle_timeout: 8h
+ports:
+  - name: gradio
+    type: http
+    port: 7860
+env:
+  HUGGINGFACEHUB_API_TOKEN: <YOUR_HF_API_TOKEN>
+termination_protection: false
