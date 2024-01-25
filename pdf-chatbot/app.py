@@ -1,6 +1,7 @@
 import argparse
 import os
 import shutil
+from time import sleep
 from typing import List
 
 import gradio as gr
@@ -12,7 +13,6 @@ from langchain_community.llms import HuggingFaceHub
 from langchain_community.vectorstores import FAISS
 from PyPDF2 import PdfReader
 import torch
-
 
 def get_pdf_text(pdf_docs):
     """
@@ -137,10 +137,20 @@ class RAGInterface:
     def handle_chat(self, message, history):
         return self.conversation.invoke(message)['answer']
 
+def close_app():
+    gr.Info("Terminated the app!")
+    sleep(1)
+    os._exit(0)
+
 
 def main(args: argparse.Namespace):
     if os.environ.get("HUGGINGFACEHUB_API_TOKEN", "") == "" and args.hf_token != "":
         os.environ["HUGGINGFACEHUB_API_TOKEN"] = args.hf_token
+
+    css = """
+    footer {visibility: hidden}
+    .toast-body.error {visibility: hidden}
+    """
 
     initial_docs = []
     for root, _, files in os.walk(args.docs_folder):
@@ -154,10 +164,10 @@ def main(args: argparse.Namespace):
     )
     ragger.initialize_conversation_chain(initial_docs, llm_repo=args.llm_repo)
 
-    with gr.Blocks(theme="base") as demo:
+    with gr.Blocks(css=css, title="PDF Chatbot with LangChain🦜 and Mistral-7B") as demo:
         with gr.Row():
             gr.Markdown(
-            f"""<center><h2>PDF Chatbot with LangChain🦜 and Mistral-7B</center></h2>
+            f"""<h2>PDF Chatbot with LangChain🦜 and Mistral-7B</h2>
             <h3>Ask any questions about your PDF documents, along with follow-ups</h3>
             <b>Note:</b> This AI assistant performs retrieval-augmented generation from your PDF documents.<br>
             Initial documents are loaded from the `{args.docs_folder}` folder. You can add more documents by clicking the button below.<br>
@@ -180,6 +190,9 @@ def main(args: argparse.Namespace):
                         fn=ragger.add_document, inputs=[document], outputs=[generate_vectordb_btn])
             with gr.Column(scale=2):
                 gr.ChatInterface(ragger.handle_chat)
+        with gr.Row():
+            close_button = gr.Button("Close the app", variant="stop")
+            close_button.click(fn=lambda: gr.update(interactive=False), outputs=[close_button]).then(fn=close_app)
 
     demo.queue().launch(server_name="0.0.0.0")
 
