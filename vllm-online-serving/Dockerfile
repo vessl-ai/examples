@@ -1,4 +1,4 @@
-FROM quay.io/vessl-ai/python:3.10-r2
+FROM quay.io/vessl-ai/torch:2.2.0-cuda12.3-r3
 
 ENV PROMETHEUS_VERSION=2.49.1
 
@@ -10,12 +10,12 @@ RUN tar -xvf prometheus-$PROMETHEUS_VERSION.linux-amd64.tar.gz
 RUN mv prometheus-$PROMETHEUS_VERSION.linux-amd64 ./prometheus
 RUN rm prometheus-$PROMETHEUS_VERSION.linux-amd64.tar.gz
 
-# Copy prometheus.yml and grafana.json
+# Copy prometheus.yml
 COPY monitoring/prometheus.yml /app/prometheus/prometheus.yml
 
-# # Install dependencies
-# COPY requirements.txt /app/requirements.txt
-# RUN pip install -r /app/requirements.txt
+# Install dependencies
+COPY requirements.txt /app/requirements.txt
+RUN pip install -r /app/requirements.txt
 
-# # Entrypoint
-# ENTRYPOINT ["python", "-m", "api.py"]
+# Entrypoint
+ENTRYPOINT ["python", "-m", "api.py"]
