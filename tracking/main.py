@@ -2,8 +2,8 @@ import os
 import random 
 import vessl
 
-epochs = os.environ['epochs']
-lr = os.environ['lr']
+epochs = int(os.environ['epochs'])
+lr = int(os.environ['lr'])
 offset = random.random() / 5
 
 for epoch in range(2, epochs):
