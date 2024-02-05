@@ -1,7 +1,11 @@
+import asyncio
 import argparse
+from contextlib import asynccontextmanager
 import json
 from typing import AsyncGenerator
 
+from aioprometheus import MetricsMiddleware
+from aioprometheus.asgi.starlette import metrics
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse, Response, StreamingResponse
 import uvicorn
@@ -11,10 +15,25 @@ from vllm.engine.async_llm_engine import AsyncLLMEngine
 from vllm.sampling_params import SamplingParams
 from vllm.utils import random_uuid
 
-TIMEOUT_KEEP_ALIVE = 5  # seconds.
-app = FastAPI()
-engine = None
+@asynccontextmanager
+async def lifespan(app: FastAPI):
 
+    async def _force_log():
+        while True:
+            await asyncio.sleep(10)
+            await engine.do_log_stats()
+
+    if not engine_args.disable_log_stats:
+        asyncio.create_task(_force_log())
+
+    yield
+
+TIMEOUT_KEEP_ALIVE = 5  # seconds.
+app = FastAPI(lifespan=lifespan)
+engine: AsyncLLMEngine = None
+
+app.add_middleware(MetricsMiddleware)  # Trace HTTP server metrics
+app.add_route("/metrics", metrics)  # Exposes HTTP metrics
 
 @app.get("/health")
 async def health() -> Response:
