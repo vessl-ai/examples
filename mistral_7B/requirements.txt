@@ -1,4 +1,0 @@
-fire
-sentencepiece
-torch
-xformers
