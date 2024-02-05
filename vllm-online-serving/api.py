@@ -107,7 +107,7 @@ if __name__ == "__main__":
 
     engine_args = AsyncEngineArgs.from_cli_args(args)
     engine = AsyncLLMEngine.from_engine_args(engine_args)
-    print(f"log stats: {engine.log_stats}")
+    # print(f"log stats: {engine.log_stats}")
 
     app.root_path = args.root_path
     uvicorn.run(app,
