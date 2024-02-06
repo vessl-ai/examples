@@ -1,8 +1,8 @@
-name: vllm-server
-description: vLLM API server with Prometheus monitoring
+name: vllm-serer
+description: LLM server with vLLM and Prometheus monitoring
 tags:
   - vllm
-  - prometheus
+  - model=mistral-7b-instruct-v0.2
 resources:
   cluster: vessl-gcp-oregon
   preset: gpu-l4-small
@@ -23,7 +23,7 @@ run:
       cp /code/vllm-online-serving/monitoring/prometheus.yml /app/prometheus/prometheus.yml
       /app/prometheus/prometheus --config.file=/app/prometheus/prometheus.yml &
     workdir: /app
-  - command: |
+  - command: |-
       # Install dependencies and patch vLLM codebase to support advanced service metrics
       # Note: This patch is not required in future versions of vLLM
 

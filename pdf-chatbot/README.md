@@ -47,7 +47,7 @@ To deploy the PDF chatbot on VESSL, follow these steps:
 4. Deploy the application on VESSL using the configured YAML file:
 
    ```bash
-   vessl run -f run.yaml
+   vessl run create -f run.yaml
    ```
 
 Feel free to explore and interact with the PDF chatbot on VESSL!
