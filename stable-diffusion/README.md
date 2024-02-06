@@ -11,7 +11,7 @@ vessl hello
 
 You can also run it using the YAML file we prepared.
 ```
-vessl run -f stable-diffusion.yaml
+vessl run create -f stable-diffusion.yaml
 ```
 
 Sign up for a free VESSL account and follow along our [tutorial]() to deploy your own app with VESSL Run.

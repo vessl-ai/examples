@@ -108,7 +108,7 @@ with col5:
         unsafe_allow_html=True,
     )
     st.code(
-        "pip install vessl\nvessl run -f segment-anything.yaml",
+        "pip install vessl\nvessl run create -f segment-anything.yaml",
         language="bash",
         line_numbers=False,
     )
