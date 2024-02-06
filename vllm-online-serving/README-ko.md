@@ -1,4 +1,4 @@
-# Online Serving with vLLM and VESSL Run  (한글 문서)
+# Online Serving with vLLM and VESSL Run (한글 문서)
 ------
 
 [![English](https://img.shields.io/badge/language-EN-green)](README.md) [![Korean](https://img.shields.io/badge/language-한글-green)](README-ko.md)
@@ -22,25 +22,35 @@
 
 VESSL에서 Run은 태스크 실행의 기본 단위입니다. Run의 정의에는 코드, 커맨드, AI 모델, 패키지, 환경 변수 등 각종 작업을 실행하기 위한 정보가 포함됩니다. 
 
-Run의 정의는 YAML 파일로 작성됩니다. 아래는 [vessl-ai/hub-model](https://github.com/vessl-ai/hub-model/tree/main/quickstart) 코드를 가져와 스크립트를 수행하는 예시입니다.
+Run의 정의는 YAML 파일로 작성됩니다. 예를 들면, 이번 예제의 YAML 파일 중 일부를 아래와 같이 작성할 수 있습니다:
 
 ```yaml
-# run-example.yaml
-name: VESSL Run example
-description: A barebone GPU-accelerated workload
-resources:
+# vllm-online-serving.yaml
+name: vllm-server
+description: LLM server with vLLM and Prometheus monitoring
+tags:
+  - vllm
+  - model=mistral-7b-instruct-v0.2
+resources: # Resource requirements
   cluster: vessl-gcp-oregon
   preset: gpu-l4-small
-image: quay.io/vessl-ai/torch:2.1.0-cuda12.2-r3
-import:
+image: quay.io/vessl-ai/torch:2.2.0-cuda12.3-r3 # Container image
+import: # Code, data, or model to import
   /code/:
-    git: 
-      url: https://github.com/vessl-ai/hub-model
+    git:
+      url: github.com/vessl-ai/examples.git
       ref: main
 run:
-  - command: |
-      python main.py
-    workdir: /code/quickstart
+  - command: |- # Command to run the API server
+      ...
+    workdir: /code
+ports: # Endpoint configuration
+  - name: vllm
+    type: http
+    port: 8000
+  - name: prometheus
+    type: http
+    port: 9090
 ```
 
 예제 폴더에 포함된 [vllm-online-serving.yaml](vllm-online-serving.yaml) 파일을 사용하여 Run을 생성해봅니다.

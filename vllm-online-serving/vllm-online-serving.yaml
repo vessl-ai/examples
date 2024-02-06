@@ -1,4 +1,4 @@
-name: vllm-serer
+name: vllm-server
 description: LLM server with vLLM and Prometheus monitoring
 tags:
   - vllm
