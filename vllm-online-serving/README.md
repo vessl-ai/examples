@@ -104,18 +104,17 @@ $ curl -X POST \
 
 `vLLM` provides the capability to collect key metrics necessary for monitoring LLM services based on Prometheus. Examples of metrics provided by the vLLM service include:
 * E2E request latency: The time taken to send a request to the API server and receive a response
-
-
 * Token throughput: The number of tokens processed/generated per second
 * Time per first token: The time taken from receiving a request to generating the first token
 * Cache utilization: The percentage of data stored in the GPU VRAM's KV cache that is utilized
 
-> **Note**: The Metric functionality for LLM services is included in the latest upstream version of vLLM and has not been released as a Stable release as of February 2024. Please exercise caution when using it!
+> **Note**: The Metric functionality for LLM services is included in the latest upstream version of vLLM and has not been released as a stable release as of February 2024. Please exercise caution when using it!
 
-You can install vLLM and its required dependencies in your local environment, then run the benchmark script to evaluate the performance of the API server as follows.
+You can run the benchmark script on your local environment to evaluate the performance of the API server as follows.
 
 ```sh
 # Install vLLM and required dependencies
+# You might need CUDA available on your local environment to install vLLM
 pip install aiohttp vllm
 
 # Clone the vLLM repository (which contains benchmark script)

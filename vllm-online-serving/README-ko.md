@@ -114,6 +114,7 @@ $ curl -X POST \
 
 ```sh
 # Install vLLM and required dependencies
+# You might need CUDA available on your local environment to install vLLM
 pip install aiohttp vllm
 
 # Clone the vLLM repository (which contains benchmark script)
