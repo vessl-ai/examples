@@ -208,11 +208,11 @@ RUN pip install -r /app/requirements.txt
 ENTRYPOINT ["python", "-m", "api.py"]
 ```
 
-### Caching `~/.cache/huggingface/hub` for Faster Model Loading
+### Caching `~/.cache/huggingface` for Faster Model Loading
 
-The example uses models from HuggingFace, which require downloading upon the first load, thus taking time. Pre-caching the `~/.cache/huggingface/hub` directory can reduce this loading time.
+The example uses models from HuggingFace, which require downloading upon the first load, thus taking time. Pre-caching the `~/.cache/huggingface` directory can reduce this loading time.
 
-You can cache the `~/.cache/huggingface/hub` directory using VESSL Artifacts as follows. The directory is saved as Artifacts when the Run terminates, and can be reused in subsequent Runs.
+You can cache the `~/.cache/huggingface` directory using VESSL Artifacts as follows. The directory is saved as Artifacts when the Run terminates, and can be reused in subsequent Runs.
 
 ![](asset/hf-cache-volumemount.png)
 
@@ -221,9 +221,9 @@ The YAML manifest will include additional `import` and `export` sections as show
 ```yaml
 import:
   ...
-  /root/.cache/huggingface/hub/: vessl-artifact://{ORGANIZATION}/{PROJECT}/huggingface-models
+  /root/.cache/huggingface/: vessl-artifact://{ORGANIZATION}/{PROJECT}/huggingface-models
 export:
-  /root/.cache/huggingface/hub/: vessl-artifact://{ORGANIZATION}/{PROJECT}/huggingface-models
+  /root/.cache/huggingface/: vessl-artifact://{ORGANIZATION}/{PROJECT}/huggingface-models
 
 ```
 

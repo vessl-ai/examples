@@ -206,11 +206,11 @@ RUN pip install -r /app/requirements.txt
 ENTRYPOINT ["python", "-m", "api.py"]
 ```
 
-### Caching `~/.cache/huggingface/hub` for faster model loading
+### Caching `~/.cache/huggingface` for faster model loading
 
-예제에서는 HuggingFace의 모델을 사용하고 있습니다. HuggingFace의 모델은 처음 로딩할 때 다운로드를 받아야 하기 때문에, 처음 로딩하는데 시간이 소요됩니다. 이러한 시간을 줄이기 위해서 `~/.cache/huggingface/hub` 디렉토리를 미리 캐싱해둘 수 있습니다.
+예제에서는 HuggingFace의 모델을 사용하고 있습니다. HuggingFace의 모델은 처음 로딩할 때 다운로드를 받아야 하기 때문에, 처음 로딩하는데 시간이 소요됩니다. 이러한 시간을 줄이기 위해서 `~/.cache/huggingface` 디렉토리를 미리 캐싱해둘 수 있습니다.
 
-VESSL Artifacts를 사용하여 아래와 같이 `~/.cache/huggingface/hub` 디렉토리를 캐싱할 수 있습니다. Run이 종료될 때 해당 디렉토리를 Artifacts로 저장하고, 다음 Run에서는 Artifacts를 다시 불러와서 사용할 수 있습니다.
+VESSL Artifacts를 사용하여 아래와 같이 `~/.cache/huggingface` 디렉토리를 캐싱할 수 있습니다. Run이 종료될 때 해당 디렉토리를 Artifacts로 저장하고, 다음 Run에서는 Artifacts를 다시 불러와서 사용할 수 있습니다.
 
 ![](asset/hf-cache-volumemount.png)
 
@@ -219,9 +219,9 @@ YAML manifest에서는 `import` 와 `export` 영역이 아래와 같이 추가�
 ```yaml
 import:
   ...
-  /root/.cache/huggingface/hub/: vessl-artifact://{ORGANIZATION}/{PROJECT}/huggingface-models
+  /root/.cache/huggingface/: vessl-artifact://{ORGANIZATION}/{PROJECT}/huggingface-models
 export:
-  /root/.cache/huggingface/hub/: vessl-artifact://{ORGANIZATION}/{PROJECT}/huggingface-models
+  /root/.cache/huggingface/: vessl-artifact://{ORGANIZATION}/{PROJECT}/huggingface-models
 
 ```
 
