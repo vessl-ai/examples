@@ -149,7 +149,6 @@ class SASREC_Vessl(SASREC):
                 if wandb_log:
                     import wandb
                     wandb.log(
-                        step=epoch,
                         data={
                             "val_NDCG-10": t_valid[0],
                             "val_HR-10": t_valid[1],
