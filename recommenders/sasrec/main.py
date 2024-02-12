@@ -1,5 +1,6 @@
 import argparse
 import sys
+import wandb
 
 from model import *
 from recommenders.datasets.split_utils import filter_k_core
@@ -49,6 +50,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--evaluate", action="store_true", default=True, help="evaluate during training"
     )
+    parser.add_argument("--wandb-log", type=bool, default=False, help="")
     args = parser.parse_args()
 
     env_info()
@@ -63,6 +65,11 @@ if __name__ == "__main__":
         "L2_EMB": 0.0,  # L2 REGULARIZATION COEFFICIENT
         "NUM_NEG_TEST": 100,  # NUMBER OF NEGATIVE EXAMPLES PER POSITIVE EXAMPLE
     }
+
+    if args.wandb_log:
+        import wandb
+        wandb.login(key=os.environ.get("WANDB_KEY"))
+        wandb.init(project="recommenders", config=config)
 
     # Set hyperparameters from environment variables
     lr = float(os.environ.get("lr", 0.0005))
@@ -132,6 +139,7 @@ if __name__ == "__main__":
             val_epoch=4,
             save_path=args.output_path,
             evaluate=True,
+            wandb_log=args.wandb_log,
         )
 
     # Print sample input -> top10 next item prediction

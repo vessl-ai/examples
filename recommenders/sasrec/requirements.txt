@@ -5,3 +5,4 @@ pandas
 recommenders
 tqdm
 tabulate
+wandb

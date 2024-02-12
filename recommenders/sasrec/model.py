@@ -63,13 +63,14 @@ class SASREC_Vessl(SASREC):
         if kwargs["save_path"] is not None and not os.path.isdir(kwargs["save_path"]):
             os.mkdir(kwargs["save_path"])
 
-        vessllogger = VesslLogger()
+        # vessllogger = VesslLogger()
 
         num_epochs = kwargs.get("num_epochs", 10)
         batch_size = kwargs.get("batch_size", 128)
         lr = kwargs.get("learning_rate", 0.001)
         val_epoch = kwargs.get("val_epoch", 5)
         evaluate = kwargs.get("evaluate", True)
+        wandb_log = kwargs.get("wandb_log", False)
 
         num_steps = int(len(dataset.user_train) / batch_size)
 
@@ -127,7 +128,11 @@ class SASREC_Vessl(SASREC):
 
                 loss = train_step(inputs, target)
 
-                vessllogger.log(step + (epoch - 1) * num_steps, "loss", loss)
+                if wandb_log:
+                    import wandb
+                    wandb.log(step=step+(epoch-1)*num_steps, data={"loss": loss})
+
+                # vessllogger.log(step + (epoch - 1) * num_steps, "loss", loss)
 
             self.save_upload(kwargs["save_path"], epoch)
 
@@ -141,13 +146,24 @@ class SASREC_Vessl(SASREC):
                 print(
                     f"\nepoch: {epoch}, time: {T}, valid (NDCG-10: {t_valid[0]}, HR-10: {t_valid[1]})"
                 )
-                vessllogger.log(epoch, "val_NDCG-10", t_valid[0])
-                vessllogger.log(epoch, "val_HR-10", t_valid[1])
+                if wandb_log:
+                    import wandb
+                    wandb.log(
+                        step=epoch,
+                        data={
+                            "val_NDCG-10": t_valid[0],
+                            "val_HR-10": t_valid[1],
+                            "test_NDCG-10": t_test[0],
+                            "test_HR-10": t_test[1],
+                        }
+                    )
+                # vessllogger.log(epoch, "val_NDCG-10", t_valid[0])
+                # vessllogger.log(epoch, "val_HR-10", t_valid[1])
                 print(
                     f"epoch: {epoch}, time: {T},  test (NDCG-10: {t_test[0]}, HR-10: {t_test[1]})"
                 )
-                vessllogger.log(epoch, "test_NDCG-10", t_test[0])
-                vessllogger.log(epoch, "test_HR-10", t_test[1])
+                # vessllogger.log(epoch, "test_NDCG-10", t_test[0])
+                # vessllogger.log(epoch, "test_HR-10", t_test[1])
 
                 if max_ndgc < t_test[1] and kwargs["save_path"] is not None:
                     max_ndgc = t_test[1]
