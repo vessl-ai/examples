@@ -52,7 +52,7 @@ class SASREC_Vessl(SASREC):
         """
         High level function for model training as well as
         evaluation on the validation and test dataset and
-        for logging training and from source code of recommeders
+        for logging training and from source code of recommenders
 
         :param dataset: dataset
         :param sampler: sampler
@@ -146,6 +146,9 @@ class SASREC_Vessl(SASREC):
                 print(
                     f"\nepoch: {epoch}, time: {T}, valid (NDCG-10: {t_valid[0]}, HR-10: {t_valid[1]})"
                 )
+                print(
+                    f"epoch: {epoch}, time: {T},  test (NDCG-10: {t_test[0]}, HR-10: {t_test[1]})"
+                )
                 if wandb_log:
                     import wandb
                     wandb.log(
@@ -158,15 +161,11 @@ class SASREC_Vessl(SASREC):
                     )
                 # vessllogger.log(epoch, "val_NDCG-10", t_valid[0])
                 # vessllogger.log(epoch, "val_HR-10", t_valid[1])
-                print(
-                    f"epoch: {epoch}, time: {T},  test (NDCG-10: {t_test[0]}, HR-10: {t_test[1]})"
-                )
                 # vessllogger.log(epoch, "test_NDCG-10", t_test[0])
                 # vessllogger.log(epoch, "test_HR-10", t_test[1])
 
                 if max_ndgc < t_test[1] and kwargs["save_path"] is not None:
                     max_ndgc = t_test[1]
-
                     self.save_weights(str(os.path.join(kwargs["save_path"], "best")))
                     # vessl.upload(str(os.path.join(kwargs["save_path"], "best")))
 
