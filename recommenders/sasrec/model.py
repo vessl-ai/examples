@@ -168,7 +168,7 @@ class SASREC_Vessl(SASREC):
                     max_ndgc = t_test[1]
 
                     self.save_weights(str(os.path.join(kwargs["save_path"], "best")))
-                    vessl.upload(str(os.path.join(kwargs["save_path"], "best")))
+                    # vessl.upload(str(os.path.join(kwargs["save_path"], "best")))
 
                 t0.start()
         self.load_weights(str(os.path.join(kwargs["save_path"], "best")))
