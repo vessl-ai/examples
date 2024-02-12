@@ -8,7 +8,6 @@ from recommenders.models.sasrec.util import SASRecDataSet
 from recommenders.utils.timer import Timer
 
 tf.get_logger().setLevel("ERROR")
-vessl.init()
 
 
 def env_info():
