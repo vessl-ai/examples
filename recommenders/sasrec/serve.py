@@ -42,7 +42,7 @@ def load_model(model_path):
     index_path = os.path.join(model_path, "best.index")
     data_path = os.path.join(model_path, "best.data-00000-of-00001")
     if os.path.isfile(index_path) and os.path.isfile(data_path):
-        model.load_weights("best")
+        model.load_weights(str(os.path.join(model_path,"best")))
 
     return model
 
