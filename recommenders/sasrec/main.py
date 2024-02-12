@@ -77,7 +77,7 @@ if __name__ == "__main__":
     num_epochs = int(os.environ.get("num_epochs", 20))
 
     # Load data from VESSL dataset
-    df = load_data(args.input_path + "/train", "amazon-beauty.csv")
+    df = load_data(args.input_path, "amazon_beauty.csv")
 
     # Data preprocessing
     df["Timestamp"] = pd.to_datetime(df["Timestamp"], unit="s")
@@ -99,7 +99,7 @@ if __name__ == "__main__":
     df["userID"] = df["userID"].apply(lambda x: user_hashing[x])
 
     preprocessed_input_data_path = os.path.join(
-        args.input_path, "ratings_Beauty_preprocessed.txt"
+        args.input_path, "amazon_beauty_preprocessed.txt"
     )
     df.to_csv(preprocessed_input_data_path, index=False, header=False, sep="\t")
 
