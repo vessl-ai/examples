@@ -83,21 +83,21 @@ def benchmark_api(prompts_file, max_tokens=64, num_iterations=10, num_workers=5)
 
     # Print metrics - cut to 2 decimal places
     print(f"Avg Token Latency: {round(avg_token_latency * 1000, 3)} milliseconds")
-    print(f"Avg Request Latency: {round(avg_request_latency * 1000, 3)} milliseconds")
     print(f"90th Percentile Token Latency: {round(token_latency_90pct * 1000, 3)} milliseconds")
     print(f"95th Percentile Token Latency: {round(token_latency_95pct * 1000, 3)} milliseconds")
-    print(f"99th Percentile Token Latency: {round(token_latency_99pct * 1000, 3)} milliseconds")
-    print(f"90th Percentile Request Latency: {round(request_latency_90pct * 1000, 3)} milliseconds")
-    print(f"95th Percentile Request Latency: {round(request_latency_95pct * 1000, 3)} milliseconds")
-    print(f"99th Percentile Request Latency: {round(request_latency_99pct * 1000, 3)} milliseconds")
+    print(f"99th Percentile Token Latency: {round(token_latency_99pct * 1000, 3)} milliseconds\n")
+    print(f"Avg Request Latency: {round(avg_request_latency, 3)} seconds")
+    print(f"90th Percentile Request Latency: {round(request_latency_90pct, 3)} seconds")
+    print(f"95th Percentile Request Latency: {round(request_latency_95pct, 3)} seconds")
+    print(f"99th Percentile Request Latency: {round(request_latency_99pct, 3)} seconds\n")
     print(f"Successful Requests: {successful_requests}/{num_iterations}")
     print(f"Token Throughput: {round(throughput, 3)} tokens/second")
 
 def main():
     parser = argparse.ArgumentParser(description='Load test the OpenAI-compatible LLM API')
     parser.add_argument('--prompts-file', type=str, default='./sample_prompts.txt', help='Path to a file with prompts to use for the load test')
-    parser.add_argument('--max-tokens', type=int, default=128, help='Maximum number of tokens to generate per request')
-    parser.add_argument('--num-iterations', type=int, default=10, help='Number of requests to make')
+    parser.add_argument('--max-tokens', type=int, default=1024, help='Maximum number of tokens to generate per request')
+    parser.add_argument('--num-iterations', type=int, default=100, help='Number of requests to make')
     parser.add_argument('--num-workers', type=int, default=5, help='Number of parallel workers for requests')
     args = parser.parse_args()
 
