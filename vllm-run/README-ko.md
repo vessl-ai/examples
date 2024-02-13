@@ -25,7 +25,7 @@ VESSL에서 Run은 태스크 실행의 기본 단위입니다. Run의 정의에�
 Run의 정의는 YAML 파일로 작성됩니다. 예를 들면, 이번 예제의 YAML 파일 중 일부를 아래와 같이 작성할 수 있습니다:
 
 ```yaml
-# vllm-online-serving.yaml
+# vllm-run.yaml
 name: vllm-server
 description: LLM server with vLLM and Prometheus monitoring
 tags:
@@ -53,17 +53,17 @@ ports: # Endpoint configuration
     port: 9090
 ```
 
-예제 폴더에 포함된 [vllm-online-serving.yaml](vllm-online-serving.yaml) 파일을 사용하여 Run을 생성해봅니다.
+예제 폴더에 포함된 [vllm-run.yaml](vllm-run.yaml) 파일을 사용하여 Run을 생성해봅니다.
 
 ```sh
-vessl run create -f vllm-online-serving.yaml
+vessl run create -f vllm-run.yaml
 ```
 
 위 명령어를 실행하면 아래 스크린샷과 같이 Run이 생성됩니다.
 
 ![](asset/run-demo.png)
 
-[vllm-online-serving.yaml](vllm-online-serving.yaml) 파일에는 아래 내용들이 정의되어 있습니다:
+[vllm-run.yaml](vllm-run.yaml) 파일에는 아래 내용들이 정의되어 있습니다:
 * 사용할 리소스 및 컨테이너 이미지
 * 코드를 가져오기 위한 git repository 정보
 * 모니터링 도구 Prometheus를 실행하기 위한 커맨드

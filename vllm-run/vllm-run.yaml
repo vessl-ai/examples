@@ -20,14 +20,14 @@ run:
       tar -xvf prometheus-$PROMETHEUS_VERSION.linux-amd64.tar.gz
       mv prometheus-$PROMETHEUS_VERSION.linux-amd64 ./prometheus
       rm prometheus-$PROMETHEUS_VERSION.linux-amd64.tar.gz
-      cp /code/vllm-online-serving/monitoring/prometheus.yml /app/prometheus/prometheus.yml
+      cp /code/vllm-run/monitoring/prometheus.yml /app/prometheus/prometheus.yml
       /app/prometheus/prometheus --config.file=/app/prometheus/prometheus.yml &
     workdir: /app
   - command: |-
       # Install dependencies and patch vLLM codebase to support advanced service metrics
       # Note: This patch is not required in future versions of vLLM
 
-      cd vllm-online-serving
+      cd vllm-run
       pip install -r requirements.txt
       cp monitoring/vllm-metrics-patch/engine/llm_engine.py /usr/local/lib/python3.10/dist-packages/vllm/engine/llm_engine.py
       cp monitoring/vllm-metrics-patch/engine/metrics.py /usr/local/lib/python3.10/dist-packages/vllm/engine/metrics.py
@@ -35,7 +35,7 @@ run:
     workdir: /code
   - command: |-
       # Start vLLM API server
-      cd vllm-online-serving
+      cd vllm-run
       python -m api --model mistralai/Mistral-7B-Instruct-v0.2 --max-model-len 8192 --disable-log-requests
     workdir: /code
 ports:

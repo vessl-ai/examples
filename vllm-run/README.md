@@ -25,7 +25,7 @@ This document outlines how to deploy a fast and efficient LLM API using VESSL Ru
 The definition of a Run is written in a YAML file. For instance, here is a snippet of the YAML file for this example:
 
 ```yaml
-# vllm-online-serving.yaml
+# vllm-run.yaml
 name: vllm-server
 description: LLM server with vLLM and Prometheus monitoring
 tags:
@@ -52,7 +52,7 @@ ports: # Endpoint configuration
     type: http
     port: 9090
 ```
-This [vllm-online-serving.yaml](vllm-online-serving.yaml) file defines the following:
+This [vllm-run.yaml](vllm-run.yaml) file defines the following:
 * The resources and container image to be used
 * Git repository information for importing code
 * Commands to run the monitoring tool Prometheus
@@ -62,7 +62,7 @@ This [vllm-online-serving.yaml](vllm-online-serving.yaml) file defines the follo
 To create a Run, Use `vessl run` command with the YAML file.
 
 ```sh
-vessl run create -f vllm-online-serving.yaml
+vessl run create -f vllm-run.yaml
 ```
 
 Executing the above command will create a Run as shown in the screenshot below.
