@@ -14,7 +14,7 @@ model = models.data[0].id  # Assuming the first model is the one we want to use
 def handle_request(idx, prompt, model, max_tokens):
     token_latencies = []
     total_tokens = 0
-    start_request_time = time.time()  # Start time for the entire request
+    start_request_time = last_token_time = time.time()  # Start time for the entire request
     try:
         completions = client.completions.create(prompt=prompt.strip(), model=model, max_tokens=max_tokens, stream=True)
         full_response = ""
@@ -23,12 +23,12 @@ def handle_request(idx, prompt, model, max_tokens):
             if text:
                 full_response += text
                 token_end_time = time.time()
-                token_latency = token_end_time - start_request_time  # Measure token latency from the start of the request
+                token_latency = token_end_time - last_token_time  # Measure token latency from the start of the request
                 token_latencies.append(token_latency)
-                total_tokens += len(text)  # Assuming 1 char = 1 token, adjust if needed
-                start_request_time = token_end_time  # Reset start time for the next token
-        request_time = time.time() - start_request_time  # Total request time
-        return {"success": True, "index": idx, "response": full_response, "token_latencies": token_latencies, "total_tokens": total_tokens, "request_time": request_time}
+                total_tokens += 1
+                last_token_time = token_end_time  # Reset start time for the next token
+        request_latency = time.time() - start_request_time  # Total request time
+        return {"success": True, "index": idx, "response": full_response, "token_latencies": token_latencies, "total_tokens": total_tokens, "request_latency": request_latency}
     except Exception as e:
         return {"success": False, "index": idx, "error": str(e)}
 
@@ -61,7 +61,7 @@ def benchmark_api(prompts_file, max_tokens=64, num_iterations=10, num_workers=5)
                 successful_requests += 1
                 token_latencies.extend(result['token_latencies'])
                 total_tokens += result['total_tokens']
-                request_latencies.append(result['request_time'])  # Collect total request time
+                request_latencies.append(result['request_latency'])  # Collect total request latency
                 print(f"[{result['index']}] Success: {result['total_tokens']} output tokens")
             else:
                 print(f"[{result['index']}] Failure: {result['error']}")
@@ -97,7 +97,7 @@ def main():
     parser = argparse.ArgumentParser(description='Load test the OpenAI-compatible LLM API')
     parser.add_argument('--prompts-file', type=str, default='./sample_prompts.txt', help='Path to a file with prompts to use for the load test')
     parser.add_argument('--max-tokens', type=int, default=128, help='Maximum number of tokens to generate per request')
-    parser.add_argument('--num-iterations', type=int, default=1000, help='Number of requests to make')
+    parser.add_argument('--num-iterations', type=int, default=10, help='Number of requests to make')
     parser.add_argument('--num-workers', type=int, default=5, help='Number of parallel workers for requests')
     args = parser.parse_args()
 
