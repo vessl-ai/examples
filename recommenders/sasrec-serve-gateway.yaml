@@ -1,0 +1,5 @@
+enabled: true
+targets:
+  - number: 1
+    port: 5000
+    weight: 100

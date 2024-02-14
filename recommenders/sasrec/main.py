@@ -1,5 +1,6 @@
 import argparse
 import sys
+import wandb
 
 from model import *
 from recommenders.datasets.split_utils import filter_k_core
@@ -49,6 +50,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--evaluate", action="store_true", default=True, help="evaluate during training"
     )
+    parser.add_argument("--wandb-log", type=bool, default=False, help="")
     args = parser.parse_args()
 
     env_info()
@@ -64,13 +66,18 @@ if __name__ == "__main__":
         "NUM_NEG_TEST": 100,  # NUMBER OF NEGATIVE EXAMPLES PER POSITIVE EXAMPLE
     }
 
+    if args.wandb_log:
+        import wandb
+        wandb.login(key=os.environ.get("WANDB_KEY"))
+        wandb.init(project="recommenders", config=config)
+
     # Set hyperparameters from environment variables
     lr = float(os.environ.get("lr", 0.0005))
     batch_size = int(os.environ.get("batch_size", 64))
     num_epochs = int(os.environ.get("num_epochs", 20))
 
     # Load data from VESSL dataset
-    df = load_data(args.input_path + "/train", "amazon-beauty.csv")
+    df = load_data(args.input_path, "amazon_beauty.csv")
 
     # Data preprocessing
     df["Timestamp"] = pd.to_datetime(df["Timestamp"], unit="s")
@@ -92,7 +99,7 @@ if __name__ == "__main__":
     df["userID"] = df["userID"].apply(lambda x: user_hashing[x])
 
     preprocessed_input_data_path = os.path.join(
-        args.input_path, "ratings_Beauty_preprocessed.txt"
+        args.input_path, "amazon_beauty_preprocessed.txt"
     )
     df.to_csv(preprocessed_input_data_path, index=False, header=False, sep="\t")
 
@@ -132,6 +139,7 @@ if __name__ == "__main__":
             val_epoch=4,
             save_path=args.output_path,
             evaluate=True,
+            wandb_log=args.wandb_log,
         )
 
     # Print sample input -> top10 next item prediction

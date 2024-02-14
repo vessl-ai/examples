@@ -1,15 +1,10 @@
-# Recommenders
-Run recommenders example on [VESSL](https://vessl.ai):
+Recommenders with VESSL Run and VESSL Serve
+------
 
-## Keras
-### Dataset mount
-* MovieLens (https://grouplens.org/datasets/movielens/latest/) dataset is required.
-* You can use VESSL's public S3 dataset. `s3://vessl-public-apne2/movie-lens`
-* Mount the dataset to `/input` at the experiment create form.
-### Start Command
-  ```bash
-  pip install -r examples/recommenders/keras/requirements.txt && python examples/recommenders/keras/main.py --save-model
-  ```
+[![English](https://img.shields.io/badge/language-EN-green)](README.md) [![Korean](https://img.shields.io/badge/language-한글-green)](README-ko.md)
+
+
+Run recommenders example on [VESSL](https://vessl.ai):
 
 
 ## SasRec
@@ -20,8 +15,8 @@ Run recommenders example on [VESSL](https://vessl.ai):
 
 ### Dataset mount 
 * Amazon beauty(http://jmcauley.ucsd.edu/data/amazon/index.html) dataset  
-* You can use VESSL's public S3 dataset `s3://vessl-public-apne2/amazon-ranking/`
-* Mount the dataset to `/input` at the experiment create form.
+* You can use VESSL's public HuggingFace dataset `https://huggingface.co/datasets/VESSL/amazon-beauty-dataset`
+* Mount the dataset to `/input` at the experiment create form. 
 
 ### Start Command 
 #### Training

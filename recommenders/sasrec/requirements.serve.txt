@@ -1,0 +1,6 @@
+fastapi[all]
+python-multipart
+numpy
+pandas
+recommenders
+tabulate
