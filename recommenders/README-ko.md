@@ -4,9 +4,9 @@ SasRec 모델을 위한 VESSL 활용 가이드
 [![English](https://img.shields.io/badge/language-EN-green)](README.md) [![Korean](https://img.shields.io/badge/language-한글-green)](README-ko.md)
 
 ## 목차
-0. [시작하기 전에](##시작하기-전에)
-1. [VESSL Run을 이용한 추천 시스템 학습](##VESSL-Run을-이용한-추천-시스템-학습)
-2. [VESSL Serve를 이용한 온라인 추천 시스템 구축](##VESSL-Serve를-이용한-온라인 추천-시스템-구축)
+0. [시작하기 전에](#시작하기-전에)
+1. [VESSL Run을 이용한 추천 시스템 학습](#vessl-run을-이용한-추천-시스템-학습)
+2. [VESSL Serve를 이용한 온라인 추천 시스템 구축](#vessl-serve를-이용한-온라인-추천-시스템-구축)
 
 ---
 ## 시작하기 전에
