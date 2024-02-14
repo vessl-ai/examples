@@ -1,0 +1,23 @@
+# sasrec-train-wandb.yaml
+name: SasRec-train-wandb
+description: Training a recommender system on amazon beauty dataset.
+resources:
+  cluster: vessl-aws-seoul
+  preset: cpu-large
+image: quay.io/vessl-ai/python:3.9-r2
+import:
+  /input/: hf://huggingface.co/datasets/VESSL/amazon-beauty-dataset
+  /root/examples/: git://github.com/vessl-ai/examples
+export:
+  /output/: vessl-model://{organizationName}/{modelRepositoryName}
+run:
+  - workdir: /root/examples/recommenders/sasrec
+	command: pip install -r requirements.txt 
+  - workdir: /root/examples/recommenders/sasrec
+	command: python main.py --wandb-log True
+  - workdir: /root
+    command: pip install --upgrade vessl
+env:
+  WANDB_KEY:
+    value: {YOUR_WANDB_KEY}
+    secret: true
