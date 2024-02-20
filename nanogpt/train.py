@@ -79,11 +79,14 @@ config_keys = [
     if not k.startswith("_") and isinstance(v, (int, float, bool, str))
 ]
 exec(open("configurator.py").read())  # overrides from command line or config file
+
+# Override config with VESSL env vars
+batch_size = int(os.environ.get("batch_size", globals()["batch_size"]))
+block_size = int(os.environ.get("block_size", globals()["block_size"]))
+learning_rate = float(os.environ.get("learning_rate", globals()["learning_rate"]))
+
 config = {k: globals()[k] for k in config_keys}  # will be useful for logging
 # -----------------------------------------------------------------------------
-
-# VESSL environment variables
-batch_size = int(os.environ("batch_size", batch_size))
 
 # various inits, derived attributes, I/O setup
 ddp = int(os.environ.get("RANK", -1)) != -1  # is this a ddp run?
