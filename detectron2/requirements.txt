@@ -1,5 +1,5 @@
 detectron2 @ git+https://github.com/facebookresearch/detectron2.git@60fd488
-vessl==0.1.140
+vessl
 streamlit==1.26.0
 opencv-python==4.8.0.74
 
