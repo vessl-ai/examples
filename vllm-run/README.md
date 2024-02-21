@@ -3,7 +3,7 @@
 [![English](https://img.shields.io/badge/language-EN-green)](README.md) [![Korean](https://img.shields.io/badge/language-한글-green)](README-ko.md)
 
 This document outlines how to deploy a fast and efficient LLM API using VESSL Run and vLLM.
-* [VESSL Run](https://run-docs.vessl.ai/) is a platform that enables easy building and deployment of AI models.
+* [VESSL Run](https://docs.vessl.ai/) is a platform that enables easy building and deployment of AI models.
 * [vLLM](https://vllm.ai/) is a library enhancing LLM inference performance, based on technologies like [PagedAttention](https://arxiv.org/pdf/2309.06180.pdf).
 
 > **Note**:
@@ -70,7 +70,7 @@ Executing the above command will create a Run as shown in the screenshot below.
 ![](asset/run-demo.png)
 
 
-> **Note**: For detailed instructions on creating a Run, please refer to the [VESSL Run Quickstart](https://run-docs.vessl.ai/docs/en/get-started/quickstart)!
+> **Note**: For detailed instructions on creating a Run, please refer to the [VESSL Run Quickstart](https://docs.vessl.ai/docs/en/get-started/quickstart)!
 
 ## Accessing VESSL Run with Web Dashboard
 

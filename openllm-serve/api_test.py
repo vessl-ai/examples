@@ -5,7 +5,7 @@ import time
 import statistics
 
 # Set up OpenAI API client
-client = openai.OpenAI(base_url=os.getenv('OPENLLM_ENDPOINT', 'http://localhost:3000') + '/v1', api_key='na')
+client = openai.OpenAI(base_url=os.getenv('OPENLLM_ENDPOINT', 'http://localhost:3000').rstrip('/') + '/v1', api_key='na')
 models = client.models.list()
 model = models.data[0].id  # Assuming the first model is the one we want to use
 
@@ -15,8 +15,8 @@ def main():
                         default="Share your thoughts on the importance of education in today's society.",
                         help="The prompt to use for the completion")
     args = parser.parse_args()
-    prompt = args.prompt
-    print(f"Prompt: {prompt}")
+    prompt = "<user>" + args.prompt.strip() + "</user><assistant>"
+    print(f"Prompt: {args.prompt}")
     print("Response:", end=' ')
 
     start_time = last_token_time = time.time()

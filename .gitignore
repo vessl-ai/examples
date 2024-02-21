@@ -3,7 +3,6 @@
 input/
 .DS_Store
 /sample.csv
-/.sample.csv.swp
 /sample.json
 .terraform
 .terraform*
@@ -18,3 +17,4 @@ vessl.manifest.yaml
 vessl.runner.pkl
 /credit_scoring/iris_classifier.ipynb
 /langchain/gitbook-docs/
+*.swp

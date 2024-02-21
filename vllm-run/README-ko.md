@@ -1,10 +1,10 @@
-# Online Serving with vLLM and VESSL Run (한글 문서)
+# LLM Inference with vLLM and VESSL Run (한글 문서)
 ------
 
 [![English](https://img.shields.io/badge/language-EN-green)](README.md) [![Korean](https://img.shields.io/badge/language-한글-green)](README-ko.md)
 
 이 문서는 VESSL Run과 vLLM을 이용하여 LLM을 더 빠르게 추론할 수 있는 모델 API를 만드는 방법을 설명합니다.
-* [VESSL Run](https://run-docs.vessl.ai/) 은 AI 모델을 빠르게 빌드하고 배포할 수 있는 플랫폼입니다.
+* [VESSL Run](https://docs.vessl.ai/) 은 AI 모델을 빠르게 빌드하고 배포할 수 있는 플랫폼입니다.
 * [vLLM](https://vllm.ai/) 은 [PagedAttention](https://arxiv.org/pdf/2309.06180.pdf) 등의 기술을 기반으로 LLM 추론의 성능을 크게 높일 수 있는 라이브러리입니다.
 
 > **Note**:
@@ -70,7 +70,7 @@ vessl run create -f vllm-run.yaml
 * vLLM 기반의 LLM API 서버를 실행하기 위한 커맨드
 * API 서버와 Prometheus의 endpoint를 연결하기 위한 설정
 
-> **Note**: Run을 생성하는 방법에 대한 자세한 내용은 [VESSL Run Quickstart](https://run-docs.vessl.ai/docs/en/get-started/quickstart)를 참고해주세요!
+> **Note**: Run을 생성하는 방법에 대한 자세한 내용은 [VESSL Run Quickstart](https://docs.vessl.ai/docs/en/get-started/quickstart)를 참고해주세요!
 
 ## Accessing VESSL Run with Web Dashboard 
 
