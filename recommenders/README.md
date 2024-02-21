@@ -28,7 +28,7 @@ $ vessl configure
 
 ### First Time Using VESSL?
 
-If you're new to VESSL, it's recommended to familiarize yourself with the basic usage through the [Quickstart](https://run-docs.vessl.ai/docs/en/get-started/quickstart) guide.
+If you're new to VESSL, it's recommended to familiarize yourself with the basic usage through the [Quickstart](https://docs.vessl.ai/docs/en/get-started/quickstart) guide.
 
 ---
 
@@ -36,7 +36,7 @@ If you're new to VESSL, it's recommended to familiarize yourself with the basic 
 
 ### Overview
 
-This example introduces the process of training the [SasRec model](https://arxiv.org/abs/1808.09781) from the [Recommenders](https://github.com/recommenders-team/recommenders) package using [VESSL Run](https://run-docs.vessl.ai/), and storing the results in a model repository. The training code is located at [sasrec/main.py](sasrec/main.py), and the dataset used is the [AWS Beauty Dataset](https://huggingface.co/datasets/VESSL/amazon-beauty-dataset) published on HuggingFace.
+This example introduces the process of training the [SasRec model](https://arxiv.org/abs/1808.09781) from the [Recommenders](https://github.com/recommenders-team/recommenders) package using [VESSL Run](https://docs.vessl.ai/), and storing the results in a model repository. The training code is located at [sasrec/main.py](sasrec/main.py), and the dataset used is the [AWS Beauty Dataset](https://huggingface.co/datasets/VESSL/amazon-beauty-dataset) published on HuggingFace.
 
 ![Overview](asset/recsys-1.png)
 
@@ -104,7 +104,7 @@ Once a Run is successfully created, a web dashboard link to monitor the status o
 ### (Optional) Using Wandb Logging
 
 To track various metrics during model training, you can use the logging feature of [wandb]((https://wandb.ai/)). The part of the [sasrec-train-wandb.yaml](sasrec-train-wandb.yaml) file below demonstrates how to activate logging to Weights & Biases.
-Sensitive information like `WANDB_KEY` should be specified as an environment variable (`env`) with `secret: true`. For more details, refer to [VESSL Docs > YAML Reference](https://run-docs.vessl.ai/yaml-reference/en/yaml#environment-variables).
+Sensitive information like `WANDB_KEY` should be specified as an environment variable (`env`) with `secret: true`. For more details, refer to [VESSL Docs > YAML Reference](https://docs.vessl.ai/yaml-reference/en/yaml#environment-variables).
 
 > **Note**: Replace `{YOUR_WANDB_KEY}` in the YAML file below with the value from https://wandb.ai/authorize.
 

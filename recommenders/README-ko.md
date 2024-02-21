@@ -28,7 +28,7 @@ $ vessl configure
   
 ### VESSL 사용이 처음이신가요?
 
-VESSL을 처음 사용하시는 경우,  [Quickstart](https://run-docs.vessl.ai/docs/en/get-started/quickstart) 가이드를 통해 기본적인 사용 방법을 익히는 것이 좋습니다.
+VESSL을 처음 사용하시는 경우,  [Quickstart](https://docs.vessl.ai/docs/en/get-started/quickstart) 가이드를 통해 기본적인 사용 방법을 익히는 것이 좋습니다.
 
 ---
 
@@ -36,7 +36,7 @@ VESSL을 처음 사용하시는 경우,  [Quickstart](https://run-docs.vessl.ai/
 
 ### 개요
 
-이 예제는 [VESSL Run](https://run-docs.vessl.ai/)을 이용해서 [Recommenders](https://github.com/recommenders-team/recommenders) 패키지의 [SasRec 모델](https://arxiv.org/abs/1808.09781)을 학습하고, 모델 저장소에 결과를 저장하는 과정을 소개합니다. 학습에 사용되는 코드는 [sasrec/main.py](sasrec/main.py)에 있으며, 데이터셋으로는 HuggingFace에 공개된 [AWS Beauty Dataset](https://huggingface.co/datasets/VESSL/amazon-beauty-dataset)을 사용합니다.
+이 예제는 [VESSL Run](https://docs.vessl.ai/)을 이용해서 [Recommenders](https://github.com/recommenders-team/recommenders) 패키지의 [SasRec 모델](https://arxiv.org/abs/1808.09781)을 학습하고, 모델 저장소에 결과를 저장하는 과정을 소개합니다. 학습에 사용되는 코드는 [sasrec/main.py](sasrec/main.py)에 있으며, 데이터셋으로는 HuggingFace에 공개된 [AWS Beauty Dataset](https://huggingface.co/datasets/VESSL/amazon-beauty-dataset)을 사용합니다.
 
 ![Overview](asset/recsys-1.png)
 
@@ -105,7 +105,7 @@ Run이 성공적으로 생성되면, CLI를 통해 Run의 상태를 실시간으
 ### (Optional) Wandb logging 사용하기
 
 모델의 학습 중 다양한 지표를 추적하고 싶다면 [wandb](https://wandb.ai/)의 로깅 기능을 사용할 수 있습니다. 아래는 [sasrec-train-wandb.yaml](sasrec-train-wandb.yaml) 파일의 일부로, Weights & Biases에 로깅을 활성화 하는 방법을 보여줍니다.
-YAML에서 `WANDB_KEY`와 같이 민감한 정보는 환경변수(`env`)로 아래에 `secret: true`로 지정해줍니다. 자세한 내용은 [VESSL Docs > YAML Reference](https://run-docs.vessl.ai/yaml-reference/en/yaml#environment-variables) 를 참고해주세요.
+YAML에서 `WANDB_KEY`와 같이 민감한 정보는 환경변수(`env`)로 아래에 `secret: true`로 지정해줍니다. 자세한 내용은 [VESSL Docs > YAML Reference](https://docs.vessl.ai/yaml-reference/en/yaml#environment-variables) 를 참고해주세요.
 > **참고**: 아래 YAML 파일에서 `{YOUR_WANDB_KEY}` 값을 https://wandb.ai/authorize 에 출력되는 값으로 교체해주세요.
 ```yaml
 name: SasRec-train-wandb

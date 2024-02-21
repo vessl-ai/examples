@@ -54,4 +54,4 @@ Feel free to explore and interact with the PDF chatbot on VESSL!
 
 **Note:** Make sure to customize the YAML file according to your specific requirements and environment.
 
-For additional information and support, refer to the [VESSL documentation](https://run-docs.vessl.ai/).
+For additional information and support, refer to the [VESSL documentation](https://docs.vessl.ai/).
