@@ -40,8 +40,7 @@ In VESSL Serve, a Service is composed of Revisions and an Endpoint(Gateway).
 - A Revision refers to a version of the service containing information such as the model to deploy, the port to service, and autoscaling settings.
 - An Endpoint routes one or more Revisions and distributes traffic.
 
-To start, navigate to https://vessl-ai/{organization}/serving and click "New serving" to create a new service named `openllm`.
-> **Note**: Replace `{organization}` in the link above with the name of your actual VESSL organization.
+To start, navigate to [Serve main page](https://vessl-ai/-/serving) and click "New serving" to create a new service named `openllm`.
 
 ![](asset/serve-list.png)
 
