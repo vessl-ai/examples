@@ -41,7 +41,7 @@ VESSL Serve에서 하나의 서비스(Service)는 Revision과 Gateway(Endpoint) 
 - Revision은 배포할 모델, 서비스할 포트, 오토스케일링(Autoscaling) 설정 등의 정보가 포함된 서비스의 한 버전을 가리킵니다.
 - Gateway는 하나 혹은 그 이상의 Revision을 라우팅하고, 트래픽을 분산하는 역할을 합니다.
 
-시작하기 전, [Serving 메인 페이지](https://vessl.ai/-/servings) 로 이동하여 "New serving"을 클릭하여 `openllm` 이라는 이름으로 새로운 서비스를 생성해주세요.
+시작하기 전, [Serve 메인 페이지](https://vessl.ai/-/servings) 로 이동하여 "New serving"을 클릭하여 `openllm` 이라는 이름으로 새로운 서비스를 생성해주세요.
 
 ![](asset/serve-list.png)
 
