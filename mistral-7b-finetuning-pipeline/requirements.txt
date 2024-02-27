@@ -1,0 +1,7 @@
+bitsandbytes
+transformers
+peft
+accelerate
+sentencepiece
+ipywidgets
+pandas
