@@ -31,7 +31,7 @@ def predict(model, image):
 # Streamlit 앱
 def main():
     st.title("MNIST Digit Recognizer")
-    model_path = "~/model/model.pt"  # 모델 파일 경로. 필요에 따라 경로를 수정하세요.
+    model_path = "/root/model/model.pt"  # 모델 파일 경로. 필요에 따라 경로를 수정하세요.
     model = load_model(model_path)
 
     uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "png"])
