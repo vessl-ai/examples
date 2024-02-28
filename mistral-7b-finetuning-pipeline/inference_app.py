@@ -86,7 +86,7 @@ def main(args):
     with gr.Blocks(css=css, title="Base model vs Fine-tuned") as demo:
         with gr.Row():
             gr.Markdown("<h2>Comparing Mistral-7B Base model vs fine-tuned</h2>")
-        with gr.Row():
+        with gr.Column():
             gr.Markdown("<h3>Fine-tuned Model</h3>")
             gr.ChatInterface(FineTunedModelInferenceApp.generate)
         with gr.Row():
