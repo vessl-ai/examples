@@ -39,7 +39,6 @@ class InferenceApp:
         for new_text in self.streamer:
             generated_text += new_text.replace("</s>", "")
             yield generated_text
-        return thread.join()
 
 def close_app():
     gr.Info("Terminated the app!")
