@@ -13,7 +13,6 @@ class InferenceApp:
     def __init__(self, model, tokenizer):
         self.model = model
         self.tokenizer = tokenizer
-        self.streamer = TextIteratorStreamer(tokenizer, skip_prompt=True)
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
 
     def generate(self, query, history):
@@ -33,12 +32,20 @@ class InferenceApp:
             pad_token_id=2,
             num_return_sequences=1
         )
+        streamer = TextIteratorStreamer(self.tokenizer, skip_prompt=True)
         thread = Thread(target=self.model.generate, kwargs=generation_kwargs)
         thread.start()
         generated_text = ""
-        for new_text in self.streamer:
-            generated_text += new_text.replace("</s>", "")
-            yield generated_text
+        for new_text in streamer:
+            yield generated_text + new_text
+            generated_text += new_text
+            if "</s>" in generated_text:
+                generated_text = generated_text[: generated_text.find("</s>")]
+                streamer.end()
+                yield generated_text
+                return
+        return generated_text
+
 
 def close_app():
     gr.Info("Terminated the app!")
