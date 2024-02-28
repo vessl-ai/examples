@@ -35,8 +35,10 @@ class InferenceApp:
         )
         thread = Thread(target=self.model.generate, kwargs=generation_kwargs)
         thread.start()
+        generated_text = ""
         for new_text in self.streamer:
-            yield new_text.replace("</s>", "")
+            generated_text += new_text.replace("</s>", "")
+            yield generated_text
         return thread.join()
 
 def close_app():
@@ -90,7 +92,7 @@ def main(args):
             close_button = gr.Button("Close the app", variant="stop")
             close_button.click(fn=lambda: gr.update(interactive=False), outputs=[close_button]).then(fn=close_app)
 
-    demo.queue().launch(server_name="0.0.0.0")
+    demo.queue().launch(server_name="0.0.0.0").queue()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
