@@ -13,6 +13,7 @@ from transformers import (
     AutoTokenizer,
     BitsAndBytesConfig,
     TrainingArguments,
+    DataCollatorForLanguageModeling,
     Trainer,
 )
 from tqdm import tqdm
