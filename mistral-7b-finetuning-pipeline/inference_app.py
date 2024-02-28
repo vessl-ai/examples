@@ -80,7 +80,6 @@ def main(args):
     base_model.config.use_cache = False
     fine_tuned_model.config.use_cache = False
 
-    BaseModelInferenceApp = InferenceApp(base_model, tokenizer)
     FineTunedModelInferenceApp = InferenceApp(fine_tuned_model, tokenizer)
 
     css = "footer {visibility: hidden}"
@@ -88,12 +87,8 @@ def main(args):
         with gr.Row():
             gr.Markdown("<h2>Comparing Mistral-7B Base model vs fine-tuned</h2>")
         with gr.Row():
-            with gr.Column():
-                gr.Markdown("<h3>Base Model</h3>")
-                gr.ChatInterface(BaseModelInferenceApp.generate)
-            with gr.Column():
-                gr.Markdown("<h3>Fine-tuned Model</h3>")
-                gr.ChatInterface(FineTunedModelInferenceApp.generate)
+            gr.Markdown("<h3>Fine-tuned Model</h3>")
+            gr.ChatInterface(FineTunedModelInferenceApp.generate)
         with gr.Row():
             close_button = gr.Button("Close the app", variant="stop")
             close_button.click(fn=lambda: gr.update(interactive=False), outputs=[close_button]).then(fn=close_app)
