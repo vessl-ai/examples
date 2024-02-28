@@ -82,11 +82,16 @@ def main(args):
 
     FineTunedModelInferenceApp = InferenceApp(fine_tuned_model, tokenizer)
 
-    css = "footer {visibility: hidden}"
+    css = """
+    footer {visibility: hidden}
+    .container {
+        height: 520px
+    }
+    """
     with gr.Blocks(css=css, title="Base model vs Fine-tuned") as demo:
         with gr.Row():
             gr.Markdown("<h2>Comparing Mistral-7B Base model vs fine-tuned</h2>")
-        with gr.Column():
+        with gr.Column(elem_classes=["container"]):
             gr.Markdown("<h3>Fine-tuned Model</h3>")
             gr.ChatInterface(FineTunedModelInferenceApp.generate)
         with gr.Row():
