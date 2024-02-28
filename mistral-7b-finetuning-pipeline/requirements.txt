@@ -5,3 +5,4 @@ accelerate
 sentencepiece
 ipywidgets
 pandas
+gradio
