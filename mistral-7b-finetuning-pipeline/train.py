@@ -124,7 +124,9 @@ def main(args):
     trainer.train()
 
 if __name__ == "__main__":
-    args = argparse.ArgumentParser()
-    args.add_argument("--dataset-path", type=str, default="/root/dataset/train.csv")
-    args.add_argument("--checkpoint-path", type=str, default="/root/checkpoint")
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--dataset-path", type=str, default="/root/dataset/train.csv")
+    parser.add_argument("--checkpoint-path", type=str, default="/root/checkpoint")
+
+    args = parser.parse_args()
     main(args)
