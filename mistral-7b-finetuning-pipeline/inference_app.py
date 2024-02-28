@@ -20,9 +20,10 @@ class InferenceApp:
         prompt = "<s>[INST] " + query + "[/INST]"
         model_inputs = self.tokenizer(prompt, return_tensors="pt").to(self.device)
 
+        streamer = TextIteratorStreamer(self.tokenizer, skip_prompt=True)
         generation_kwargs = dict(
             model_inputs,
-            streamer=self.streamer,
+            streamer=streamer,
             max_new_tokens=2048,
             temperature=0.9,
             top_k=1,
@@ -32,7 +33,6 @@ class InferenceApp:
             pad_token_id=2,
             num_return_sequences=1
         )
-        streamer = TextIteratorStreamer(self.tokenizer, skip_prompt=True)
         thread = Thread(target=self.model.generate, kwargs=generation_kwargs)
         thread.start()
         generated_text = ""
