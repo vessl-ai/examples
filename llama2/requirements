@@ -1,0 +1,13 @@
+accelerate==0.24.1
+antlr4-python3-runtime==4.9.3
+bitsandbytes==0.41.2.post2
+datasets==2.15.0
+dill==0.3.7
+huggingface-hub==0.19.4
+multiprocess==0.70.15
+pyarrow-hotfix==0.6
+safetensors==0.4.1
+sentencepiece==0.1.99
+tokenizers==0.15.0
+transformers==4.35.2
+xxhash==3.4.1

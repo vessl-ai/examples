@@ -1,0 +1,11 @@
+# serve.yaml
+message: Serve a model with L4 GPU
+tags:
+  - prod
+spec:
+  resources:
+    preset: l4-small
+  import:
+    /model: vessl-model://{MODEL_ID}
+serve:
+  service_name: llama2

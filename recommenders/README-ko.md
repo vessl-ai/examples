@@ -185,7 +185,7 @@ volumes:
       version: 1
   /examples: git://github.com/vessl-ai/examples
 run:
-  cd /examples/recommenders/sasrec && pip install -r requirements.serve.txt && python serve.py --model-path $model_path
+  cd /examples/recommenders/sasrec && pip install -r requirements.serve.txt && python model.py --model-path $model_path
 env:
   - key: model_path
     value: /model

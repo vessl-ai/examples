@@ -1,0 +1,21 @@
+# finetuning.yaml
+name: llama2-finetuning
+description: A template Run to finetune llama2 with code instruction alpaca dataset
+resources:
+  cluster: vessl-gcp-oregon
+  preset: gpu-l4-small
+image: quay.io/vessl-ai/torch:2.1.0-cuda12.2-r3
+import:
+  /model/: hf://huggingface.co/VESSL/llama2
+  /code/:
+    git:
+      url: https://github.com/vessl-ai/hub-model
+      ref: main
+  /dataset/: hf://huggingface.co/datasets/VESSL/code_instructions_small_alpaca
+export:
+  /artifacts/: vessl-artifact://
+run:
+  - command: |-
+      pip install -r requirements.txt
+      python finetuning.py
+    workdir: /code/llama2-finetuning
