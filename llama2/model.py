@@ -64,16 +64,3 @@ class Llama2Serve(Servo):
 
         return decoded_output
 
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Llama2 serve")
-    parser.add_argument("--run-id", type=int, help="Run id to retrieve artifacts.", required=True)
-    args = parser.parse_args()
-
-    artifact = vessl.get_artifact(run_id=args.run_id)
-    vessl.register_model(
-        model_repository_name="llama2",
-        model_name="llama2_v1",
-        servo_cls=Llama2Serve,
-        requirements="requirements.txt",
-    )

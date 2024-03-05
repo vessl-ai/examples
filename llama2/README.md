@@ -19,10 +19,10 @@ vessl run create -f finetuning.yaml
 ```
 
 ### Register the fine-tuned model to VESSL with Servo
-After the fine-tuning process is complete, you need to register the model in VESSL using the Servo library. Replace {RUN_ID} with the ID obtained from your fine-tuning run. Use the following command to register the model:
+After the fine-tuning process is complete, you need to register the model in VESSL using the Servo library. Replace {MODEL_REPOSITORY_NAME} with the name of repository you want to register and {RUN_ID} with the ID obtained from your fine-tuning run. Use the following command to register the model:
 
 ```bash
-python model.py --run-id={RUN_ID}
+vessl model register {MODEL_REPOSITORY_NAME} --run-id={RUN_ID}
 ```
 
 ### Test inference in local
