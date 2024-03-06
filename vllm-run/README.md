@@ -30,11 +30,10 @@ name: vllm-server
 description: LLM server with vLLM and Prometheus monitoring
 tags:
   - vllm
-  - model=mistral-7b-instruct-v0.2
 resources: # Resource requirements
   cluster: vessl-gcp-oregon
-  preset: gpu-l4-small
-image: quay.io/vessl-ai/torch:2.2.0-cuda12.3-r3 # Container image
+  preset: gpu-l4-small-spot
+image: quay.io/vessl-ai/torch:2.2.0-cuda12.3-r4 # Container image
 import: # Code, data, or model to import
   /code/:
     git:
