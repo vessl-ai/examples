@@ -226,3 +226,14 @@ export:
 ```
 
 같은 방법으로 HuggingFace뿐만 아니라 필요한 라이브러리, 모델 등을 VESSL Artifact에 캐싱하여 사용할 수 있습니다.
+
+## Citation
+
+```bibtex
+@inproceedings{kwon2023efficient,
+  title={Efficient Memory Management for Large Language Model Serving with PagedAttention},
+  author={Woosuk Kwon and Zhuohan Li and Siyuan Zhuang and Ying Sheng and Lianmin Zheng and Cody Hao Yu and Joseph E. Gonzalez and Hao Zhang and Ion Stoica},
+  booktitle={Proceedings of the ACM SIGOPS 29th Symposium on Operating Systems Principles},
+  year={2023}
+}
+```
