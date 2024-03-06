@@ -4,15 +4,13 @@ from contextlib import asynccontextmanager
 import json
 from typing import AsyncGenerator
 
-from aioprometheus import MetricsMiddleware
-from aioprometheus.asgi.starlette import metrics
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse, Response, StreamingResponse
+from prometheus_client import make_asgi_app
 import uvicorn
 
 from vllm.engine.arg_utils import AsyncEngineArgs
 from vllm.engine.async_llm_engine import AsyncLLMEngine
-from vllm.engine.metrics import add_global_metrics_labels
 from vllm.sampling_params import SamplingParams
 from vllm.utils import random_uuid
 
@@ -33,14 +31,14 @@ TIMEOUT_KEEP_ALIVE = 5  # seconds.
 app = FastAPI(lifespan=lifespan)
 engine: AsyncLLMEngine = None
 
-app.add_middleware(MetricsMiddleware)  # Trace HTTP server metrics
-app.add_route("/metrics", metrics)  # Exposes HTTP metrics
+# Add prometheus asgi middleware to route /metrics requests
+metrics_app = make_asgi_app()
+app.mount("/metrics", metrics_app)
 
 @app.get("/health")
 async def health() -> Response:
     """Health check."""
     return Response(status_code=200)
-
 
 @app.post("/generate")
 async def generate(request: Request) -> Response:
@@ -105,9 +103,6 @@ if __name__ == "__main__":
 
     engine_args = AsyncEngineArgs.from_cli_args(args)
     engine = AsyncLLMEngine.from_engine_args(engine_args)
-
-    # Register labels for metrics
-    add_global_metrics_labels(model_name=engine_args.model)
 
     app.root_path = args.root_path
     uvicorn.run(app,

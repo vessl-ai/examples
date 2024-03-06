@@ -34,7 +34,7 @@ tags:
 resources: # Resource requirements
   cluster: vessl-gcp-oregon
   preset: gpu-l4-small-spot
-image: quay.io/vessl-ai/torch:2.2.0-cuda12.3-r4 # Container image
+image: quay.io/vessl-ai/torch:2.1.0-cuda12.2-r3 # Container image
 import: # Code, data, or model to import
   /code/:
     git:
