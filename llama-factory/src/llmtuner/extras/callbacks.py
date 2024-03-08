@@ -4,7 +4,13 @@ import time
 from datetime import timedelta
 from typing import TYPE_CHECKING
 
-from transformers import TrainerCallback
+import vessl
+from transformers import (
+    TrainerCallback,
+    TrainerControl,
+    TrainerState,
+    TrainingArguments,
+)
 from transformers.trainer_utils import PREFIX_CHECKPOINT_DIR, has_length
 
 from .constants import LOG_FILE_NAME
@@ -151,3 +157,31 @@ class LogCallback(TrainerCallback):
                 self.max_steps = len(eval_dataloader)
             self.cur_steps += 1
             self.timing()
+
+
+class VesslCallback(TrainerCallback):
+    def __init__(self) -> None:
+        super().__init__()
+
+        vessl.init()
+
+    def on_log(
+        self,
+        args: "TrainingArguments",
+        state: "TrainerState",
+        control: "TrainerControl",
+        logs: dict[str, float] = None,
+        **kwargs,
+    ) -> None:
+        if not state.is_local_process_zero:
+            return
+
+        payload = {}
+
+        for key, value in logs.items():
+            if key == "loss":
+                payload["batch_loss"] = value
+            else:
+                payload[key] = value
+
+        vessl.log(payload, step=state.global_step)

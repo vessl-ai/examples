@@ -14,3 +14,5 @@ pydantic
 fastapi
 sse-starlette
 matplotlib
+bitsandbytes
+vessl>=0.1.154
