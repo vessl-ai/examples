@@ -14,5 +14,8 @@ pydantic
 fastapi
 sse-starlette
 matplotlib
-bitsandbytes
-vessl>=0.1.154
+bitsandbytes>=0.41.3
+vessl>=0.1.156
+llama-index-core
+llama-index-llms-huggingface
+llama-index-embeddings-huggingface
