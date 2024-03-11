@@ -1,0 +1,4 @@
+transformers
+streamlit
+torch
+streamlit-chat
