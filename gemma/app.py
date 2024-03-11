@@ -1,6 +1,9 @@
 import streamlit as st
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
+# Set the layout for the Streamlit app
+st.set_page_config(layout="wide")
+
 
 # Load the model and tokenizer
 @st.cache_resource(show_spinner="Loading model...")
@@ -11,9 +14,6 @@ def load_model():
     return tokenizer, model
 
 tokenizer, model = load_model()
-
-# Set the layout for the Streamlit app
-st.set_page_config(layout="wide")
 
 # Settings section
 with st.sidebar:
