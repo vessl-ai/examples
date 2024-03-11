@@ -23,7 +23,7 @@ with st.sidebar:
     top_p = st.slider("Top P", 0.0, 1.0, 0.5)
 
 # Chat window setup
-st.title("Gemma Chatbot")
+st.title("Gemma 2B-IT Chatbot")
 
 user_input = st.text_input("Type your message here and press enter", key="input")
 if user_input:
@@ -35,11 +35,23 @@ if user_input:
     chat_settings = {
         'max_length': token_length,
         'temperature': temperature,
-        'top_p': top_p
+        'top_p': top_p,
+        'pad_token_id': tokenizer.eos_token_id  # Ensure that the response does not contain the input
     }
     output_ids = model.generate(input_ids, **chat_settings)
 
-    # Convert generated tokens to string and add to response
+    # Convert generated tokens to string
     response = tokenizer.decode(output_ids[0], skip_special_tokens=True)
 
-    st.text(response)
+    # Display response in a nicer format
+    col1, col2 = st.columns([1, 4])  # Adjust the ratio as needed
+    with col1:
+        st.write("You:")
+    with col2:
+        st.write(user_input)
+    
+    col1, col2 = st.columns([1, 4])  # Repeat the column layout for the response
+    with col1:
+        st.write("Gemma:")
+    with col2:
+        st.write(response, unsafe_allow_html=True)  # Use unsafe_allow_html if needed for formatting
