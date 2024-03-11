@@ -1,11 +1,9 @@
 import streamlit as st
-from transformers import AutoTokenizer, AutoModelForCausalLM
-
-access_token = "hf_..." # Please insert your personal token number in access_token
+from transformers import AutoModelForCausalLM, AutoTokenizer
 
 # Load the model and tokenizer
-tokenizer = AutoTokenizer.from_pretrained("google/gemma-7b", token=access_token)
-model = AutoModelForCausalLM.from_pretrained("google/gemma-7b", token=access_token)
+tokenizer = AutoTokenizer.from_pretrained("google/gemma-7b")
+model = AutoModelForCausalLM.from_pretrained("google/gemma-7b")
 
 # Set the layout for the Streamlit app
 st.set_page_config(layout="wide")
