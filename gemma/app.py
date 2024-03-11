@@ -34,6 +34,7 @@ if user_input:
 
     # Convert input text to tokens
     input_ids = tokenizer.encode(user_input, return_tensors="pt")
+    input_ids = input_ids.to(model.device)
 
     # Set the response generation configuration for the model
     chat_settings = {
