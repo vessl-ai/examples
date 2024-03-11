@@ -1,9 +1,16 @@
 import streamlit as st
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
+
 # Load the model and tokenizer
-tokenizer = AutoTokenizer.from_pretrained("google/gemma-7b")
-model = AutoModelForCausalLM.from_pretrained("google/gemma-7b")
+@st.cache_resource(show_spinner="Loading model...")
+def load_model():
+    tokenizer = AutoTokenizer.from_pretrained("google/gemma-7b")
+    model = AutoModelForCausalLM.from_pretrained("google/gemma-7b")
+
+    return tokenizer, model
+
+tokenizer, model = load_model()
 
 # Set the layout for the Streamlit app
 st.set_page_config(layout="wide")
