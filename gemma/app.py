@@ -25,13 +25,8 @@ with st.sidebar:
 # Chat window setup
 st.title("Gemma Chatbot")
 
-if 'history' not in st.session_state:
-    st.session_state.history = []
-
 user_input = st.text_input("Type your message here and press enter", key="input")
 if user_input:
-    st.session_state.history.append({"message": user_input, "is_user": True})
-
     # Convert input text to tokens
     input_ids = tokenizer.encode(user_input, return_tensors="pt")
     input_ids = input_ids.to(model.device)
@@ -46,12 +41,5 @@ if user_input:
 
     # Convert generated tokens to string and add to response
     response = tokenizer.decode(output_ids[0], skip_special_tokens=True)
-    st.session_state.history.append({"message": response, "is_user": False})
 
-# Print the chat history
-for chat in st.session_state.history:
-    if chat['is_user']:
-        st.text_input("You:", chat['message'], key=chat['message'], disabled=True)
-    else:
-        st.text_input("Gemma:", chat['message'], key=chat['message'], disabled=True)
-
+    st.text(response)
