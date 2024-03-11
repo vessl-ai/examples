@@ -8,8 +8,8 @@ st.set_page_config(layout="wide")
 # Load the model and tokenizer
 @st.cache_resource(show_spinner="Loading model...")
 def load_model():
-    tokenizer = AutoTokenizer.from_pretrained("google/gemma-7b", device_map="auto")
-    model = AutoModelForCausalLM.from_pretrained("google/gemma-7b", device_map="auto")
+    tokenizer = AutoTokenizer.from_pretrained("google/gemma-2b-it", device_map="auto")
+    model = AutoModelForCausalLM.from_pretrained("google/gemma-2b-it", device_map="auto")
 
     return tokenizer, model
 
