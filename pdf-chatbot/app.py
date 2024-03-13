@@ -23,7 +23,6 @@ from llama_index.readers.file import PyMuPDFReader
 
 import torch
 
-
 def generate_vector_store_nodes(pdf_doc_path: str, embed_model: HuggingFaceEmbedding):
     loader = PyMuPDFReader()
     documents = loader.load(file_path=pdf_doc_path)
@@ -198,7 +197,6 @@ def main(args: argparse.Namespace):
 
     ragger = RAGInterface(
         embedding_model_name=args.embedding_model,
-        encode_kwargs={"normalize_embeddings": True},
         use_vllm=args.use_vllm,
     )
     ragger.initialize_conversation_chain(initial_docs, llm_repo=args.llm_repo)
