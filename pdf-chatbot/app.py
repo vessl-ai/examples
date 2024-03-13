@@ -64,6 +64,7 @@ class RAGInterface:
         self,
         embedding_model_name: str,
         encode_kwargs: dict,
+        vllm_kwargs: dict,
         docs_folder: str = "./docs",
     ):
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -108,7 +109,7 @@ class RAGInterface:
             top_k=10,
             top_p=0.95,
             temperature=0.8,
-            vllm_kwargs={"max_model_len": 8192},
+            vllm_kwargs=vllm_kwargs,
         )
 
         memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
@@ -174,6 +175,7 @@ def main(args: argparse.Namespace):
     ragger = RAGInterface(
         embedding_model_name=args.embedding_model_name,
         encode_kwargs={"normalize_embeddings": True},
+        vllm_kwargs={"max_model_len": args.vllm_max_model_len, "enforce_eager": args.vllm_enforce_eager},
     )
     ragger.initialize_conversation_chain(initial_docs, model_name=args.model_name)
 
@@ -217,6 +219,8 @@ if __name__ == "__main__":
     parser.add_argument("--docs-folder", default="./docs")
     parser.add_argument("--embedding-model-name", default="BAAI/bge-m3")
     parser.add_argument("--model-name", default="TheBloke/Mistral-7B-Instruct-v0.2-AWQ")
+    parser.add_argument("--vllm-max-model-len", default=4096)
+    parser.add_argument("--vllm-enforce-eager", action="store_true")
     parser.add_argument("--hf-token", default="")
 
     args = parser.parse_args()
