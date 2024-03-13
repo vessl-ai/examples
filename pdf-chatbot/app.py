@@ -101,7 +101,6 @@ class FaissVectorDBRetriever(BaseRetriever):
             mode=VectorStoreQueryMode(self._query_mode),
         )
         query_result = self._vector_store.query(vector_store_query)
-        print(query_result)
         if query_result.nodes is None:
             return []
 
@@ -166,7 +165,7 @@ class RAGInterface:
             )
         else:
             print(f"Loading LLM from {model_name} using transformers.AutoModelForCausalLM...")
-            model_kwargs = {"temperature": 0.8, "do_sample": True, "top_k": 10, "top_p": 0.95}
+            model_kwargs = {"temperature": 0.8, "do_sample": True, "top_k": 10, "top_p": 0.95, "length_penalty": 0.8}
             if self.use_flash_attention:
                 model_kwargs["attn_implementation"] = "flash_attention_2"
             llm = HuggingFaceLLM(
@@ -226,9 +225,6 @@ def close_app():
 
 
 def main(args: argparse.Namespace):
-    if os.environ.get("HUGGINGFACEHUB_API_TOKEN", "") == "" and args.hf_token != "":
-        os.environ["HUGGINGFACEHUB_API_TOKEN"] = args.hf_token
-
     css = """
     footer {visibility: hidden}
     .toast-body.error {visibility: hidden}
@@ -298,7 +294,6 @@ if __name__ == "__main__":
     parser.add_argument("--use-flash-attention", action="store_true")
     parser.add_argument("--vllm-max-model-len", default=4096)
     parser.add_argument("--vllm-enforce-eager", action="store_true")
-    parser.add_argument("--hf-token", default="")
 
     args = parser.parse_args()
 
