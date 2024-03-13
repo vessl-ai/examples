@@ -75,43 +75,27 @@ def generate_vector_store_nodes(pdf_doc_path: str, embed_model: HuggingFaceEmbed
     print(nodes[0])
     return nodes
 
-# class FaissVectorDBRetriever(BaseRetriever):
-#     """Retriever over a postgres vector store."""
+class FaissVectorDBRetriever(BaseRetriever):
+    """Retriever over a postgres vector store."""
 
-#     def __init__(
-#         self,
-#         vector_store_index: VectorStoreIndex,
-#         embed_model: HuggingFaceEmbedding,
-#         query_mode: str = "default",
-#         similarity_top_k: int = 2,
-#     ) -> None:
-#         self._vector_store_index = vector_store_index
-#         self._embed_model = embed_model
-#         self._query_mode = query_mode
-#         self._similarity_top_k = similarity_top_k
-#         super().__init__()
+    def __init__(
+        self,
+        vector_store_index: VectorStoreIndex,
+        embed_model: HuggingFaceEmbedding,
+        query_mode: str = "default",
+        similarity_top_k: int = 2,
+    ) -> None:
+        self._vector_store_index = vector_store_index
+        self._embed_model = embed_model
+        self._query_mode = query_mode
+        self._similarity_top_k = similarity_top_k
+        super().__init__()
 
-#     def _retrieve(self, query_bundle: QueryBundle) -> List[NodeWithScore]:
-#         query_embedding = self._embed_model.get_query_embedding(
-#             query_bundle.query_str
-#         )
-#         vector_store_query = VectorStoreQuery(
-#             query_embedding=query_embedding,
-#             similarity_top_k=self._similarity_top_k,
-#             mode=VectorStoreQueryMode(self._query_mode),
-#         )
-#         query_result = self._vector_store_index.as_query_engine().query(vector_store_query)
-#         if query_result.ids is None:
-#             return []
+    def _retrieve(self, query_bundle: QueryBundle) -> List[NodeWithScore]:
+        retriever = self._vector_store_index.as_retriever(embed_model=self._embed_model, similarity_top_k=self._similarity_top_k)
+        query_result = retriever
 
-#         nodes_with_scores = []
-#         for index, node in enumerate(query_result.nodes):
-#             score: Optional[float] = None
-#             if query_result.similarities is not None:
-#                 score = query_result.similarities[index]
-#             nodes_with_scores.append(NodeWithScore(node=node, score=score))
-
-#         return nodes_with_scores
+        return retriever.retrieve(query_bundle.query_str)
 
 class RAGInterface:
     def __init__(
@@ -179,9 +163,8 @@ class RAGInterface:
             # Overwrite chat_template to support system prompt
             llm._tokenizer.chat_template = CHAT_TEMPLATE
 
-        # self.retriever = FaissVectorDBRetriever(self.vector_store_index, self.embedding, query_mode="default", similarity_top_k=2)
-        self.chat_engine = self.vector_store_index.as_chat_engine(llm=llm)
-        # self.chat_engine = ContextChatEngine.from_defaults(retriever=self.retriever, llm=llm)
+        self.retriever = FaissVectorDBRetriever(self.vector_store_index, self.embedding, query_mode="default", similarity_top_k=2)
+        self.chat_engine = ContextChatEngine.from_defaults(retriever=self.retriever, llm=llm)
 
     def add_document(self, list_file_obj: List, progress=gr.Progress()):
         if self.vector_store is None:
