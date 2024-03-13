@@ -2,80 +2,110 @@ import argparse
 import os
 import shutil
 from time import sleep
-from typing import List
+from typing import List, Optional
 
+import faiss
 import gradio as gr
-from langchain.chains import ConversationalRetrievalChain
-from langchain.memory import ConversationBufferMemory
-from langchain.text_splitter import CharacterTextSplitter
-from langchain_community.embeddings import HuggingFaceBgeEmbeddings
-from langchain_community.llms import HuggingFaceHub
-from langchain_community.llms import VLLM
-from langchain_community.vectorstores import FAISS
-from PyPDF2 import PdfReader
+
+from llama_index.embeddings.huggingface import HuggingFaceEmbedding
+from llama_index.vector_stores.faiss import FaissVectorStore
+
+from llama_index.core import get_response_synthesizer, QueryBundle
+from llama_index.core.node_parser import SentenceSplitter
+from llama_index.core.retrievers import BaseRetriever
+from llama_index.core.schema import TextNode, NodeWithScore
+from llama_index.core.vector_stores import VectorStoreQuery
+from llama_index.core.vector_stores.types import VectorStoreQueryMode
+from llama_index.core.chat_engine import ContextChatEngine
+from llama_index.llms.vllm import Vllm
+from llama_index.llms.huggingface import HuggingFaceLLM
+from llama_index.readers.file import PyMuPDFReader
+
 import torch
 
-def get_pdf_text(pdf_docs):
-    """
-    Extract text from a list of PDF documents.
 
-    Parameters
-    ----------
-    pdf_docs : list
-        List of PDF documents to extract text from.
+def generate_vector_store_nodes(pdf_doc_path: str, embed_model: HuggingFaceEmbedding):
+    loader = PyMuPDFReader()
+    documents = loader.load(file_path=pdf_doc_path)
+    text_parser = SentenceSplitter(chunk_size=1536, chunk_overlap=384)
 
-    Returns
-    -------
-    str
-        Extracted text from all the PDF documents.
+    text_chunks = []
+    # maintain relationship with source doc index, to help inject doc metadata later
+    doc_indices = []
+    for doc_idx, doc in enumerate(documents):
+        cur_text_chunks = text_parser.split_text(doc.text)
+        text_chunks.extend(cur_text_chunks)
+        doc_indices.extend([doc_idx] * len(cur_text_chunks))
 
-    """
-    text = ""
-    for pdf in pdf_docs:
-        pdf_reader = PdfReader(pdf)
-        for page in pdf_reader.pages:
-            text += page.extract_text()
-    return text
+    nodes = []
+    for idx, text_chunk in enumerate(text_chunks):
+        node = TextNode(
+            text=text_chunk,
+        )
+        src_doc = documents[doc_indices[idx]]
+        node.metadata = src_doc.metadata
+        nodes.append(node)
 
+    for node in nodes:
+        node_embedding = embed_model.get_text_embedding(
+            node.get_content(metadata_mode="all")
+        )
+        node.embedding = node_embedding
 
-def get_text_chunks(text):
-    """
-    Split the input text into chunks.
+    return nodes
 
-    Parameters
-    ----------
-    text : str
-        The input text to be split.
+class FaissVectorDBRetriever(BaseRetriever):
+    """Retriever over a postgres vector store."""
 
-    Returns
-    -------
-    list
-        List of text chunks.
+    def __init__(
+        self,
+        vector_store: FaissVectorStore,
+        embed_model: HuggingFaceEmbedding,
+        query_mode: str = "default",
+        similarity_top_k: int = 2,
+    ) -> None:
+        self._vector_store = vector_store
+        self._embed_model = embed_model
+        self._query_mode = query_mode
+        self._similarity_top_k = similarity_top_k
+        super().__init__()
 
-    """
-    text_splitter = CharacterTextSplitter(
-        separator="\n", chunk_size=1500, chunk_overlap=300, length_function=len
-    )
-    chunks = text_splitter.split_text(text)
-    return chunks
+    def _retrieve(self, query_bundle: QueryBundle) -> List[NodeWithScore]:
+        query_embedding = self._embed_model.get_query_embedding(
+            query_bundle.query_str
+        )
+        vector_store_query = VectorStoreQuery(
+            query_embedding=query_embedding,
+            similarity_top_k=self._similarity_top_k,
+            mode=VectorStoreQueryMode(self._query_mode),
+        )
+        query_result = self._vector_store.query(vector_store_query)
+        if query_result.nodes is None:
+            return []
+
+        nodes_with_scores = []
+        for index, node in enumerate(query_result.nodes):
+            score: Optional[float] = None
+            if query_result.similarities is not None:
+                score = query_result.similarities[index]
+            nodes_with_scores.append(NodeWithScore(node=node, score=score))
+
+        return nodes_with_scores
 
 class RAGInterface:
     def __init__(
         self,
-        embedding_model: str,
-        encode_kwargs: dict,
+        embedding_model_name: str,
         docs_folder: str = "./docs",
         use_vllm: bool = True,
     ):
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
-        self.embedding_model = embedding_model
-        self.embeddings = HuggingFaceBgeEmbeddings(
-            model_name=self.embedding_model, encode_kwargs=encode_kwargs, model_kwargs={"device": self.device}
-        )
-        self.encode_kwargs = encode_kwargs
-        self.vectorstore: FAISS = None
+        self.embedding = HuggingFaceEmbedding(model_name=embedding_model_name, device=self.device)
+        self.faiss_index = faiss.IndexFlatL2(1024) # 1024 is dimension of the embeddings
+        self.vector_store = FaissVectorStore(faiss_index=self.faiss_index)
         self.docs_folder = docs_folder
         self.use_vllm = use_vllm
+        self.streaming_synth = get_response_synthesizer(streaming=True)
         print(f"Using accelerator: {self.device}")
 
     def initialize_conversation_chain(self, initial_docs: List[str], llm_repo: str = "mistralai/Mistral-7B-Instruct-v0.2"):
@@ -89,42 +119,33 @@ class RAGInterface:
 
         """
 
-        print(f"Scanning all pdf files in {len(initial_docs)} Documents...")
-
-        raw_text = get_pdf_text(initial_docs)
-        if raw_text == "":
-            raw_text = "Initial text"
-        text_chunks = get_text_chunks(raw_text)
-
-        print("Initializing vector database...")
-        self.vectorstore = FAISS.from_texts(texts=text_chunks, embedding=self.embeddings)
+        print(f"Initializing vector database from {len(initial_docs)} Documents...")
+        for pdf_file_path in initial_docs:
+            nodes = generate_vector_store_nodes(pdf_file_path, self.embedding)
+            self.vector_store.add_nodes(nodes)
 
         print(f"Loading LLM from {llm_repo}...")
         if self.use_vllm:
             print(f"--use-vllm flag is set. Loading model using vLLM.")
-            llm = VLLM(
+            llm = Vllm(
                 model=llm_repo,
                 trust_remote_code=True,  # mandatory for hf models
                 max_new_tokens=2048,
                 top_k=10,
                 top_p=0.95,
                 temperature=0.8,
-                streaming=True,
             )
         else:
-            llm = HuggingFaceHub(
-                repo_id=llm_repo,
-                model_kwargs={"temperature": 0.5, "max_length": 4096, "device": self.device},
-                streaming=True,
+            llm = HuggingFaceLLM(
+                model=llm_repo,
+                model_kwargs={"temperature": 0.8, "max_length": 4096, "device": self.device},
             )
 
-        memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
-        self.conversation = ConversationalRetrievalChain.from_llm(
-            llm=llm, retriever=self.vectorstore.as_retriever(), memory=memory
-        )
+        self.retriever = FaissVectorDBRetriever(self.vector_store, self.embedding, query_mode="default", similarity_top_k=2)
+        self.chat_engine = ContextChatEngine.from_defaults(retriever=self.retriever, llm=llm)
 
     def add_document(self, list_file_obj: List, progress=gr.Progress()):
-        if self.vectorstore is None:
+        if self.vector_store is None:
             raise ValueError("Vectorstore not initialized. Please run initialize_database() first.")
 
         if list_file_obj is None:
@@ -135,26 +156,23 @@ class RAGInterface:
         pdf_docs = [x.name for x in list_file_obj if x is not None]
         for pdf in pdf_docs:
             shutil.copy(pdf, self.docs_folder)
-        gr.Info("Extracting text from PDFs...")
-        raw_text = get_pdf_text(pdf_docs)
-        gr.Info("Splitting text into chunks...")
-        text_chunks = get_text_chunks(raw_text)
-        gr.Info("Adding chunks to vector database...")
-        self.vectorstore.add_texts(texts=text_chunks)
+
+        gr.Info("Adding documents into vector database...")
+        for pdf_file_path in pdf_docs:
+            nodes = generate_vector_store_nodes(pdf_file_path, self.embedding)
+            self.vector_store.add_nodes(nodes)
+            progress(1, desc=f"Adding {pdf_file_path} to vector database")
 
         gr.Info("Upload Completed!")
         return gr.update(value="Upload PDF documents", interactive=True)
 
-    def get_retriever(self):
-        if self.vectorstore is None:
-            raise ValueError("Vectorstore not initialized. Please run initialize_database() first.")
-        return self.vectorstore.as_retriever()
-
     def handle_chat(self, message, history):
+        streaming_response = self.chat_engine.stream_chat(message)
         full_response = ""
-        for response in self.conversation({"question": message, "chat_history": history})["answer"]:
-            full_response += response
+        for token in streaming_response.response_gen:
+            full_response += token
             yield full_response
+
         return full_response
 
 def close_app():
@@ -179,7 +197,7 @@ def main(args: argparse.Namespace):
                 initial_docs.append(os.path.join(root, file))
 
     ragger = RAGInterface(
-        embedding_model=args.embeddings_model,
+        embedding_model_name=args.embedding_model,
         encode_kwargs={"normalize_embeddings": True},
         use_vllm=args.use_vllm,
     )
@@ -223,7 +241,7 @@ if __name__ == "__main__":
         description="Question Answering with Retrieval QA and LangChain Language Models featuring FAISS vector stores.")
 
     parser.add_argument("--docs-folder", default="./docs")
-    parser.add_argument("--embeddings-model", default="BAAI/bge-base-en-v1.5")
+    parser.add_argument("--embedding-model", default="BAAI/bge-m3")
     parser.add_argument("--llm_repo", default="mistralai/Mistral-7B-Instruct-v0.2")
     parser.add_argument("--use-vllm", action=argparse.BooleanOptionalAction)
     parser.add_argument("--hf-token", default="")
