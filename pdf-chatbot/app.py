@@ -10,7 +10,8 @@ import gradio as gr
 from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 from llama_index.vector_stores.faiss import FaissVectorStore
 
-from llama_index.core import get_response_synthesizer, QueryBundle
+
+from llama_index.core import QueryBundle
 from llama_index.core.node_parser import SentenceSplitter
 from llama_index.core.retrievers import BaseRetriever
 from llama_index.core.schema import TextNode, NodeWithScore
@@ -19,6 +20,7 @@ from llama_index.core.vector_stores.types import VectorStoreQueryMode
 from llama_index.core.chat_engine import ContextChatEngine
 from llama_index.llms.vllm import Vllm
 from llama_index.llms.huggingface import HuggingFaceLLM
+from llama_index.llm_predictor import LLMPredictor
 from llama_index.readers.file import PyMuPDFReader
 
 import torch
@@ -240,7 +242,7 @@ def main(args: argparse.Namespace):
         use_vllm=False if args.no_vllm else True,
         stream=False if args.no_stream else True,
         vllm_kwargs={
-            "max_model_len": args.vllm_max_model_len,
+            "max_model_len": int(args.vllm_max_model_len),
             "enforce_eager": args.vllm_enforce_eager,
         }
     )
