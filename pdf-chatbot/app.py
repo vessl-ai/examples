@@ -267,5 +267,6 @@ if __name__ == "__main__":
     parser.add_argument("--hf-token", default="")
 
     args = parser.parse_args()
+    print(args)
 
     main(args)
