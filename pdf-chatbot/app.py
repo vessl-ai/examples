@@ -97,6 +97,7 @@ class RAGInterface:
         embedding_model_name: str,
         docs_folder: str = "./docs",
         use_vllm: bool = True,
+        stream: bool = False,
     ):
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.embedding = HuggingFaceEmbedding(model_name=embedding_model_name, device=self.device)
@@ -104,6 +105,7 @@ class RAGInterface:
         self.vector_store = FaissVectorStore(faiss_index=self.faiss_index)
         self.docs_folder = docs_folder
         self.use_vllm = use_vllm
+        self.stream = stream
         print(f"Using accelerator: {self.device}")
 
     def initialize_chat_engine(self, initial_docs: List[str], model_name: str = "mistralai/Mistral-7B-Instruct-v0.2"):
@@ -123,6 +125,8 @@ class RAGInterface:
             self.vector_store.add_nodes(nodes)
 
         if self.use_vllm:
+            print("Warn: vLLM on LlamaIndex does not streaming interface yet. Setting stream=False.")
+            self.stream = False
             print(f"Loading LLM from {model_name} using vLLM...")
             llm = Vllm(
                 model=model_name,
@@ -168,6 +172,12 @@ class RAGInterface:
         return gr.update(value="Upload PDF documents", interactive=True)
 
     def handle_chat(self, message, history):
+        if self.stream:
+            return self.handle_stream_chat(message, history)
+        chat_response = self.chat_engine.chat(message)
+        return chat_response.response
+
+    def handle_stream_chat(self, message, history):
         streaming_response = self.chat_engine.stream_chat(message)
         full_response = ""
         for token in streaming_response.response_gen:
@@ -200,6 +210,7 @@ def main(args: argparse.Namespace):
     ragger = RAGInterface(
         embedding_model_name=args.embedding_model_name,
         use_vllm=False if args.no_vllm else True,
+        stream=False if args.no_stream else True,
     )
     ragger.initialize_chat_engine(initial_docs, model_name=args.model_name)
 
@@ -244,6 +255,7 @@ if __name__ == "__main__":
     parser.add_argument("--embedding-model-name", default="BAAI/bge-m3")
     parser.add_argument("--model-name", default="mistralai/Mistral-7B-Instruct-v0.2")
     parser.add_argument("--no-vllm", action=argparse.BooleanOptionalAction)
+    parser.add_argument("--no-stream", action=argparse.BooleanOptionalAction)
     parser.add_argument("--hf-token", default="")
 
     args = parser.parse_args()
