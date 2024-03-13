@@ -104,7 +104,6 @@ class RAGInterface:
         self.vector_store = FaissVectorStore(faiss_index=self.faiss_index)
         self.docs_folder = docs_folder
         self.use_vllm = use_vllm
-        self.streaming_synth = get_response_synthesizer(streaming=True)
         print(f"Using accelerator: {self.device}")
 
     def initialize_conversation_chain(self, initial_docs: List[str], llm_repo: str = "mistralai/Mistral-7B-Instruct-v0.2"):
