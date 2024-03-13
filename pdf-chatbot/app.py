@@ -128,15 +128,16 @@ class RAGInterface:
             llm = Vllm(
                 model=llm_repo,
                 trust_remote_code=True,  # mandatory for hf models
-                max_new_tokens=2048,
+                max_new_tokens=4096,
                 top_k=10,
                 top_p=0.95,
                 temperature=0.8,
             )
         else:
             llm = HuggingFaceLLM(
-                model=llm_repo,
-                model_kwargs={"temperature": 0.8, "max_length": 4096, "device": self.device},
+                model_name=llm_repo,
+                max_new_tokens=4096,
+                model_kwargs={"temperature": 0.8, "device": self.device},
             )
 
         self.retriever = FaissVectorDBRetriever(self.vector_store, self.embedding, query_mode="default", similarity_top_k=2)
