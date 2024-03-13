@@ -75,6 +75,8 @@ def generate_vector_store_nodes(pdf_doc_path: str, embed_model: HuggingFaceEmbed
         )
         node.embedding = node_embedding
 
+    print(f"Generated {len(nodes)} nodes from {pdf_doc_path}")
+    print(nodes[0])
     return nodes
 
 class FaissVectorDBRetriever(BaseRetriever):
@@ -200,6 +202,7 @@ class RAGInterface:
         for pdf_file_path in pdf_docs:
             nodes = generate_vector_store_nodes(pdf_file_path, self.embedding)
             self.vector_store.add(nodes)
+            print(self.vector_store)
             progress(1, desc=f"Adding {pdf_file_path} to vector database")
 
         gr.Info("Upload Completed!")
