@@ -148,8 +148,8 @@ class RAGInterface:
     def handle_chat(self, message, history):
         full_reponse = ""
         for response in self.conversation.stream(message):
-            print(response)
-            full_reponse += response
+            print("resp:", response.content)
+            full_reponse += response.content
             yield full_reponse
 
 def close_app():
