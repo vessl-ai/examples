@@ -8,6 +8,7 @@ import gradio as gr
 from langchain.chains import ConversationalRetrievalChain
 from langchain.memory import ConversationBufferMemory
 from langchain.text_splitter import CharacterTextSplitter
+from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
@@ -118,9 +119,10 @@ class RAGInterface:
             callbacks=[StreamingStdOutCallbackHandler()],
         )
 
+
         memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
 
-        template = """Answer the question based only on the following context:
+        template = """Answer the question based on the following context and reference. If there is no context, answer the question directly:
         {context}
 
         Question: {question}
@@ -138,6 +140,7 @@ class RAGInterface:
             }
             | prompt
             | llm
+            | StrOutputParser()
         )
 
     def add_document(self, list_file_obj: List, progress=gr.Progress()):
@@ -170,7 +173,7 @@ class RAGInterface:
     def handle_chat(self, message, history):
         full_reponse = ""
         for response in self.conversation.stream(message):
-            full_reponse += response["answer"]
+            full_reponse += response
             yield full_reponse
 
 def close_app():
