@@ -286,7 +286,7 @@ if __name__ == "__main__":
 
     parser.add_argument("--docs-folder", default="./docs")
     parser.add_argument("--embedding-model-name", default="BAAI/bge-m3")
-    parser.add_argument("--model-name", default="mistralai/Mistral-7B-Instruct-v0.2")
+    parser.add_argument("--model-name", default="TheBloke/Mistral-7B-Instruct-v0.2-AWQ")
     parser.add_argument("--no-vllm", action="store_true")
     parser.add_argument("--no-stream", action="store_true")
     parser.add_argument("--vllm-max-model-len", default=4096)
