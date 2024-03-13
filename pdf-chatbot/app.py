@@ -106,7 +106,7 @@ class RAGInterface:
         self.use_vllm = use_vllm
         print(f"Using accelerator: {self.device}")
 
-    def initialize_conversation_chain(self, initial_docs: List[str], llm_repo: str = "mistralai/Mistral-7B-Instruct-v0.2"):
+    def initialize_chat_engine(self, initial_docs: List[str], model_name: str = "mistralai/Mistral-7B-Instruct-v0.2"):
         """
         Initialize a vector database from a list of PDF documents.
 
@@ -122,11 +122,11 @@ class RAGInterface:
             nodes = generate_vector_store_nodes(pdf_file_path, self.embedding)
             self.vector_store.add_nodes(nodes)
 
-        print(f"Loading LLM from {llm_repo}...")
+        print(f"Loading LLM from {model_name}...")
         if self.use_vllm:
             print(f"--use-vllm flag is set. Loading model using vLLM.")
             llm = Vllm(
-                model=llm_repo,
+                model=model_name,
                 trust_remote_code=True,  # mandatory for hf models
                 max_new_tokens=4096,
                 top_k=10,
@@ -135,7 +135,8 @@ class RAGInterface:
             )
         else:
             llm = HuggingFaceLLM(
-                model_name=llm_repo,
+                model_name=model_name,
+                tokenizer_name=model_name,
                 max_new_tokens=4096,
                 model_kwargs={"temperature": 0.8},
             )
@@ -197,14 +198,14 @@ def main(args: argparse.Namespace):
 
     ragger = RAGInterface(
         embedding_model_name=args.embedding_model,
-        use_vllm=args.use_vllm,
+        use_vllm=False if args.no_vllm else True,
     )
-    ragger.initialize_conversation_chain(initial_docs, llm_repo=args.llm_repo)
+    ragger.initialize_chat_engine(initial_docs, model_name=args.model_name)
 
-    with gr.Blocks(css=css, title="PDF Chatbot with LangChain🦜 and Mistral-7B") as demo:
+    with gr.Blocks(css=css, title="PDF Chatbot with LlamaIndex🦙 and Open-source LLMs") as demo:
         with gr.Row():
             gr.Markdown(
-            f"""<h2>PDF Chatbot with LangChain🦜 and Mistral-7B</h2>
+            f"""<h2>PDF Chatbot with LlamaIndex🦙 and {args.model_name}</h2>
             <h3>Ask any questions about your PDF documents, along with follow-ups</h3>
             <b>Note:</b> This AI assistant performs retrieval-augmented generation from your PDF documents.<br>
             Initial documents are loaded from the `{args.docs_folder}` folder. You can add more documents by clicking the button below.<br>
@@ -239,9 +240,9 @@ if __name__ == "__main__":
         description="Question Answering with Retrieval QA and LangChain Language Models featuring FAISS vector stores.")
 
     parser.add_argument("--docs-folder", default="./docs")
-    parser.add_argument("--embedding-model", default="BAAI/bge-m3")
-    parser.add_argument("--llm_repo", default="mistralai/Mistral-7B-Instruct-v0.2")
-    parser.add_argument("--use-vllm", action=argparse.BooleanOptionalAction)
+    parser.add_argument("--embedding-model-name", default="BAAI/bge-m3")
+    parser.add_argument("--model-name", default="mistralai/Mistral-7B-Instruct-v0.2")
+    parser.add_argument("--no-vllm", action=argparse.BooleanOptionalAction)
     parser.add_argument("--hf-token", default="")
 
     args = parser.parse_args()
