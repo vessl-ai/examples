@@ -2,7 +2,7 @@ import argparse
 import os
 import shutil
 from time import sleep
-from typing import List, Optional
+from typing import Dict, Any, List, Optional
 
 import faiss
 import gradio as gr
@@ -98,6 +98,7 @@ class RAGInterface:
         docs_folder: str = "./docs",
         use_vllm: bool = True,
         stream: bool = False,
+        vllm_kwargs: Optional[Dict[str, Any]] = {},
     ):
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.embedding = HuggingFaceEmbedding(model_name=embedding_model_name, device=self.device)
@@ -105,6 +106,7 @@ class RAGInterface:
         self.vector_store = FaissVectorStore(faiss_index=self.faiss_index)
         self.docs_folder = docs_folder
         self.use_vllm = use_vllm
+        self.vllm_kwargs = vllm_kwargs if use_vllm else {}
         self.stream = stream
         print(f"Using accelerator: {self.device}")
 
@@ -132,7 +134,7 @@ class RAGInterface:
                 model=model_name,
                 trust_remote_code=True,  # mandatory for hf models
                 max_new_tokens=4096,
-                vllm_kwargs={"max_model_len": 8192},
+                vllm_kwargs=self.vllm_kwargs if self.vllm_kwargs else {},
                 top_k=10,
                 top_p=0.95,
                 temperature=0.8,
@@ -211,6 +213,10 @@ def main(args: argparse.Namespace):
         embedding_model_name=args.embedding_model_name,
         use_vllm=False if args.no_vllm else True,
         stream=False if args.no_stream else True,
+        vllm_kwargs={
+            "max_model_len": args.vllm_max_model_len,
+            "enforce_eager": args.vllm_enforce_eager,
+        }
     )
     ragger.initialize_chat_engine(initial_docs, model_name=args.model_name)
 
@@ -256,6 +262,8 @@ if __name__ == "__main__":
     parser.add_argument("--model-name", default="mistralai/Mistral-7B-Instruct-v0.2")
     parser.add_argument("--no-vllm", action=argparse.BooleanOptionalAction)
     parser.add_argument("--no-stream", action=argparse.BooleanOptionalAction)
+    parser.add_argument("--vllm-max-model-len", default=4096)
+    parser.add_argument("--vllm-enforce-eager", action=argparse.BooleanOptionalAction)
     parser.add_argument("--hf-token", default="")
 
     args = parser.parse_args()
