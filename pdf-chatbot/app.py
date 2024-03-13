@@ -105,7 +105,7 @@ class RAGInterface:
 
         print("Initializing conversation chain...")
         llm = HuggingFaceEndpoint(
-            repo_id=model_name,
+            model=model_name,
             streaming=True,
             repetition_penalty=1.2,
             do_sample=True,
