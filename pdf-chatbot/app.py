@@ -14,7 +14,7 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
 from langchain_community.embeddings import HuggingFaceBgeEmbeddings
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
-# from langchain_community.llms import HuggingFaceHub
+from langchain_community.llms import HuggingFaceEndpoint
 from langchain_community.llms import VLLM
 from langchain_community.vectorstores import FAISS
 from PyPDF2 import PdfReader
@@ -104,37 +104,27 @@ class RAGInterface:
         self.vectorstore = FAISS.from_texts(texts=text_chunks, embedding=self.embedding_model)
 
         print("Initializing conversation chain...")
-        # llm = HuggingFaceHub(
-        #     repo_id=model_name,
-        #     model_kwargs={"temperature": 0.5, "max_length": 4096, "device": self.device},
-        # )
-        llm = VLLM(
-            model=model_name,
-            trust_remote_code=True,  # mandatory for hf models
-            max_new_tokens=2048,
-            top_k=10,
-            top_p=0.95,
-            temperature=0.8,
-            vllm_kwargs=self.vllm_kwargs,
-            callbacks=[StreamingStdOutCallbackHandler()],
+        llm = HuggingFaceEndpoint(
+            repo_id=model_name,
+            streaming=True,
+            repetition_penalty=1.2,
+            do_sample=True,
         )
-
 
         memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
 
-        template = """Answer the question based on the following context and reference.
-        If there is no context given, answer the question directly without saying there is no context.
+        self.conversation = ConversationalRetrievalChain.from_llm(
+            llm=llm, retriever=self.vectorstore.as_retriever(), memory=memory
+        )
 
-        Context: {context}
+        # template = """Answer the question based on the following context and reference.
+        # If there is no context given, answer the question directly without saying there is no context.
 
-        Question: {question}
-        """
-        prompt = ChatPromptTemplate.from_template(template)
+        # Context: {context}
 
-        # self.conversation = ConversationalRetrievalChain.from_llm(
-        #     llm=llm, retriever=self.vectorstore.as_retriever(), memory=memory
-        # )
-
+        # Question: {question}
+        # """
+        # prompt = ChatPromptTemplate.from_template(template)
         # self.conversation = (
         #     {
         #         "context": self.vectorstore.as_retriever(),
@@ -144,8 +134,6 @@ class RAGInterface:
         #     | llm
         #     | StrOutputParser()
         # )
-
-        self.conversation = llm
 
     def add_document(self, list_file_obj: List, progress=gr.Progress()):
         if self.vectorstore is None:
