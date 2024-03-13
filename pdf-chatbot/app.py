@@ -122,8 +122,10 @@ class RAGInterface:
 
         memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
 
-        template = """Answer the question based on the following context and reference. If there is no context, answer the question directly:
-        {context}
+        template = """Answer the question based on the following context and reference.
+        If there is no context given, answer the question directly without saying there is no context.
+
+        Context: {context}
 
         Question: {question}
         """
@@ -133,15 +135,17 @@ class RAGInterface:
         #     llm=llm, retriever=self.vectorstore.as_retriever(), memory=memory
         # )
 
-        self.conversation = (
-            {
-                "context": self.vectorstore.as_retriever(),
-                "question": RunnablePassthrough(),
-            }
-            | prompt
-            | llm
-            | StrOutputParser()
-        )
+        # self.conversation = (
+        #     {
+        #         "context": self.vectorstore.as_retriever(),
+        #         "question": RunnablePassthrough(),
+        #     }
+        #     | prompt
+        #     | llm
+        #     | StrOutputParser()
+        # )
+
+        self.conversation = llm
 
     def add_document(self, list_file_obj: List, progress=gr.Progress()):
         if self.vectorstore is None:
