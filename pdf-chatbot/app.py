@@ -74,6 +74,7 @@ class RAGInterface:
         self.encode_kwargs = encode_kwargs
         self.vectorstore: FAISS = None
         self.docs_folder = docs_folder
+        self.vllm_kwargs = vllm_kwargs
         print(f"Using accelerator: {self.device}")
 
     def initialize_conversation_chain(self, initial_docs: List[str], model_name: str = "mistralai/Mistral-7B-Instruct-v0.2"):
@@ -109,7 +110,7 @@ class RAGInterface:
             top_k=10,
             top_p=0.95,
             temperature=0.8,
-            vllm_kwargs=vllm_kwargs,
+            vllm_kwargs=self.vllm_kwargs,
         )
 
         memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
