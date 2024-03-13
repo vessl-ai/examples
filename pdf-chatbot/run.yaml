@@ -7,7 +7,7 @@ tags:
 resources:
   cluster: vessl-gcp-oregon
   preset: gpu-l4-small
-image: quay.io/vessl-ai/torch:2.0.0-cuda12.1-r2
+image: quay.io/vessl-ai/torch:2.1.0-cuda12.2-r3
 import:
   /code/:
     git:
@@ -16,6 +16,12 @@ run:
   - command: |
       cd /code/pdf-chatbot
       pip install -r requirements.txt
+    workdir: /code
+  - command: |  # Command to run AWQ-quantized model with FlashAttention 2. skippable if you are running other models
+      pip install autoawq==0.2.3 flash-attn==2.5.6
+    workdir: /code
+  - command: |
+      cd /code/pdf-chatbot
       python app.py --docs-folder=/docs --hf-token=$HUGGINGFACEHUB_API_TOKEN
     workdir: /code
 interactive:
