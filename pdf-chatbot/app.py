@@ -145,7 +145,7 @@ class RAGInterface:
                 model_name=model_name,
                 tokenizer_name=model_name,
                 max_new_tokens=4096,
-                model_kwargs={"temperature": 0.8},
+                model_kwargs={"temperature": 0.8, "do_sample": True, "top_k": 10, "top_p": 0.95},
             )
 
         self.retriever = FaissVectorDBRetriever(self.vector_store, self.embedding, query_mode="default", similarity_top_k=2)
@@ -175,18 +175,17 @@ class RAGInterface:
 
     def handle_chat(self, message, history):
         if self.stream:
-            return self.handle_stream_chat(message, history)
-        chat_response = self.chat_engine.chat(message)
-        return chat_response.response
+            streaming_response = self.chat_engine.stream_chat(message)
+            full_response = ""
+            for token in streaming_response.response_gen:
+                full_response += token
+                yield full_response
 
-    def handle_stream_chat(self, message, history):
-        streaming_response = self.chat_engine.stream_chat(message)
-        full_response = ""
-        for token in streaming_response.response_gen:
-            full_response += token
-            yield full_response
+            return full_response
+        else:
+            chat_response = self.chat_engine.chat(message)
+            return chat_response.response
 
-        return full_response
 
 def close_app():
     gr.Info("Terminated the app!")
