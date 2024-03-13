@@ -145,6 +145,7 @@ class RAGInterface:
                 model_name=model_name,
                 tokenizer_name=model_name,
                 max_new_tokens=4096,
+                is_chat_model=True,
                 model_kwargs={"temperature": 0.8, "do_sample": True, "top_k": 10, "top_p": 0.95},
             )
 
