@@ -7,9 +7,6 @@ from typing import Dict, Any, List, Optional
 import faiss
 import gradio as gr
 
-from llama_index.embeddings.huggingface import HuggingFaceEmbedding
-from llama_index.vector_stores.faiss import FaissVectorStore
-
 from llama_index.core import QueryBundle
 from llama_index.core.node_parser import SentenceSplitter
 from llama_index.core.retrievers import BaseRetriever
@@ -17,9 +14,11 @@ from llama_index.core.schema import TextNode, NodeWithScore
 from llama_index.core.vector_stores import VectorStoreQuery
 from llama_index.core.vector_stores.types import VectorStoreQueryMode
 from llama_index.core.chat_engine import ContextChatEngine
+from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 from llama_index.llms.vllm import Vllm
 from llama_index.llms.huggingface import HuggingFaceLLM
 from llama_index.readers.file import PyMuPDFReader
+from llama_index.vector_stores.faiss import FaissVectorStore
 
 import torch
 
@@ -151,7 +150,7 @@ class RAGInterface:
         print(f"Initializing vector database from {len(initial_docs)} Documents...")
         for pdf_file_path in initial_docs:
             nodes = generate_vector_store_nodes(pdf_file_path, self.embedding)
-            self.vector_store.add_nodes(nodes)
+            self.vector_store.add(nodes)
 
         if self.use_vllm:
             # Note: vLLM does not support streaming interface yet
@@ -200,7 +199,7 @@ class RAGInterface:
         gr.Info("Adding documents into vector database...")
         for pdf_file_path in pdf_docs:
             nodes = generate_vector_store_nodes(pdf_file_path, self.embedding)
-            self.vector_store.add_nodes(nodes)
+            self.vector_store.add(nodes)
             progress(1, desc=f"Adding {pdf_file_path} to vector database")
 
         gr.Info("Upload Completed!")
