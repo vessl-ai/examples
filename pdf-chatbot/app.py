@@ -197,7 +197,7 @@ def main(args: argparse.Namespace):
                 initial_docs.append(os.path.join(root, file))
 
     ragger = RAGInterface(
-        embedding_model_name=args.embedding_model,
+        embedding_model_name=args.embedding_model_name,
         use_vllm=False if args.no_vllm else True,
     )
     ragger.initialize_chat_engine(initial_docs, model_name=args.model_name)
