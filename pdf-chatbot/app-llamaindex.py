@@ -153,6 +153,7 @@ class RAGInterface:
             self.vector_store.add_nodes(nodes)
 
         if self.use_vllm:
+            # ref: https://github.com/run-llama/llama_index/issues/9477
             print("Warn: vLLM on LlamaIndex does not streaming interface yet. Setting stream=False.")
             self.stream = False
             print(f"Loading LLM from {model_name} using vLLM...")
@@ -172,7 +173,10 @@ class RAGInterface:
                 tokenizer_name=model_name,
                 max_new_tokens=4096,
                 is_chat_model=True,
-                model_kwargs={"temperature": 0.8, "do_sample": True, "top_k": 10, "top_p": 0.95},
+                model_kwargs={
+                    "temperature": 0.8, "do_sample": True, "top_k": 10, "top_p": 0.95,
+                    "device_map": "cuda:0", "attn_implementation":"flash_attention_2",
+                },
             )
             llm._tokenizer.chat_template = CHAT_TEMPLATE
 

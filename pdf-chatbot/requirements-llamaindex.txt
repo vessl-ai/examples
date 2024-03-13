@@ -1,3 +1,4 @@
+autoawq==0.2.3
 faiss-cpu==1.7.4
 gradio==4.15.0
 llama-index==0.10.19
