@@ -108,6 +108,7 @@ class RAGInterface:
             top_k=10,
             top_p=0.95,
             temperature=0.8,
+            vllm_kwargs={"max_model_len": 8192},
         )
 
         memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
