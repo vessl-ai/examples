@@ -8,7 +8,11 @@ import gradio as gr
 from langchain.chains import ConversationalRetrievalChain
 from langchain.memory import ConversationBufferMemory
 from langchain.text_splitter import CharacterTextSplitter
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.runnables import RunnablePassthrough
 from langchain_community.embeddings import HuggingFaceBgeEmbeddings
+from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 # from langchain_community.llms import HuggingFaceHub
 from langchain_community.llms import VLLM
 from langchain_community.vectorstores import FAISS
@@ -111,9 +115,18 @@ class RAGInterface:
             top_p=0.95,
             temperature=0.8,
             vllm_kwargs=self.vllm_kwargs,
+            callbacks=[StreamingStdOutCallbackHandler()],
         )
 
         memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
+
+        template = """Answer the question based only on the following context:
+        {context}
+
+        Question: {question}
+        """
+        prompt = ChatPromptTemplate.from_template(template)
+
         self.conversation = ConversationalRetrievalChain.from_llm(
             llm=llm, retriever=self.vectorstore.as_retriever(), memory=memory
         )
@@ -148,8 +161,7 @@ class RAGInterface:
     def handle_chat(self, message, history):
         full_reponse = ""
         for response in self.conversation.stream(message):
-            print("resp:", response.content)
-            full_reponse += response.content
+            full_reponse += response["answer"]
             yield full_reponse
 
 def close_app():
