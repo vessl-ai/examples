@@ -20,7 +20,6 @@ from llama_index.core.vector_stores.types import VectorStoreQueryMode
 from llama_index.core.chat_engine import ContextChatEngine
 from llama_index.llms.vllm import Vllm
 from llama_index.llms.huggingface import HuggingFaceLLM
-from llama_index.llm_predictor import LLMPredictor
 from llama_index.readers.file import PyMuPDFReader
 
 import torch
