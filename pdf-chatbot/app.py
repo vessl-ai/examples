@@ -176,7 +176,7 @@ def main(args: argparse.Namespace):
     ragger = RAGInterface(
         embedding_model_name=args.embedding_model_name,
         encode_kwargs={"normalize_embeddings": True},
-        vllm_kwargs={"max_model_len": args.vllm_max_model_len, "enforce_eager": args.vllm_enforce_eager},
+        vllm_kwargs={"max_model_len": int(args.vllm_max_model_len), "enforce_eager": args.vllm_enforce_eager},
     )
     ragger.initialize_conversation_chain(initial_docs, model_name=args.model_name)
 
