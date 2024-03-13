@@ -109,7 +109,7 @@ class RAGInterface:
         self.faiss_index = faiss.IndexFlatL2(1024) # 1024 is dimension of the embeddings
         self.vector_store = FaissVectorStore(faiss_index=self.faiss_index)
         self.storage_context = StorageContext.from_defaults(vector_store=self.vector_store)
-        self.vector_store_index = load_index_from_storage(self.storage_context)
+        self.vector_store_index = VectorStoreIndex.from_documents(documents=[], storage_context=self.storage_context)
         self.docs_folder = docs_folder
         self.stream = stream
         self.use_flash_attention = use_flash_attention
