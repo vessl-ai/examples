@@ -137,7 +137,7 @@ class RAGInterface:
             llm = HuggingFaceLLM(
                 model_name=llm_repo,
                 max_new_tokens=4096,
-                model_kwargs={"temperature": 0.8, "device": self.device},
+                model_kwargs={"temperature": 0.8},
             )
 
         self.retriever = FaissVectorDBRetriever(self.vector_store, self.embedding, query_mode="default", similarity_top_k=2)
