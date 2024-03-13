@@ -10,6 +10,7 @@ from langchain.memory import ConversationBufferMemory
 from langchain.text_splitter import CharacterTextSplitter
 from langchain_community.embeddings import HuggingFaceBgeEmbeddings
 from langchain_community.llms import HuggingFaceHub
+from langchain_community.llms import VLLM
 from langchain_community.vectorstores import FAISS
 from PyPDF2 import PdfReader
 import torch
@@ -64,6 +65,7 @@ class RAGInterface:
         embedding_model: str,
         encode_kwargs: dict,
         docs_folder: str = "./docs",
+        use_vllm: bool = True,
     ):
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.embedding_model = embedding_model
@@ -73,6 +75,7 @@ class RAGInterface:
         self.encode_kwargs = encode_kwargs
         self.vectorstore: FAISS = None
         self.docs_folder = docs_folder
+        self.use_vllm = use_vllm
         print(f"Using accelerator: {self.device}")
 
     def initialize_conversation_chain(self, initial_docs: List[str], llm_repo: str = "mistralai/Mistral-7B-Instruct-v0.2"):
@@ -96,11 +99,24 @@ class RAGInterface:
         print("Initializing vector database...")
         self.vectorstore = FAISS.from_texts(texts=text_chunks, embedding=self.embeddings)
 
-        print("Initializing conversation chain...")
-        llm = HuggingFaceHub(
-            repo_id=llm_repo,
-            model_kwargs={"temperature": 0.5, "max_length": 4096, "device": self.device},
-        )
+        print(f"Loading LLM from {llm_repo}...")
+        if self.use_vllm:
+            print(f"--use-vllm flag is set. Loading model using vLLM.")
+            llm = VLLM(
+                model=llm_repo,
+                trust_remote_code=True,  # mandatory for hf models
+                max_new_tokens=2048,
+                top_k=10,
+                top_p=0.95,
+                temperature=0.8,
+                streaming=True,
+            )
+        else:
+            llm = HuggingFaceHub(
+                repo_id=llm_repo,
+                model_kwargs={"temperature": 0.5, "max_length": 4096, "device": self.device},
+                streaming=True,
+            )
 
         memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
         self.conversation = ConversationalRetrievalChain.from_llm(
@@ -135,7 +151,11 @@ class RAGInterface:
         return self.vectorstore.as_retriever()
 
     def handle_chat(self, message, history):
-        return self.conversation.invoke(message)['answer']
+        full_response = ""
+        for response in self.conversation({"question": message, "chat_history": history})["answer"]:
+            full_response += response
+            yield full_response
+        return full_response
 
 def close_app():
     gr.Info("Terminated the app!")
@@ -161,6 +181,7 @@ def main(args: argparse.Namespace):
     ragger = RAGInterface(
         embedding_model=args.embeddings_model,
         encode_kwargs={"normalize_embeddings": True},
+        use_vllm=args.use_vllm,
     )
     ragger.initialize_conversation_chain(initial_docs, llm_repo=args.llm_repo)
 
@@ -204,6 +225,7 @@ if __name__ == "__main__":
     parser.add_argument("--docs-folder", default="./docs")
     parser.add_argument("--embeddings-model", default="BAAI/bge-base-en-v1.5")
     parser.add_argument("--llm_repo", default="mistralai/Mistral-7B-Instruct-v0.2")
+    parser.add_argument("--use-vllm", action=argparse.BooleanOptionalAction)
     parser.add_argument("--hf-token", default="")
 
     args = parser.parse_args()
