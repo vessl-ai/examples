@@ -7,11 +7,11 @@ from typing import Dict, Any, List, Optional
 import faiss
 import gradio as gr
 
-from llama_index.core import VectorStoreIndex, QueryBundle
+from llama_index.core import VectorStoreIndex, QueryBundle, StorageContext, load_index_from_storage
 from llama_index.core.node_parser import SentenceSplitter
 from llama_index.core.retrievers import BaseRetriever
 from llama_index.core.schema import TextNode, NodeWithScore
-from llama_index.core.vector_stores import VectorStoreQuery
+from llama_index.core.vector_stores import VectorStoreQuery, SimpleVectorStore
 from llama_index.core.vector_stores.types import VectorStoreQueryMode
 from llama_index.core.chat_engine import ContextChatEngine
 from llama_index.embeddings.huggingface import HuggingFaceEmbedding
@@ -19,6 +19,7 @@ from llama_index.llms.vllm import Vllm
 from llama_index.llms.huggingface import HuggingFaceLLM
 from llama_index.readers.file import PyMuPDFReader
 from llama_index.vector_stores.faiss import FaissVectorStore
+
 
 import torch
 
@@ -86,16 +87,12 @@ class FaissVectorDBRetriever(BaseRetriever):
         similarity_top_k: int = 2,
     ) -> None:
         self._vector_store_index = vector_store_index
-        self._embed_model = embed_model
-        self._query_mode = query_mode
-        self._similarity_top_k = similarity_top_k
+        self._retriever = self._vector_store_index.as_retriever(
+            embed_model=embed_model, similarity_top_k=similarity_top_k, mode=VectorStoreQueryMode(query_mode))
         super().__init__()
 
     def _retrieve(self, query_bundle: QueryBundle) -> List[NodeWithScore]:
-        retriever = self._vector_store_index.as_retriever(embed_model=self._embed_model, similarity_top_k=self._similarity_top_k)
-        query_result = retriever
-
-        return retriever.retrieve(query_bundle.query_str)
+        return self._retriever.retrieve(query_bundle)
 
 class RAGInterface:
     def __init__(
@@ -111,7 +108,8 @@ class RAGInterface:
         self.embedding = HuggingFaceEmbedding(model_name=embedding_model_name, device=self.device)
         self.faiss_index = faiss.IndexFlatL2(1024) # 1024 is dimension of the embeddings
         self.vector_store = FaissVectorStore(faiss_index=self.faiss_index)
-        self.vector_store_index = VectorStoreIndex.from_vector_store(self.vector_store)
+        self.storage_context = StorageContext.from_defaults(vector_store=self.vector_store)
+        self.vector_store_index = load_index_from_storage(self.storage_context)
         self.docs_folder = docs_folder
         self.stream = stream
         self.use_flash_attention = use_flash_attention
