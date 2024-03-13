@@ -122,18 +122,19 @@ class RAGInterface:
             nodes = generate_vector_store_nodes(pdf_file_path, self.embedding)
             self.vector_store.add_nodes(nodes)
 
-        print(f"Loading LLM from {model_name}...")
         if self.use_vllm:
-            print(f"--use-vllm flag is set. Loading model using vLLM.")
+            print(f"Loading LLM from {model_name} using vLLM...")
             llm = Vllm(
                 model=model_name,
                 trust_remote_code=True,  # mandatory for hf models
                 max_new_tokens=4096,
+                vllm_kwargs={"max_model_len": 8192},
                 top_k=10,
                 top_p=0.95,
                 temperature=0.8,
             )
         else:
+            print(f"--no-vllm flag is set. Loading LLM from {model_name} using transformers.AutoModelForCausalLM...")
             llm = HuggingFaceLLM(
                 model_name=model_name,
                 tokenizer_name=model_name,
