@@ -23,6 +23,31 @@ from llama_index.readers.file import PyMuPDFReader
 
 import torch
 
+CHAT_TEMPLATE = """
+{%- set ns = namespace(first_system=false) -%}
+{{-'<s>'-}}
+{%- for message in messages %}
+    {%- if message['role'] == 'system' -%}
+        {{-' [INST] ' + message['content'] + '\n\n'-}}
+        {%- set ns.first_system = true -%}
+    {%- else -%}
+        {%- if message['role'] == 'user' -%}
+            {%- if ns.first_system -%}
+                {{-'' + message['content'].rstrip() + ' [/INST] '-}}
+                {%- set ns.first_system = false -%}
+            {%- else -%}
+                {{-' [INST] ' + message['content'].rstrip() + ' [/INST] '-}}
+            {%- endif -%}
+        {%- else -%}
+            {{-'' + message['content'] + '</s>' -}}
+        {%- endif -%}
+    {%- endif -%}
+{%- endfor -%}
+{%- if add_generation_prompt -%}
+    {{-''-}}
+{%- endif -%}
+"""
+
 def generate_vector_store_nodes(pdf_doc_path: str, embed_model: HuggingFaceEmbedding):
     loader = PyMuPDFReader()
     documents = loader.load(file_path=pdf_doc_path)
@@ -148,6 +173,7 @@ class RAGInterface:
                 is_chat_model=True,
                 model_kwargs={"temperature": 0.8, "do_sample": True, "top_k": 10, "top_p": 0.95},
             )
+            llm._tokenizer.chat_template = CHAT_TEMPLATE
 
         self.retriever = FaissVectorDBRetriever(self.vector_store, self.embedding, query_mode="default", similarity_top_k=2)
         self.chat_engine = ContextChatEngine.from_defaults(retriever=self.retriever, llm=llm)
