@@ -127,8 +127,17 @@ class RAGInterface:
         """
         prompt = ChatPromptTemplate.from_template(template)
 
-        self.conversation = ConversationalRetrievalChain.from_llm(
-            llm=llm, retriever=self.vectorstore.as_retriever(), memory=memory
+        # self.conversation = ConversationalRetrievalChain.from_llm(
+        #     llm=llm, retriever=self.vectorstore.as_retriever(), memory=memory
+        # )
+
+        self.conversation = (
+            {
+                "context": self.vectorstore.as_retriever(),
+                "question": RunnablePassthrough(),
+            }
+            | prompt
+            | llm
         )
 
     def add_document(self, list_file_obj: List, progress=gr.Progress()):
