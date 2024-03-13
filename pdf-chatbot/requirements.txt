@@ -5,4 +5,5 @@ llama-index-embeddings-huggingface==0.1.4
 llama-index-llms-huggingface==0.1.4
 llama-index-llms-vllm==0.1.6
 llama-index-vector-stores-faiss==0.1.2
+vllm==0.3.3
 transformers==4.37.0
