@@ -175,7 +175,7 @@ class RAGInterface:
                 is_chat_model=True,
                 model_kwargs={
                     "temperature": 0.8, "do_sample": True, "top_k": 10, "top_p": 0.95,
-                    "device_map": "cuda:0", "attn_implementation":"flash_attention_2",
+                    "attn_implementation":"flash_attention_2",
                 },
             )
             llm._tokenizer.chat_template = CHAT_TEMPLATE
