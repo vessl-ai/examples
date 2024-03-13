@@ -50,7 +50,7 @@ CHAT_TEMPLATE = """
 def generate_vector_store_nodes(pdf_doc_path: str, embed_model: HuggingFaceEmbedding):
     loader = PyMuPDFReader()
     documents = loader.load(file_path=pdf_doc_path)
-    text_parser = SentenceSplitter(chunk_size=1536, chunk_overlap=384)
+    text_parser = SentenceSplitter(chunk_size=1024)
 
     text_chunks = []
     # maintain relationship with source doc index, to help inject doc metadata later
@@ -62,20 +62,16 @@ def generate_vector_store_nodes(pdf_doc_path: str, embed_model: HuggingFaceEmbed
 
     nodes = []
     for idx, text_chunk in enumerate(text_chunks):
-        node = TextNode(
-            text=text_chunk,
-        )
+        node = TextNode(text=text_chunk)
         src_doc = documents[doc_indices[idx]]
         node.metadata = src_doc.metadata
         nodes.append(node)
 
     for node in nodes:
-        node_embedding = embed_model.get_text_embedding(
-            node.get_content(metadata_mode="all")
-        )
+        node_embedding = embed_model.get_text_embedding(node.get_content(metadata_mode="all"))
         node.embedding = node_embedding
 
-    print(f"Generated {len(nodes)} nodes from {pdf_doc_path}")
+    print(f"Embedded {len(nodes)} nodes from {pdf_doc_path}")
     print(nodes[0])
     return nodes
 
@@ -105,6 +101,7 @@ class FaissVectorDBRetriever(BaseRetriever):
             mode=VectorStoreQueryMode(self._query_mode),
         )
         query_result = self._vector_store.query(vector_store_query)
+        print(query_result)
         if query_result.nodes is None:
             return []
 
