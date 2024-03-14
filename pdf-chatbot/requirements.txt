@@ -3,6 +3,5 @@ gradio==4.15.0
 llama-index==0.10.19
 llama-index-embeddings-huggingface==0.1.4
 llama-index-llms-huggingface==0.1.4
-llama-index-llms-vllm==0.1.6
 llama-index-vector-stores-faiss==0.1.2
 transformers==4.38.0

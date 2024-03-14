@@ -23,7 +23,7 @@ run:
     workdir: /code
   - command: |
       cd /code/pdf-chatbot
-      python app.py --docs-folder=/docs --hf-token=$HUGGINGFACEHUB_API_TOKEN
+      python app.py --stream --use-flash-attention
     workdir: /code
 interactive:
   max_runtime: 8h
