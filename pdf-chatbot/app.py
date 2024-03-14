@@ -122,7 +122,7 @@ class RAGInterface:
         vllm_kwargs: Optional[Dict[str, Any]] = {},
     ):
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
-        self.embedding = HuggingFaceEmbedding(model_name=embedding_model_name, device=self.device)
+        self.embed_model = HuggingFaceEmbedding(model_name=embedding_model_name, device=self.device)
 
         # FAISS vector store
         self.faiss_index = faiss.IndexFlatL2(1024) # 1024 is dimension of the embeddings
@@ -130,7 +130,7 @@ class RAGInterface:
 
         # LlamaIndex Storage context to store nodes mapped to vector store
         self.storage_context = StorageContext.from_defaults(vector_store=self.vector_store)
-        self.vector_store_index = VectorStoreIndex(nodes=[], storage_context=self.storage_context)
+        self.vector_store_index = VectorStoreIndex(nodes=[], embed_model=self.embed_model, storage_context=self.storage_context)
 
         self.docs_folder = docs_folder
         self.stream = stream
@@ -152,7 +152,7 @@ class RAGInterface:
 
         print(f"Initializing vector database from {len(initial_docs)} Documents...")
         for pdf_file_path in initial_docs:
-            nodes = generate_vector_store_nodes(pdf_file_path, self.embedding)
+            nodes = generate_vector_store_nodes(pdf_file_path, self.embed_model)
             self.vector_store_index.insert_nodes(nodes)
             # self.vector_store.add(nodes)
 
@@ -188,7 +188,7 @@ class RAGInterface:
             # Overwrite chat_template to support system prompt
             llm._tokenizer.chat_template = CHAT_TEMPLATE
 
-        self.retriever = self.vector_store_index.as_retriever(embed_model=self.embedding, query_mode="default", similarity_top_k=2)
+        self.retriever = self.vector_store_index.as_retriever(query_mode="default", similarity_top_k=2)
         # self.retriever = FaissVectorDBRetriever(self.vector_store, self.embedding, query_mode="default", similarity_top_k=2)
         self.chat_engine = ContextChatEngine.from_defaults(retriever=self.retriever, llm=llm)
 
@@ -207,7 +207,7 @@ class RAGInterface:
 
         gr.Info("Adding documents into vector database...")
         for pdf_file_path in pdf_docs:
-            nodes = generate_vector_store_nodes(pdf_file_path, self.embedding)
+            nodes = generate_vector_store_nodes(pdf_file_path, self.embed_model)
             self.vector_store_index.insert_nodes(nodes)
             # self.vector_store.add(nodes)
             print(self.vector_store_index.summary)
