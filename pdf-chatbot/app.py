@@ -7,17 +7,16 @@ from typing import Dict, Any, List, Optional
 import faiss
 import gradio as gr
 
-from llama_index.core import VectorStoreIndex, QueryBundle, StorageContext, load_index_from_storage, ServiceContext
+from llama_index.core import QueryBundle
 from llama_index.core.node_parser import SentenceSplitter
 from llama_index.core.retrievers import BaseRetriever
 from llama_index.core.schema import TextNode, NodeWithScore
-from llama_index.core.vector_stores import VectorStoreQuery, SimpleVectorStore
+from llama_index.core.vector_stores import VectorStoreQuery
 from llama_index.core.vector_stores.types import VectorStoreQueryMode
 from llama_index.core.chat_engine import ContextChatEngine
 from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 from llama_index.readers.file import PyMuPDFReader
 from llama_index.vector_stores.faiss import FaissVectorStore
-
 
 import torch
 
@@ -79,18 +78,38 @@ class FaissVectorDBRetriever(BaseRetriever):
 
     def __init__(
         self,
-        vector_store_index: VectorStoreIndex,
+        vector_store: FaissVectorStore,
         embed_model: HuggingFaceEmbedding,
         query_mode: str = "default",
         similarity_top_k: int = 2,
     ) -> None:
-        self._vector_store_index = vector_store_index
-        self._retriever = self._vector_store_index.as_retriever(
-            embed_model=embed_model, similarity_top_k=similarity_top_k, mode=VectorStoreQueryMode(query_mode))
+        self._vector_store = vector_store
+        self._embed_model = embed_model
+        self._query_mode = query_mode
+        self._similarity_top_k = similarity_top_k
         super().__init__()
 
     def _retrieve(self, query_bundle: QueryBundle) -> List[NodeWithScore]:
-        return self._retriever.retrieve(query_bundle)
+        query_embedding = self._embed_model.get_query_embedding(
+            query_bundle.query_str
+        )
+        vector_store_query = VectorStoreQuery(
+            query_embedding=query_embedding,
+            similarity_top_k=self._similarity_top_k,
+            mode=VectorStoreQueryMode(self._query_mode),
+        )
+        query_result = self._vector_store.query(vector_store_query)
+        if query_result.nodes is None:
+            return []
+
+        nodes_with_scores = []
+        for index, node in enumerate(query_result.nodes):
+            score: Optional[float] = None
+            if query_result.similarities is not None:
+                score = query_result.similarities[index]
+            nodes_with_scores.append(NodeWithScore(node=node, score=score))
+
+        return nodes_with_scores
 
 class RAGInterface:
     def __init__(
@@ -103,10 +122,9 @@ class RAGInterface:
         vllm_kwargs: Optional[Dict[str, Any]] = {},
     ):
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
-        self.embed_model = HuggingFaceEmbedding(model_name=embedding_model_name, device=self.device)
+        self.embedding = HuggingFaceEmbedding(model_name=embedding_model_name, device=self.device)
         self.faiss_index = faiss.IndexFlatL2(1024) # 1024 is dimension of the embeddings
         self.vector_store = FaissVectorStore(faiss_index=self.faiss_index)
-        self.storage_context = StorageContext.from_defaults(vector_store=self.vector_store)
         self.docs_folder = docs_folder
         self.stream = stream
         self.use_flash_attention = use_flash_attention
@@ -127,14 +145,14 @@ class RAGInterface:
 
         print(f"Initializing vector database from {len(initial_docs)} Documents...")
         for pdf_file_path in initial_docs:
-            nodes = generate_vector_store_nodes(pdf_file_path, self.embed_model)
+            nodes = generate_vector_store_nodes(pdf_file_path, self.embedding)
             self.vector_store.add(nodes)
 
         if self.use_vllm:
             # Note: vLLM does not support streaming interface yet
             # ref: https://github.com/run-llama/llama_index/issues/9477
             print(f"Loading LLM from {model_name} using vLLM...")
-            from llama_index.llms.vllm import Vllm # Lazy loading
+            from llama_index.llms.vllm import Vllm # lazy loading
 
             llm = Vllm(
                 model=model_name,
@@ -147,9 +165,9 @@ class RAGInterface:
             )
         else:
             print(f"Loading LLM from {model_name} using transformers.AutoModelForCausalLM...")
-            from llama_index.llms.huggingface import HuggingFaceLLM # Lazy loading
+            from llama_index.llms.huggingface import HuggingFaceLLM # lazy loading
 
-            model_kwargs = {"temperature": 0.8, "do_sample": True, "top_k": 10, "top_p": 0.95}
+            model_kwargs = {"temperature": 0.8, "do_sample": True, "top_k": 10, "top_p": 0.95, "length_penalty": 0.8}
             if self.use_flash_attention:
                 model_kwargs["attn_implementation"] = "flash_attention_2"
             llm = HuggingFaceLLM(
@@ -162,12 +180,8 @@ class RAGInterface:
             # Overwrite chat_template to support system prompt
             llm._tokenizer.chat_template = CHAT_TEMPLATE
 
-        self.vector_store_index = VectorStoreIndex.from_documents(
-            documents=[], storage_context=self.storage_context,
-            service_context=ServiceContext.from_defaults(embed_model=self.embed_model, llm=llm))
-        self.chat_engine = self.vector_store_index.as_chat_engine(llm=llm)
-        # self.retriever = FaissVectorDBRetriever(self.vector_store_index, self.embed_model, query_mode="default", similarity_top_k=2)
-        # self.chat_engine = ContextChatEngine.from_defaults(retriever=self.retriever, llm=llm)
+        self.retriever = FaissVectorDBRetriever(self.vector_store, self.embedding, query_mode="default", similarity_top_k=2)
+        self.chat_engine = ContextChatEngine.from_defaults(retriever=self.retriever, llm=llm)
 
     def add_document(self, list_file_obj: List, progress=gr.Progress()):
         if self.vector_store is None:
@@ -184,7 +198,7 @@ class RAGInterface:
 
         gr.Info("Adding documents into vector database...")
         for pdf_file_path in pdf_docs:
-            nodes = generate_vector_store_nodes(pdf_file_path, self.embed_model)
+            nodes = generate_vector_store_nodes(pdf_file_path, self.embedding)
             self.vector_store.add(nodes)
             print(self.vector_store)
             progress(1, desc=f"Adding {pdf_file_path} to vector database")
