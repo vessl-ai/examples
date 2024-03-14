@@ -16,6 +16,7 @@ run:
   - command: |
       cd /code/pdf-chatbot
       pip install -r requirements.txt
+      pip uninstall transformer-engine
     workdir: /code
   - command: |  # Command to run AWQ-quantized model with FlashAttention 2. skippable if you are running other models
       pip install autoawq==0.2.3 flash-attn==2.5.6
