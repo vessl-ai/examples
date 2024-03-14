@@ -7,12 +7,8 @@ from typing import Dict, Any, List, Optional
 import faiss
 import gradio as gr
 
-from llama_index.core import QueryBundle, StorageContext, VectorStoreIndex
+from llama_index.core import StorageContext, VectorStoreIndex
 from llama_index.core.node_parser import SentenceSplitter
-from llama_index.core.retrievers import BaseRetriever
-from llama_index.core.schema import TextNode, NodeWithScore
-from llama_index.core.vector_stores import VectorStoreQuery
-from llama_index.core.vector_stores.types import VectorStoreQueryMode
 from llama_index.core.chat_engine import ContextChatEngine
 from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 from llama_index.readers.file import PyMuPDFReader
@@ -70,46 +66,7 @@ def generate_vector_store_nodes(pdf_doc_path: str, embed_model: HuggingFaceEmbed
         node.embedding = node_embedding
 
     print(f"Embedded {len(nodes)} nodes from {pdf_doc_path}")
-    print(nodes[0])
     return nodes
-
-class FaissVectorDBRetriever(BaseRetriever):
-    """Retriever over a postgres vector store."""
-
-    def __init__(
-        self,
-        vector_store: FaissVectorStore,
-        embed_model: HuggingFaceEmbedding,
-        query_mode: str = "default",
-        similarity_top_k: int = 2,
-    ) -> None:
-        self._vector_store = vector_store
-        self._embed_model = embed_model
-        self._query_mode = query_mode
-        self._similarity_top_k = similarity_top_k
-        super().__init__()
-
-    def _retrieve(self, query_bundle: QueryBundle) -> List[NodeWithScore]:
-        query_embedding = self._embed_model.get_query_embedding(
-            query_bundle.query_str
-        )
-        vector_store_query = VectorStoreQuery(
-            query_embedding=query_embedding,
-            similarity_top_k=self._similarity_top_k,
-            mode=VectorStoreQueryMode(self._query_mode),
-        )
-        query_result = self._vector_store.query(vector_store_query)
-        if query_result.nodes is None:
-            return []
-
-        nodes_with_scores = []
-        for index, node in enumerate(query_result.nodes):
-            score: Optional[float] = None
-            if query_result.similarities is not None:
-                score = query_result.similarities[index]
-            nodes_with_scores.append(NodeWithScore(node=node, score=score))
-
-        return nodes_with_scores
 
 class RAGInterface:
     def __init__(
@@ -189,7 +146,6 @@ class RAGInterface:
             llm._tokenizer.chat_template = CHAT_TEMPLATE
 
         self.retriever = self.vector_store_index.as_retriever(query_mode="default", similarity_top_k=2)
-        # self.retriever = FaissVectorDBRetriever(self.vector_store, self.embedding, query_mode="default", similarity_top_k=2)
         self.chat_engine = ContextChatEngine.from_defaults(retriever=self.retriever, llm=llm)
 
     def add_document(self, list_file_obj: List, progress=gr.Progress()):
@@ -209,8 +165,6 @@ class RAGInterface:
         for pdf_file_path in pdf_docs:
             nodes = generate_vector_store_nodes(pdf_file_path, self.embed_model)
             self.vector_store_index.insert_nodes(nodes)
-            # self.vector_store.add(nodes)
-            print(self.vector_store_index.summary)
             progress(1, desc=f"Adding {pdf_file_path} to vector database")
 
         gr.Info("Upload Completed!")
