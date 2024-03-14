@@ -165,8 +165,9 @@ class RAGInterface:
         self.vector_store_index = VectorStoreIndex.from_documents(
             documents=[], storage_context=self.storage_context,
             service_context=ServiceContext.from_defaults(embed_model=self.embed_model, llm=llm))
-        self.retriever = FaissVectorDBRetriever(self.vector_store_index, self.embed_model, query_mode="default", similarity_top_k=2)
-        self.chat_engine = ContextChatEngine.from_defaults(retriever=self.retriever, llm=llm)
+        self.chat_engine = self.vector_store_index.as_chat_engine(llm=llm)
+        # self.retriever = FaissVectorDBRetriever(self.vector_store_index, self.embed_model, query_mode="default", similarity_top_k=2)
+        # self.chat_engine = ContextChatEngine.from_defaults(retriever=self.retriever, llm=llm)
 
     def add_document(self, list_file_obj: List, progress=gr.Progress()):
         if self.vector_store is None:
