@@ -149,7 +149,7 @@ class RAGInterface:
             print(f"Loading LLM from {model_name} using transformers.AutoModelForCausalLM...")
             from llama_index.llms.huggingface import HuggingFaceLLM # Lazy loading
 
-            model_kwargs = {"temperature": 0.8, "do_sample": True, "top_k": 10, "top_p": 0.95, "length_penalty": 0.8}
+            model_kwargs = {"temperature": 0.8, "do_sample": True, "top_k": 10, "top_p": 0.95}
             if self.use_flash_attention:
                 model_kwargs["attn_implementation"] = "flash_attention_2"
             llm = HuggingFaceLLM(
