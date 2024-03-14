@@ -107,9 +107,6 @@ class RAGInterface:
         self.faiss_index = faiss.IndexFlatL2(1024) # 1024 is dimension of the embeddings
         self.vector_store = FaissVectorStore(faiss_index=self.faiss_index)
         self.storage_context = StorageContext.from_defaults(vector_store=self.vector_store)
-        self.vector_store_index = VectorStoreIndex.from_documents(
-            documents=[], storage_context=self.storage_context,
-            service_context=ServiceContext.from_defaults(embed_model=self.embed_model))
         self.docs_folder = docs_folder
         self.stream = stream
         self.use_flash_attention = use_flash_attention
@@ -165,6 +162,9 @@ class RAGInterface:
             # Overwrite chat_template to support system prompt
             llm._tokenizer.chat_template = CHAT_TEMPLATE
 
+        self.vector_store_index = VectorStoreIndex.from_documents(
+            documents=[], storage_context=self.storage_context,
+            service_context=ServiceContext.from_defaults(embed_model=self.embed_model, llm=llm))
         self.retriever = FaissVectorDBRetriever(self.vector_store_index, self.embed_model, query_mode="default", similarity_top_k=2)
         self.chat_engine = ContextChatEngine.from_defaults(retriever=self.retriever, llm=llm)
 
