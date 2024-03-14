@@ -7,7 +7,7 @@ from typing import Dict, Any, List, Optional
 import faiss
 import gradio as gr
 
-from llama_index.core import QueryBundle
+from llama_index.core import QueryBundle, StorageContext, VectorStoreIndex
 from llama_index.core.node_parser import SentenceSplitter
 from llama_index.core.retrievers import BaseRetriever
 from llama_index.core.schema import TextNode, NodeWithScore
@@ -123,8 +123,15 @@ class RAGInterface:
     ):
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.embedding = HuggingFaceEmbedding(model_name=embedding_model_name, device=self.device)
+
+        # FAISS vector store
         self.faiss_index = faiss.IndexFlatL2(1024) # 1024 is dimension of the embeddings
         self.vector_store = FaissVectorStore(faiss_index=self.faiss_index)
+
+        # LlamaIndex Storage context to store nodes mapped to vector store
+        self.storage_context = StorageContext.from_defaults(vector_store=self.vector_store)
+        self.vector_store_index = VectorStoreIndex(nodes=[], storage_context=self.storage_context)
+
         self.docs_folder = docs_folder
         self.stream = stream
         self.use_flash_attention = use_flash_attention
@@ -146,7 +153,8 @@ class RAGInterface:
         print(f"Initializing vector database from {len(initial_docs)} Documents...")
         for pdf_file_path in initial_docs:
             nodes = generate_vector_store_nodes(pdf_file_path, self.embedding)
-            self.vector_store.add(nodes)
+            self.vector_store_index.insert_nodes(nodes)
+            # self.vector_store.add(nodes)
 
         if self.use_vllm:
             # Note: vLLM does not support streaming interface yet
@@ -180,7 +188,8 @@ class RAGInterface:
             # Overwrite chat_template to support system prompt
             llm._tokenizer.chat_template = CHAT_TEMPLATE
 
-        self.retriever = FaissVectorDBRetriever(self.vector_store, self.embedding, query_mode="default", similarity_top_k=2)
+        self.retriever = self.vector_store_index.as_retriever(embed_model=self.embedding, query_mode="default", similarity_top_k=2)
+        # self.retriever = FaissVectorDBRetriever(self.vector_store, self.embedding, query_mode="default", similarity_top_k=2)
         self.chat_engine = ContextChatEngine.from_defaults(retriever=self.retriever, llm=llm)
 
     def add_document(self, list_file_obj: List, progress=gr.Progress()):
@@ -199,8 +208,9 @@ class RAGInterface:
         gr.Info("Adding documents into vector database...")
         for pdf_file_path in pdf_docs:
             nodes = generate_vector_store_nodes(pdf_file_path, self.embedding)
-            self.vector_store.add(nodes)
-            print(self.vector_store)
+            self.vector_store_index.insert_nodes(nodes)
+            # self.vector_store.add(nodes)
+            print(self.vector_store_index.summary)
             progress(1, desc=f"Adding {pdf_file_path} to vector database")
 
         gr.Info("Upload Completed!")
