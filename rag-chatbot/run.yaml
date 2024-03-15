@@ -1,20 +1,20 @@
-name: pdf-chatbot
-description: PDF chatbot
+name: rag-chatbot
+description: RAG chatbot with LLamd
 tags:
   - RAG
   - chatbot
   - LLM
 resources:
   cluster: vessl-gcp-oregon
-  preset: gpu-l4-small
-image: quay.io/vessl-ai/torch:2.2.0-cuda12.3
+  preset: gpu-l4-small-spot
+image: quay.io/vessl-ai/torch:2.1.0-cuda12.2-r3
 import:
   /code/:
     git:
       url: github.com/vessl-ai/examples.git
 run:
   - command: |
-      cd /code/pdf-chatbot
+      cd /code/rag-chatbot
       pip install -r requirements.txt
       pip uninstall -y transformer-engine
     workdir: /code
@@ -22,7 +22,7 @@ run:
       pip install autoawq==0.2.3 flash-attn==2.5.6
     workdir: /code
   - command: |
-      cd /code/pdf-chatbot
+      cd /code/rag-chatbot
       python app.py --stream --use-flash-attention --model-name=$MODEL_NAME
     workdir: /code
 ports:

@@ -153,8 +153,8 @@ $ vessl run list
 Organization: vessl-ai
 Project: llm-demo-20240124
  ID            Name           Type         Status      Created                    Description
- ............  pdf-chatbot    batch        terminated  2024-01-25 01:37:52+00:00
- ............  pdf-chatbot    interactive  terminated  2024-01-25 01:47:11+00:00
+ ............  rag-chatbot    batch        terminated  2024-01-25 01:37:52+00:00
+ ............  rag-chatbot    interactive  terminated  2024-01-25 01:47:11+00:00
  ............  vllm-demo      batch        terminated  2024-02-05 14:37:27+00:00
  ............  test-notebook  interactive  terminated  2024-02-05 14:47:10+00:00
  369367189168  vllm-demo      batch        running     2024-02-06 04:16:36+00:00

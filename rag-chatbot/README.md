@@ -1,6 +1,6 @@
-# PDF Chatbot with LlamaIndex and Open-source LLMs
+# Simple RAG Chatbot with LlamaIndex and Open-source LLMs
 
-This repository contains code for a PDF chatbot powered by LlamaIndex and Open-source LLMs on HuggingFace🤗.
+This repository contains code for a RAG chatbot powered by LlamaIndex and Open-source LLMs on HuggingFace🤗.
 The app uses RAG(Retrieval Generated Augmentation) Using vector database. It initializes a vector database from a list of PDF documents, allowing the chatbot to retrieve relevant information. Users can add more documents to the vector database and interact with the chatbot through Gradio's user interface.
 
 ![screenshot](asset/screenshot.png)
@@ -11,7 +11,7 @@ The app uses RAG(Retrieval Generated Augmentation) Using vector database. It ini
 
    ```bash
    git clone https://github.com/vessl-ai/examples.git
-   cd examples/pdf-chatbot
+   cd examples/rag-chatbot
    ```
 
 1. Install the required dependencies:
@@ -28,7 +28,7 @@ The app uses RAG(Retrieval Generated Augmentation) Using vector database. It ini
 
    Replace `/path/to/your/docs/folder` with the path to the folder containing your PDF documents.
 
-4. Access the Gradio interface by opening [http://localhost:7860](http://localhost:7860) in your web browser.
+1. Access the Gradio interface by opening [http://localhost:7860](http://localhost:7860) in your web browser.
 
 ## Deploying on VESSL
 
@@ -49,5 +49,11 @@ To deploy the PDF chatbot on VESSL, follow these steps:
 Feel free to explore and interact with the PDF chatbot on VESSL!
 
 **Note:** Make sure to customize the YAML file according to your specific requirements and environment.
+
+## Changing the Model
+
+You can change the model used by the chatbot by modifying the `--model-name` flag in the python script. On the VESSL RUN template, it is set using the `$MODEL_NAME` environment variable. The default model is [`TheBloke/Mistral-7B-Instruct-v0.2-AWQ`](https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.2-AWQ) which is the quantized version of [mistralai/Mistral-7B-Instruct-v0.2](https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.2) from Mistral AI.
+
+You can replace it with any other model available on HuggingFace's model hub, such as `upstage/SOLAR-10.7B-v1.0`, `microsoft/phi-2` or `google/gemma-7b-it`.
 
 For additional information and support, refer to the [VESSL documentation](https://docs.vessl.ai/).

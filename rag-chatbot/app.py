@@ -216,10 +216,10 @@ def main(args: argparse.Namespace):
     )
     ragger.initialize_chat_engine(initial_docs, model_name=args.model_name)
 
-    with gr.Blocks(css=css, title="PDF Chatbot with LlamaIndex🦙 and Open-source LLMs") as demo:
+    with gr.Blocks(css=css, title="RAG Chatbot with LlamaIndex🦙 and Open-source LLMs") as demo:
         with gr.Row():
             gr.Markdown(
-            f"""<h2>PDF Chatbot with LlamaIndex🦙 and {args.model_name}</h2>
+            f"""<h2>RAG Chatbot with LlamaIndex🦙 and {args.model_name}</h2>
             <h3>Ask any questions about your PDF documents, along with follow-ups</h3>
             <b>Note:</b> This AI assistant performs retrieval-augmented generation from your PDF documents.<br>
             Initial documents are loaded from the `{args.docs_folder}` folder. You can add more documents by clicking the button below.<br>
@@ -250,26 +250,26 @@ def main(args: argparse.Namespace):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        prog="PDF Chatbot",
+        prog="RAG Chatbot",
         description="Question Answering with Retrieval QA and LangChain Language Models featuring FAISS vector stores.")
 
-    parser.add_argument("--docs-folder", default="./docs")
-    parser.add_argument("--embedding-model-name", default="BAAI/bge-m3")
-    parser.add_argument("--model-name", default="TheBloke/Mistral-7B-Instruct-v0.2-AWQ")
-    parser.add_argument("--use-vllm", action="store_true")
-    parser.add_argument("--stream", action="store_true")
-    parser.add_argument("--use-flash-attention", action="store_true")
-    parser.add_argument("--vllm-max-model-len", default=4096)
-    parser.add_argument("--vllm-enforce-eager", action="store_true")
+    parser.add_argument("--docs-folder", default="./docs", help="Path to the folder containing the PDF documents.")
+    parser.add_argument("--embedding-model-name", default="BAAI/bge-m3", help="HuggingFace model name for text embeddings.")
+    parser.add_argument("--model-name", default="TheBloke/Mistral-7B-Instruct-v0.2-AWQ", help="HuggingFace model name for LLM.")
+    parser.add_argument("--use-vllm", action="store_true", help="Use vLLM for generation.")
+    parser.add_argument("--stream", action="store_true", help="Use streaming interface for vLLM generation.")
+    parser.add_argument("--use-flash-attention", action="store_true", help="Use Flash Attention for vLLM generation.")
+    parser.add_argument("--vllm-max-model-len", default=4096, help="Max model length - Only active if using vLLM")
+    parser.add_argument("--vllm-enforce-eager", action="store_true", help="Enforce eager mode - Only active if using vLLM")
 
     args = parser.parse_args()
 
     # Validate arguments
     if args.use_vllm:
-        print("[WARN] Using vLLM for generation. You might want to install vLLM with `pip install -U vllm llama-index-llms-vllm` before running the app.")
+        print("[WARN] Using vLLM for text generation. You might want to install vLLM with `pip install -U vllm llama-index-llms-vllm` before running the app.")
         if args.stream:
             raise ValueError("vLLM on LlamaIndex does not streaming interface yet. Please remove --stream flag.")
     if args.use_flash_attention:
-        print("[WARN] Using Flash Attention for vLLM. You might want to install Flash Attention with `FLASH_ATTENTION_FORCE_BUILD=TRUE pip install -U flash-attn` before running the app.")
+        print("[WARN] Using Flash Attention for vLLM. You might want to install Flash Attention with `pip install -U flash-attn` before running the app.")
 
     main(args)
