@@ -10,6 +10,7 @@ import gradio as gr
 from llama_index.core import StorageContext, VectorStoreIndex
 from llama_index.core.node_parser import SentenceSplitter
 from llama_index.core.chat_engine import ContextChatEngine
+from llama_index.core.schema import TextNode
 from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 from llama_index.readers.file import PyMuPDFReader
 from llama_index.vector_stores.faiss import FaissVectorStore
