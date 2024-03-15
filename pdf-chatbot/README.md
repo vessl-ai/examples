@@ -1,6 +1,6 @@
-# PDF Chatbot with LangChain and Open-source LLMs
+# PDF Chatbot with LlamaIndex and Open-source LLMs
 
-This repository contains code for a PDF chatbot powered by LangChain and Open-source LLMs on HuggingFace🤗.
+This repository contains code for a PDF chatbot powered by LlamaIndex and Open-source LLMs on HuggingFace🤗.
 The app uses RAG(Retrieval Generated Augmentation) Using vector database. It initializes a vector database from a list of PDF documents, allowing the chatbot to retrieve relevant information. Users can add more documents to the vector database and interact with the chatbot through Gradio's user interface.
 
 ![screenshot](asset/screenshot.png)

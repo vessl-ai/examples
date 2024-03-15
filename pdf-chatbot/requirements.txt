@@ -1,8 +1,7 @@
 faiss-cpu==1.7.4
-InstructorEmbedding==1.0.1
 gradio==4.15.0
-huggingface-hub==0.20.3
-langchain==0.1.3
-PyPDF2==3.0.1
-sentence-transformers==2.2.2
-transformers==4.37.0
+llama-index==0.10.19
+llama-index-embeddings-huggingface==0.1.4
+llama-index-llms-huggingface==0.1.4
+llama-index-vector-stores-faiss==0.1.2
+transformers==4.38.0
