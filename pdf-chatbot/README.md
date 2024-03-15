@@ -7,8 +7,6 @@ The app uses RAG(Retrieval Generated Augmentation) Using vector database. It ini
 
 ## How to Run it Locally
 
-1. Visit https://huggingface.co/settings/tokens to get your Hugging Face API token.
-
 1. Clone the repository:
 
    ```bash
@@ -25,10 +23,10 @@ The app uses RAG(Retrieval Generated Augmentation) Using vector database. It ini
 1. Run the application:
 
    ```bash
-   python app.py --docs-folder=/path/to/your/docs/folder --hf-token=<YOUR_HF_API_TOKEN>
+   python app.py --docs-folder=/path/to/your/docs/folder --stream
    ```
 
-   Replace `/path/to/your/docs/folder` with the path to the folder containing your PDF documents, and `YOUR_HF_API_TOKEN` with your actual Hugging Face API token.
+   Replace `/path/to/your/docs/folder` with the path to the folder containing your PDF documents.
 
 4. Access the Gradio interface by opening [http://localhost:7860](http://localhost:7860) in your web browser.
 
@@ -42,9 +40,7 @@ To deploy the PDF chatbot on VESSL, follow these steps:
 
 2. Use the provided YAML file [(`run.yaml`)](./run.yaml) to configure the deployment settings, including resources, image, import statements, run commands, and environment variables.
 
-3. Ensure you have a valid Hugging Face API token (`HUGGINGFACEHUB_API_TOKEN`) and replace `<YOUR_HF_API_TOKEN>` in the YAML file with your actual token.
-
-4. Deploy the application on VESSL using the configured YAML file:
+3. Deploy the application on VESSL using the configured YAML file:
 
    ```bash
    vessl run create -f run.yaml
