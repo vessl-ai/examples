@@ -7,7 +7,7 @@ tags:
 resources:
   cluster: vessl-gcp-oregon
   preset: gpu-l4-small
-image: quay.io/vessl-ai/torch:2.1.0-cuda12.2-r3
+image: quay.io/vessl-ai/torch:2.2.0-cuda12.3
 import:
   /code/:
     git:
@@ -23,16 +23,11 @@ run:
     workdir: /code
   - command: |
       cd /code/pdf-chatbot
-      python app.py --stream --use-flash-attention
+      python app.py --stream --use-flash-attention --model-name=$MODEL_NAME
     workdir: /code
-interactive:
-  max_runtime: 8h
-  jupyter:
-    idle_timeout: 8h
 ports:
   - name: gradio
     type: http
     port: 7860
 env:
-  HUGGINGFACEHUB_API_TOKEN: <YOUR_HF_API_TOKEN>
-termination_protection: false
+  MODEL_NAME: TheBloke/Mistral-7B-Instruct-v0.2-AWQ
