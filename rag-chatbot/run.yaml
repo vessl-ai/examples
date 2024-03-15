@@ -1,5 +1,5 @@
 name: rag-chatbot
-description: RAG chatbot with LLamd
+description: RAG chatbot with LLamaIndex
 tags:
   - RAG
   - chatbot
