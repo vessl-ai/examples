@@ -1,0 +1,15 @@
+name: tracking
+description: "tracking example run"
+import:
+  /root/examples/: git://github.com/vessl-ai/examples
+resources:
+  cluster: vessl-aws-oregon
+  preset: cpu-small
+image: quay.io/vessl-ai/python:3.10-r2
+run:
+  - command: python tracking/main.py
+    workdir: /root/examples
+env:
+  epochs: "10"
+  lr: "0.01"
+
