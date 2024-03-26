@@ -1,141 +1,147 @@
-import os
-import random
-import gradio as gr
-import numpy as np
-import PIL.Image
+#@title Load models
 import torch
 from diffusers import StableCascadeDecoderPipeline, StableCascadePriorPipeline
 
-os.environ['TOKENIZERS_PARALLELISM'] = 'false'
+device = torch.device("cpu")
+if torch.backends.mps.is_available() and torch.backends.mps.is_built():
+    device = torch.device("mps")
+if torch.cuda.is_available():
+    device = torch.device("cuda")
+print("RUNNING ON:", device)
 
-DESCRIPTION = "# Stable Cascade"
-DESCRIPTION += "\n<p style=\"text-align: center\">Unofficial demo for <a href='https://huggingface.co/stabilityai/stable-cascade' target='_blank'>Stable Casacade</a>, a new high resolution text-to-image model by Stability AI, built on the Würstchen architecture - <a href='https://huggingface.co/stabilityai/stable-cascade/blob/main/LICENSE' target='_blank'>non-commercial research license</a></p>"
-if not torch.cuda.is_available():
-    DESCRIPTION += "\n<p>Running on CPU 🥶</p>"
+c_dtype = torch.bfloat16 if device.type == "cpu" else torch.float
+prior = StableCascadePriorPipeline.from_pretrained("stabilityai/stable-cascade-prior", torch_dtype=c_dtype)
+decoder = StableCascadeDecoderPipeline.from_pretrained("stabilityai/stable-cascade", torch_dtype=torch.half)
+prior.to(device)
+decoder.to(device)
+
+import random
+import gc
+import numpy as np
+import gradio as gr
 
 MAX_SEED = np.iinfo(np.int32).max
-CACHE_EXAMPLES = False #torch.cuda.is_available() and os.getenv("CACHE_EXAMPLES") != "0"
-MAX_IMAGE_SIZE = int(os.getenv("MAX_IMAGE_SIZE", "1536"))
-ENABLE_CPU_OFFLOAD = os.getenv("ENABLE_CPU_OFFLOAD") == "1"
-
-dtype = torch.bfloat16
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-if torch.cuda.is_available():
-    prior_pipeline = StableCascadePriorPipeline.from_pretrained("stabilityai/stable-cascade-prior", variant="bf16", torch_dtype=dtype)
-    decoder_pipeline = StableCascadeDecoderPipeline.from_pretrained("stabilityai/stable-cascade", variant="bf16", torch_dtype=dtype)
-
-    if ENABLE_CPU_OFFLOAD:
-        prior_pipeline.enable_model_cpu_offload()
-        decoder_pipeline.enable_model_cpu_offload()
-    else:
-        prior_pipeline.to(device)
-        decoder_pipeline.to(device)
-else:
-    prior_pipeline = None
-    decoder_pipeline = None
-
+MAX_IMAGE_SIZE = 1536
 
 def randomize_seed_fn(seed: int, randomize_seed: bool) -> int:
-    print("randomizing seed")
     if randomize_seed:
         seed = random.randint(0, MAX_SEED)
     return seed
 
+def generate_prior(prompt, negative_prompt, generator, width, height, num_inference_steps, guidance_scale, num_images_per_prompt):
+    prior_output = prior(
+        prompt=prompt,
+        height=height,
+        width=width,
+        negative_prompt=negative_prompt,
+        guidance_scale=guidance_scale,
+        num_images_per_prompt=num_images_per_prompt,
+        num_inference_steps=num_inference_steps
+    )
+    torch.cuda.empty_cache()
+    gc.collect()
+    return prior_output.image_embeddings
 
+
+def generate_decoder(prior_embeds, prompt, negative_prompt, generator, num_inference_steps, guidance_scale):
+    decoder_output = decoder(
+        image_embeddings=prior_embeds.to(device=device, dtype=decoder.dtype),
+        prompt=prompt,
+        negative_prompt=negative_prompt,
+        guidance_scale=guidance_scale,
+        output_type="pil",
+        num_inference_steps=num_inference_steps,
+        generator=generator
+    ).images
+    torch.cuda.empty_cache()
+    gc.collect()
+    return decoder_output
+
+
+@torch.inference_mode()
 def generate(
     prompt: str,
     negative_prompt: str = "",
     seed: int = 0,
+    randomize_seed: bool = True,
     width: int = 1024,
     height: int = 1024,
-    prior_num_inference_steps: int = 30,
+    prior_num_inference_steps: int = 20,
     prior_guidance_scale: float = 4.0,
-    decoder_num_inference_steps: int = 12,
+    decoder_num_inference_steps: int = 10,
     decoder_guidance_scale: float = 0.0,
     num_images_per_prompt: int = 2,
-) -> PIL.Image.Image:
-    
-    generator = torch.Generator().manual_seed(seed)
-    print("prior_num_inference_steps: ", prior_num_inference_steps)
-    prior_output = prior_pipeline(
+):
+    """Generate images using Stable Cascade."""
+    seed = randomize_seed_fn(seed, randomize_seed)
+    print("seed:", seed)
+    generator = torch.Generator(device=device).manual_seed(seed)
+    prior_embeds = generate_prior(
         prompt=prompt,
-        height=height,
-        width=width,
-        num_inference_steps=prior_num_inference_steps,
-        # timesteps=DEFAULT_STAGE_C_TIMESTEPS,
         negative_prompt=negative_prompt,
+        generator=generator,
+        width=width,
+        height=height,
+        num_inference_steps=prior_num_inference_steps,
         guidance_scale=prior_guidance_scale,
         num_images_per_prompt=num_images_per_prompt,
-        generator=generator,
+
     )
 
-    decoder_output = decoder_pipeline(
-        image_embeddings=prior_output.image_embeddings.to(torch.bfloat16),
+    decoder_output = generate_decoder(
+        prior_embeds=prior_embeds,
         prompt=prompt,
-        num_inference_steps=decoder_num_inference_steps,
-        guidance_scale=decoder_guidance_scale,
         negative_prompt=negative_prompt,
         generator=generator,
-        output_type="pil",
-    ).images
-    print(decoder_output)
-    
-    return decoder_output[0]
+        num_inference_steps=decoder_num_inference_steps,
+        guidance_scale=decoder_guidance_scale,
+    )
+
+    return decoder_output
 
 
 examples = [
     "An astronaut riding a green horse",
     "A mecha robot in a favela by Tarsila do Amaral",
-    "The spirit of a Tamagotchi wandering in the city of Los Angeles",
+    "The sprirt of a Tamagotchi wandering in the city of Los Angeles",
     "A delicious feijoada ramen dish"
 ]
 
-with gr.Blocks() as demo:
-    gr.Markdown(DESCRIPTION)
-    gr.DuplicateButton(
-        value="Duplicate Space for private use",
-        elem_id="duplicate-button",
-        visible=os.getenv("SHOW_DUPLICATE_BUTTON") == "1",
-    )
-    with gr.Group():
-        with gr.Row():
-            prompt = gr.Text(
-                label="Prompt",
-                show_label=False,
+with gr.Blocks(css="gradio_app/style.css") as demo:
+    with gr.Column():
+        prompt = gr.Text(
+            label="Prompt",
+            show_label=False,
+            placeholder="Enter your prompt",
+        )
+        run_button = gr.Button("Run")
+        with gr.Accordion("Advanced options", open=False):
+            negative_prompt = gr.Text(
+                label="Negative prompt",
                 max_lines=1,
-                placeholder="Enter your prompt",
-                container=False,
+                placeholder="Enter a Negative Prompt",
             )
-            run_button = gr.Button("Run", scale=0)
-        result = gr.Image(label="Result", show_label=False)
-    with gr.Accordion("Advanced options", open=False):
-        negative_prompt = gr.Text(
-            label="Negative prompt",
-            max_lines=1,
-            placeholder="Enter a Negative Prompt",
-        )
 
-        seed = gr.Slider(
-            label="Seed",
-            minimum=0,
-            maximum=MAX_SEED,
-            step=1,
-            value=0,
-        )
-        randomize_seed = gr.Checkbox(label="Randomize seed", value=True)
-        with gr.Row():
+            seed = gr.Slider(
+                label="Seed",
+                minimum=0,
+                maximum=MAX_SEED,
+                step=1,
+                value=0,
+            )
+            randomize_seed = gr.Checkbox(label="Randomize seed", value=True)
             width = gr.Slider(
                 label="Width",
                 minimum=1024,
                 maximum=MAX_IMAGE_SIZE,
-                step=512,
+                step=128,
                 value=1024,
             )
             height = gr.Slider(
                 label="Height",
                 minimum=1024,
                 maximum=MAX_IMAGE_SIZE,
-                step=512,
+                step=128,
                 value=1024,
             )
             num_images_per_prompt = gr.Slider(
@@ -143,9 +149,8 @@ with gr.Blocks() as demo:
                 minimum=1,
                 maximum=2,
                 step=1,
-                value=1,
+                value=2,
             )
-        with gr.Row():
             prior_guidance_scale = gr.Slider(
                 label="Prior Guidance Scale",
                 minimum=0,
@@ -175,19 +180,21 @@ with gr.Blocks() as demo:
                 step=1,
                 value=10,
             )
+    with gr.Column():
+        result = gr.Gallery(label="Result", show_label=False)
 
     gr.Examples(
         examples=examples,
         inputs=prompt,
         outputs=result,
         fn=generate,
-        cache_examples=CACHE_EXAMPLES,
     )
 
     inputs = [
             prompt,
             negative_prompt,
             seed,
+            randomize_seed,
             width,
             height,
             prior_num_inference_steps,
@@ -196,19 +203,20 @@ with gr.Blocks() as demo:
             decoder_guidance_scale,
             num_images_per_prompt,
     ]
-    gr.on(
-        triggers=[prompt.submit, negative_prompt.submit, run_button.click],
-        fn=randomize_seed_fn,
-        inputs=[seed, randomize_seed],
-        outputs=seed,
-        queue=False,
-        api_name=False,
-    ).then(
+    prompt.submit(
         fn=generate,
         inputs=inputs,
         outputs=result,
-        api_name="run",
+    )
+    negative_prompt.submit(
+        fn=generate,
+        inputs=inputs,
+        outputs=result,
+    )
+    run_button.click(
+        fn=generate,
+        inputs=inputs,
+        outputs=result,
     )
 
-if __name__ == "__main__":
-    demo.queue(max_size=20).launch(server_name="0.0.0.0")
+demo.queue(20).launch(server_name="0.0.0.0")
