@@ -9,7 +9,7 @@ if torch.cuda.is_available():
     device = torch.device("cuda")
 print("RUNNING ON:", device)
 
-c_dtype = torch.bfloat16 if device.type == "cpu" else torch.float
+c_dtype = torch.float if device.type == "mps" else torch.bfloat16
 prior = StableCascadePriorPipeline.from_pretrained("stabilityai/stable-cascade-prior", torch_dtype=c_dtype)
 decoder = StableCascadeDecoderPipeline.from_pretrained("stabilityai/stable-cascade", torch_dtype=torch.half)
 prior.to(device)
@@ -36,7 +36,8 @@ def generate_prior(prompt, negative_prompt, generator, width, height, num_infere
         negative_prompt=negative_prompt,
         guidance_scale=guidance_scale,
         num_images_per_prompt=num_images_per_prompt,
-        num_inference_steps=num_inference_steps
+        num_inference_steps=num_inference_steps,
+        generator=generator
     )
     torch.cuda.empty_cache()
     gc.collect()
@@ -85,7 +86,6 @@ def generate(
         num_inference_steps=prior_num_inference_steps,
         guidance_scale=prior_guidance_scale,
         num_images_per_prompt=num_images_per_prompt,
-
     )
 
     decoder_output = generate_decoder(
