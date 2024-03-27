@@ -1,4 +1,3 @@
-#@title Load models
 import torch
 from diffusers import StableCascadeDecoderPipeline, StableCascadePriorPipeline
 
