@@ -1,8 +1,9 @@
 # Stable Cascade
 ![img](https://github.com/Stability-AI/StableCascade/blob/master/figures/collage_1.jpg)
 
-This repository cotains code to run a Gradio app with **[Stable Cascade](https://github.com/Stability-AI/StableCascade/tree/master)**, a text to image model build upon the Würstchen architecture.
+This repository cotains code to run a Gradio app with [Stable Cascade](https://github.com/Stability-AI/StableCascade), a text to image model build upon the Würstchen architecture.
 
+[Würstchen](https://openreview.net/forum?id=gU58d5QeGv) is a novel architecture for text-to-image synthesis that combines competitive performance with unprecedented cost-effectiveness for large-scale text-to-image diffusion models. It leverages a detailed but extremely compact semantic image representation to guide the diffusion process, which provides much more detailed guidance compared to latent representations of language and significantly reduces the computational requirements to achieve state-of-the-art results.
 
 ## Running Locally
 1. Clone the repository:
@@ -23,7 +24,7 @@ This repository cotains code to run a Gradio app with **[Stable Cascade](https:/
 ## Deploying with VESSL Run
 VESSL is a platform for deploying and managing AI applications. It allows you to deploy your AI applications on the cloud with a single command, and provides a web interface for managing your applications.
 
-To deploy the Stable Cascade Gradio app, follow the follwing steps:
+To deploy the Stable Cascade Gradio app, follow the steps below:
 
 1. Create a new project on VESSL.
 2. Deploy the application with the provided YAML file ([`run.yaml`](./run.yaml)):
@@ -32,3 +33,15 @@ To deploy the Stable Cascade Gradio app, follow the follwing steps:
     ```
 
 For additional information and support, please refer to the [VESSL documentation](https://docs.vessl.ai).
+
+## Citation
+```bibtex
+@misc{pernias2023wuerstchen,
+      title={Wuerstchen: An Efficient Architecture for Large-Scale Text-to-Image Diffusion Models}, 
+      author={Pablo Pernias and Dominic Rampas and Mats L. Richter and Christopher J. Pal and Marc Aubreville},
+      year={2023},
+      eprint={2306.00637},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV}
+}
+```
