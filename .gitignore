@@ -18,3 +18,4 @@ vessl.runner.pkl
 /credit_scoring/iris_classifier.ipynb
 /langchain/gitbook-docs/
 *.swp
+.venv
