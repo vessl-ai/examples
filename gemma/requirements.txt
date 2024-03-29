@@ -1,5 +1,5 @@
-transformers
-accelerate
-streamlit
-torch
-streamlit-chat
+transformers==4.39.1
+accelerate==0.28.0
+streamlit==1.32.2
+torch==2.2.0
+streamlit-chat==0.1.1
