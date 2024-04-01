@@ -1,7 +1,7 @@
-name: inference_SSD-1B_A10G
+name: inference_SSD-1B
 resources:
-  cluster: aws-apne2
-  preset: v1.a10g-1.mem-26
+  cluster: vessl-gcp-oregon
+  preset: gpu-l4-small-spot
 image: quay.io/vessl-ai/ngc-pytorch-kernel:23.09-py3-202310300302
 import:
   /dataset/: vessl-model://vessl-ai/SSD-1B/1
@@ -10,7 +10,7 @@ run:
   - command: |-
       pip install --upgrade pip
       pip install -r requirements.txt
-      pip install git+https://github.com/huggingface/diffusers
+      pip install diffusers==0.27.2
       mkdir /data
       cd /dataset
       mv SSD-1B.tar.gz /data

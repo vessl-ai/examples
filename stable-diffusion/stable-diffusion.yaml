@@ -1,14 +1,18 @@
 name: stable-diffusion
 resources:
-  cluster: aws-uw2
-  accelerators: V100:1
-image: quay.io/vessl-ai/ngc-pytorch-kernel:22.12-py3-202301160809
-volumes:
-  /root/examples: git://github.com/vessl-ai/examples/
+  cluster: vessl-gcp-oregon
+  preset: gpu-l4-small-spot
+image: quay.io/vessl-ai/torch:2.2.0-cuda12.3-r4
+import:
+  /root/examples/: git://github.com/vessl-ai/examples.git
 run:
   - workdir: /root/examples/stable-diffusion
     command: |
       bash ./setup.sh && streamlit run main.py
+ports:
+  - name: streamlit
+    type: http
+    port: 8501
 interactive:
   runtime: 24h
   ports:
