@@ -1,11 +1,13 @@
 name: tapnet_inference
 description: "Inference tapnet with VESSL Run."
 resources:
-  cluster: vessl-oci-a100
-  preset: gpu-1
+  cluster: vessl-gcp-oregon
+  preset: gpu-l4-small-spot
 image: quay.io/vessl-ai/ngc-pytorch-kernel:23.07-py3-202308150329
 run:
   - workdir: /root/examples/co-tracker
     command: |
         bash cotracker.sh
         python inference.py
+import:
+  /root/examples: git://github.com/vessl-ai/examples

@@ -1,4 +1,5 @@
 transformers==4.35.1
 accelerate==0.24.1
+diffusers==0.27.2
 safetensors==0.4.0
-streamlit
+streamlit==1.1.0

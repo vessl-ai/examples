@@ -12,7 +12,7 @@ export:
   /output/: vessl-model://{organizationName}/{modelRepositoryName}
 run:
   - workdir: /root/examples/recommenders/sasrec
-	command: pip install -r requirements.txt
+	  command: pip install -r requirements.txt
   - workdir: /root/examples/recommenders/sasrec
     command: python main.py
   - workdir: /root

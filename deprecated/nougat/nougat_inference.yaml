@@ -1,8 +1,8 @@
 name: nougat_inference
 description: "Inference nougat with VESSL Run."
 resources:
-  cluster: vessl-oci-a100
-  preset: gpu-1
+  cluster: vessl-gcp-oregon
+  preset: gpu-l4-small-spot
 image: nvcr.io/nvidia/pytorch:22.10-py3
 import:
   /root/examples: git://github.com/vessl-ai/examples
