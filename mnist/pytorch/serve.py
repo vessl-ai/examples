@@ -23,6 +23,11 @@ def load_image(data):
     return Image.open(BytesIO(data))
 
 
+@app.get("/healthz")
+async def ping():
+    return {"ping": "pong"}
+
+
 @app.post("/predict_image/")
 async def predict(file: UploadFile):
     image = load_image(await file.read())
