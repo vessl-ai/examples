@@ -23,7 +23,7 @@ The app uses RAG(Retrieval Generated Augmentation) Using vector database. It ini
 1. Run the application:
 
    ```bash
-   python app.py --docs-folder=/path/to/your/docs/folder --stream
+   python api.py --docs-folder=/path/to/your/docs/folder --stream
    ```
 
    Replace `/path/to/your/docs/folder` with the path to the folder containing your PDF documents.

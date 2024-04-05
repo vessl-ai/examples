@@ -230,7 +230,7 @@ loan rejected!
 Once the credit scoring model has been trained it can be used for interactive loa application using Streamlit. Simply start the Streamlit application.
 
 ```bash
-streamlit run app.py
+streamlit run api.py
 ```
 Then navigate to the URL on which Streamlit is being served. You should see a user interface through which 
 loan applications can be made:

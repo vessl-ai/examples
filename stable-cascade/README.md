@@ -17,7 +17,7 @@ This repository cotains code to run a Gradio app with [Stable Cascade](https://g
     ```
 3. Run the application:
     ```bash
-    $ python app.py
+    $ python api.py
     ```
 4. Access the Gradio interface by opening http://localhost:7860 in your web browser.
 

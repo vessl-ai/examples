@@ -112,7 +112,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--app-path",
         type=str,
-        default="/work/examples/detectron2/app.py",
+        default="/work/examples/detectron2/api.py",
         help="source code path",
     )
     parser.add_argument(
