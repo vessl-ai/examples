@@ -9,26 +9,7 @@ import torchvision.transforms as transforms
 import vessl
 from torch import optim
 from torch.utils.data import random_split
-
-
-class Net(nn.Module):
-    def __init__(self, l1, l2):
-        super(Net, self).__init__()
-        self.conv1 = nn.Conv2d(3, 6, 5)
-        self.pool = nn.MaxPool2d(2, 2)
-        self.conv2 = nn.Conv2d(6, 16, 5)
-        self.fc1 = nn.Linear(16 * 5 * 5, l1)
-        self.fc2 = nn.Linear(l1, l2)
-        self.fc3 = nn.Linear(l2, 10)
-
-    def forward(self, x):
-        x = self.pool(F.relu(self.conv1(x)))
-        x = self.pool(F.relu(self.conv2(x)))
-        x = x.view(-1, 16 * 5 * 5)
-        x = F.relu(self.fc1(x))
-        x = F.relu(self.fc2(x))
-        x = self.fc3(x)
-        return x
+from torchvision.models import resnet152
 
 
 def load_data(input_path):
@@ -184,8 +165,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # hyperparameters
-    l1 = int(os.environ.get("l1", 2))
-    l2 = int(os.environ.get("l2", 2))
     lr = float(os.environ.get("lr", 0.01))
     epochs = int(os.environ.get("epochs", 10))
     batch_size = int(os.environ.get("batch_size", 128))
@@ -212,7 +191,7 @@ if __name__ == "__main__":
     print(f"Device: {device}")
     print(f"Device count: {torch.cuda.device_count()}")
 
-    model = Net(l1, l2).to(device)
+    model = resnet152().to(device)
 
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(model.parameters(), lr=lr, momentum=0.9)
