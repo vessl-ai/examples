@@ -26,7 +26,8 @@ run:
       # Start vLLM API server
       cd vllm-run
       pip install -r requirements.txt
-      python -m api --model $MODEL_NAME --max-model-len 4096 --disable-log-requests
+      # python -m api --model $MODEL_NAME --max-model-len 4096 --disable-log-requests
+      python -m vllm.endpoints.openai.api_server --model $MODEL_NAME --max-model-len 4096 --disable-log-requests
     workdir: /code
 ports:
   - name: vllm
