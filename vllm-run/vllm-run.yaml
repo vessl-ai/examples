@@ -26,8 +26,7 @@ run:
       # Start vLLM API server
       cd vllm-run
       pip install -r requirements.txt
-      # python -m api --model $MODEL_NAME --max-model-len 4096 --disable-log-requests
-      python -m vllm.endpoints.openai.api_server --model $MODEL_NAME --max-model-len 4096 --disable-log-requests
+      python -m vllm.entrypoints.openai.api_server --model $MODEL_NAME --dtype bfloat16 --api-key $API_KEY --max-model-len 4096 --disable-log-requests
     workdir: /code
 ports:
   - name: vllm
@@ -38,3 +37,4 @@ ports:
     port: 9090
 env:
   MODEL_NAME: mistralai/Mistral-7B-Instruct-v0.2
+  API_KEY: token-abc123
