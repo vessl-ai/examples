@@ -1,0 +1,29 @@
+name: mistral-chatbot
+description: Mistral chatbot using vLLM and Gradio
+tags:
+  - chatbot
+  - LLM
+resources:
+  cluster: vessl-gcp-oregon
+  preset: gpu-l4-small-spot
+image: quay.io/vessl-ai/torch:2.1.0-cuda12.2-r3
+import:
+  /code/:
+    git:
+      url: github.com/vessl-ai/examples.git
+run:
+  - command: |
+      apt update
+      apt install -y python3-venv
+    workdir: /code
+  - command: |
+      python -m venv .venv
+      .venv/bin/python -m pip install -r requirements.txt
+      .venv/bin/python app.py
+    workdir: /code/mistral-chatbot
+ports:
+  - name: gradio
+    type: http
+    port: 7860
+env:
+  MODEL_NAME: TheBloke/Mistral-7B-Instruct-v0.2-AWQ
