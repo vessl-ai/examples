@@ -1,0 +1,4 @@
+transformers==4.29.2
+peft
+triton
+gdown
