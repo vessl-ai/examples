@@ -31,14 +31,22 @@ app = FastAPI(docs_url='/', lifespan=lifespan)
 engine: AsyncLLMEngine = None
 
 
+class CommonParmas:
+    def __init__()
+
 @app.post("/generate")
-async def generate(prompt: str="What is the capital of South Korea?") -> Response:
+async def generate(request: Request) -> Response:
+    """Generate completion for the request.
+
+    The request should be a JSON object with the following fields:
+    - prompt: the prompt to use for the generation.
+    - stream: whether to stream the results or not.
+    - other fields: the sampling parameters (See `SamplingParams` for details).
     """
-    Generate completion for the request.
-    """
-    request_dict = {}
-    prefix_pos = None
-    stream = False
+    request_dict = await request.json()
+    prompt = request_dict.pop("prompt")
+    prefix_pos = request_dict.pop("prefix_pos", None)
+    stream = request_dict.pop("stream", False)
     sampling_params = SamplingParams(**request_dict)
     request_id = random_uuid()
 
