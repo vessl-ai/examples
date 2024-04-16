@@ -59,7 +59,7 @@ async def generate(prompt: str="What is the capital of South Korea?") -> Respons
 
     # Non-streaming case
     final_output = None
-    for request_output in results_generator:
+    async for request_output in results_generator:
         if await request.is_disconnected():
             # Abort the request if the client disconnects.
             await engine.abort(request_id)
