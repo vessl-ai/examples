@@ -1,10 +1,9 @@
 import os
 import csv
-import copy
 import json
 import logging
 from dataclasses import dataclass, field
-from typing import Optional, Dict, Sequence, Tuple, List
+from typing import Optional, Dict, Sequence, List
 
 import torch
 import transformers
@@ -18,7 +17,7 @@ from peft import (
     get_peft_model_state_dict,
 )
 
-from vessl.integration.transformers import VesslCallback
+import vessl
 
 
 @dataclass
@@ -180,6 +179,11 @@ class DataCollatorForSupervisedDataset(object):
         )
 
 
+class VesslCallback(transformers.TrainerCallback):
+    def on_evaluate(self, args, state, control, **kwargs):
+        vessl.log(step=state.epoch, payload=state.log_history[-1])
+
+
 """
 Manually calculate the accuracy, f1, matthews_correlation, precision, recall with sklearn.
 """
@@ -276,7 +280,7 @@ def train():
                                    train_dataset=train_dataset,
                                    eval_dataset=val_dataset,
                                    data_collator=data_collator,
-                                   callbacks=[VesslCallback],
+                                   callbacks=[VesslCallback]
     )
     trainer.train()
 
