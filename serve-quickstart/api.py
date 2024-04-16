@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 import json
 from typing import AsyncGenerator
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse, Response, StreamingResponse
 import uvicorn
 
