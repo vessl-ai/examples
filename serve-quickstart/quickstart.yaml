@@ -13,7 +13,7 @@ run:
 - command: |
     pip install -r requirements.txt
     python -m api --model $MODEL_NAME --max-model-len 4096 --disable-log-requests
-  workdir: /code/vllm-run
+  workdir: /code/serve-quickstart
 env:
   MODEL_NAME: mistralai/Mistral-7B-Instruct-v0.2
 ports:
