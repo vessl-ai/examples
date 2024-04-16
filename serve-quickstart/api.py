@@ -36,9 +36,7 @@ async def generate(prompt: str="What is the capital of South Korea?") -> Respons
     """
     Generate completion for the request.
     """
-    request_dict = {
-        "prompt": prompt
-    }
+    request_dict = {}
     prefix_pos = None
     stream = False
     sampling_params = SamplingParams(**request_dict)
