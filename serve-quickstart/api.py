@@ -1,35 +1,44 @@
-"""
-NOTE: This API server is used only for demonstrating usage of AsyncEngine
-and simple performance benchmarks. It is not intended for production use.
-For production use, we recommend using our OpenAI compatible server.
-We are also not going to accept PRs modifying this file, please
-change `vllm/entrypoints/openai/api_server.py` instead.
-"""
-
+import asyncio
 import argparse
+from contextlib import asynccontextmanager
 import json
-import ssl
 from typing import AsyncGenerator
 
-import uvicorn
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse, Response, StreamingResponse
+from prometheus_client import make_asgi_app
+import uvicorn
 
 from vllm.engine.arg_utils import AsyncEngineArgs
 from vllm.engine.async_llm_engine import AsyncLLMEngine
 from vllm.sampling_params import SamplingParams
 from vllm.utils import random_uuid
 
-TIMEOUT_KEEP_ALIVE = 5  # seconds.
-app = FastAPI()
-engine = None
+@asynccontextmanager
+async def lifespan(app: FastAPI):
 
+    async def _force_log():
+        while True:
+            await asyncio.sleep(10)
+            await engine.do_log_stats()
+
+    if not engine_args.disable_log_stats:
+        asyncio.create_task(_force_log())
+
+    yield
+
+TIMEOUT_KEEP_ALIVE = 5  # seconds.
+app = FastAPI(lifespan=lifespan)
+engine: AsyncLLMEngine = None
+
+# Add prometheus asgi middleware to route /metrics requests
+metrics_app = make_asgi_app()
+app.mount("/metrics", metrics_app)
 
 @app.get("/health")
 async def health() -> Response:
     """Health check."""
     return Response(status_code=200)
-
 
 @app.post("/generate")
 async def generate(request: Request) -> Response:
@@ -42,20 +51,20 @@ async def generate(request: Request) -> Response:
     """
     request_dict = await request.json()
     prompt = request_dict.pop("prompt")
+    prefix_pos = request_dict.pop("prefix_pos", None)
     stream = request_dict.pop("stream", False)
     sampling_params = SamplingParams(**request_dict)
     request_id = random_uuid()
 
-    assert engine is not None
-    results_generator = engine.generate(prompt, sampling_params, request_id)
+    results_generator = engine.generate(prompt,
+                                        sampling_params,
+                                        request_id,
+                                        prefix_pos=prefix_pos)
 
     # Streaming case
     async def stream_results() -> AsyncGenerator[bytes, None]:
         async for request_output in results_generator:
-            prompt = request_output.prompt
-            text_outputs = [
-                prompt + output.text for output in request_output.outputs
-            ]
+            text_outputs = [output.text for output in request_output.outputs]
             ret = {"text": text_outputs}
             yield (json.dumps(ret) + "\0").encode("utf-8")
 
@@ -73,7 +82,7 @@ async def generate(request: Request) -> Response:
 
     assert final_output is not None
     prompt = final_output.prompt
-    text_outputs = [prompt + output.text for output in final_output.outputs]
+    text_outputs = [output.text for output in final_output.outputs]
     ret = {"text": text_outputs}
     return JSONResponse(ret)
 
@@ -84,16 +93,6 @@ if __name__ == "__main__":
     parser.add_argument("--port", type=int, default=8000)
     parser.add_argument("--ssl-keyfile", type=str, default=None)
     parser.add_argument("--ssl-certfile", type=str, default=None)
-    parser.add_argument("--ssl-ca-certs",
-                        type=str,
-                        default=None,
-                        help="The CA certificates file")
-    parser.add_argument(
-        "--ssl-cert-reqs",
-        type=int,
-        default=int(ssl.CERT_NONE),
-        help="Whether client certificate is required (see stdlib ssl module's)"
-    )
     parser.add_argument(
         "--root-path",
         type=str,
@@ -101,6 +100,7 @@ if __name__ == "__main__":
         help="FastAPI root_path when app is behind a path based routing proxy")
     parser = AsyncEngineArgs.add_cli_args(parser)
     args = parser.parse_args()
+
     engine_args = AsyncEngineArgs.from_cli_args(args)
     engine = AsyncLLMEngine.from_engine_args(engine_args)
 
@@ -111,6 +111,4 @@ if __name__ == "__main__":
                 log_level="debug",
                 timeout_keep_alive=TIMEOUT_KEEP_ALIVE,
                 ssl_keyfile=args.ssl_keyfile,
-                ssl_certfile=args.ssl_certfile,
-                ssl_ca_certs=args.ssl_ca_certs,
-                ssl_cert_reqs=args.ssl_cert_reqs)
+                ssl_certfile=args.ssl_certfile)
