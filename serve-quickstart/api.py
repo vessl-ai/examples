@@ -31,9 +31,6 @@ app = FastAPI(docs_url='/', lifespan=lifespan)
 engine: AsyncLLMEngine = None
 
 
-class CommonParmas:
-    def __init__()
-
 @app.post("/generate")
 async def generate(request: Request) -> Response:
     """Generate completion for the request.
