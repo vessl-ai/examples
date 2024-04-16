@@ -1,0 +1,49 @@
+name: dnabert-2-covid-finetuning
+description: Finetune DNABERT-2 on COVID-19 data
+tags:
+  - finetuning
+  - DNABERT-2
+  - LLM
+resources:
+  cluster: vessl-gcp-oregon
+  preset: gpu-l4-large-spot
+image: quay.io/vessl-ai/torch:2.3.0-cuda12.3-r2
+import:
+  /code/:
+    git:
+      url: github.com/vessl-ai/examples.git
+      ref: vssl-8423
+run:
+  - command: |
+      pip install --upgrade vessl
+      pip install -r requirements.txt
+      pip uninstall -y transformer-engine triton
+    workdir: /code/dnabert-2
+  - command: |
+      gdown https://drive.google.com/uc?id=1GRtbzTe3UXYF1oW27ASNhYX3SZ16D7N2
+      unzip GUE.zip
+    workdir: /code/dnabert-2
+  - command: |
+      lr=3e-5
+      python train.py \
+        --model_name_or_path zhihan1996/DNABERT-2-117M \
+        --data_path /code/dnabert-2/GUE/virus/covid \
+        --kmer -1 \
+        --run_name DNABERT2_${lr}_virus_covid \
+        --model_max_length 256 \
+        --per_device_train_batch_size 32 \
+        --per_device_eval_batch_size 32 \
+        --gradient_accumulation_steps 1 \
+        --learning_rate ${lr} \
+        --num_train_epochs 8 \
+        --fp16 \
+        --save_steps 200 \
+        --output_dir output/dnabert2 \
+        --evaluation_strategy steps \
+        --eval_steps 200 \
+        --warmup_steps 50 \
+        --logging_steps 100000 \
+        --overwrite_output_dir True \
+        --log_level info \
+        --find_unused_parameters False
+    workdir: /code/dnabert-2
