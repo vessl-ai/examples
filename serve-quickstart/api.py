@@ -32,15 +32,13 @@ engine: AsyncLLMEngine = None
 
 
 @app.post("/generate")
-async def generate(prompt: str) -> Response:
-    """Generate completion for the request.
-
-    The request should be a JSON object with the following fields:
-    - prompt: the prompt to use for the generation.
-    - stream: whether to stream the results or not.
-    - other fields: the sampling parameters (See `SamplingParams` for details).
+async def generate(prompt: str="What is the capital of South Korea?") -> Response:
     """
-    request_dict = await request.json()
+    Generate completion for the request.
+    """
+    request_dict = {
+        "prompt": prompt
+    }
     prefix_pos = None
     stream = False
     sampling_params = SamplingParams(**request_dict)
