@@ -4,9 +4,8 @@ from contextlib import asynccontextmanager
 import json
 from typing import AsyncGenerator
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from fastapi.responses import JSONResponse, Response, StreamingResponse
-from prometheus_client import make_asgi_app
 import uvicorn
 
 from vllm.engine.arg_utils import AsyncEngineArgs
@@ -28,20 +27,12 @@ async def lifespan(app: FastAPI):
     yield
 
 TIMEOUT_KEEP_ALIVE = 5  # seconds.
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(docs_url='/', lifespan=lifespan)
 engine: AsyncLLMEngine = None
 
-# Add prometheus asgi middleware to route /metrics requests
-metrics_app = make_asgi_app()
-app.mount("/metrics", metrics_app)
-
-@app.get("/health")
-async def health() -> Response:
-    """Health check."""
-    return Response(status_code=200)
 
 @app.post("/generate")
-async def generate(request: Request) -> Response:
+async def generate(prompt: str) -> Response:
     """Generate completion for the request.
 
     The request should be a JSON object with the following fields:
@@ -50,9 +41,8 @@ async def generate(request: Request) -> Response:
     - other fields: the sampling parameters (See `SamplingParams` for details).
     """
     request_dict = await request.json()
-    prompt = request_dict.pop("prompt")
-    prefix_pos = request_dict.pop("prefix_pos", None)
-    stream = request_dict.pop("stream", False)
+    prefix_pos = None
+    stream = False
     sampling_params = SamplingParams(**request_dict)
     request_id = random_uuid()
 
@@ -73,7 +63,7 @@ async def generate(request: Request) -> Response:
 
     # Non-streaming case
     final_output = None
-    async for request_output in results_generator:
+    for request_output in results_generator:
         if await request.is_disconnected():
             # Abort the request if the client disconnects.
             await engine.abort(request_id)
