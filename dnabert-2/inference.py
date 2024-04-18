@@ -4,7 +4,7 @@ import gradio as gr
 import torch
 import transformers
 
-model_path = os.get("MODEL_PATH", "/model")
+model_path = os.getenv("MODEL_PATH", "/model")
 
 tokenizer = transformers.AutoTokenizer.from_pretrained(model_path)
 model = transformers.AutoModelForSequenceClassification.from_pretrained(model_path)
