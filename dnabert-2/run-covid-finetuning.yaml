@@ -12,11 +12,12 @@ import:
   /code/:
     git:
       url: github.com/vessl-ai/examples.git
-      ref: vssl-8423
+export:
+  /output/: vessl-model://vessl-ai/dnabert-2-covid  # your model repository name
 run:
   - command: |
       pip install --upgrade vessl
-      pip install -r requirements.txt
+      pip install -r requirements-train.txt
       pip uninstall -y transformer-engine triton
     workdir: /code/dnabert-2
   - command: |
@@ -38,7 +39,7 @@ run:
         --num_train_epochs 8 \
         --fp16 \
         --save_steps 200 \
-        --output_dir output/dnabert2 \
+        --output_dir /output \
         --evaluation_strategy steps \
         --eval_steps 200 \
         --warmup_steps 50 \
