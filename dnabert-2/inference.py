@@ -6,8 +6,14 @@ import transformers
 
 model_path = os.getenv("MODEL_PATH", "/model")
 
-tokenizer = transformers.AutoTokenizer.from_pretrained(model_path)
-model = transformers.AutoModelForSequenceClassification.from_pretrained(model_path)
+tokenizer = transformers.AutoTokenizer.from_pretrained(
+    model_path,
+    trust_remote_code=True,
+)
+model = transformers.AutoModelForSequenceClassification.from_pretrained(
+    model_path,
+    trust_remote_code=True,
+)
 
 def infer(dna: str) -> int:
     inputs = tokenizer(dna, return_tensors="pt")["input_ids"]
