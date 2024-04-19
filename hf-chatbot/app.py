@@ -13,7 +13,7 @@ class LLMChatHandler():
         self.tokenizer = AutoTokenizer.from_pretrained(model_id)
         if use_vllm:
             from vllm import LLM
-            self.hf_model = LLM(
+            self.vllm_model = LLM(
                 model=model_id,
                 trust_remote_code=True,
                 quantization="awq",
@@ -21,7 +21,7 @@ class LLMChatHandler():
             )
         else:
             from transformers import AutoModelForCausalLM
-            self.vllm_model = AutoModelForCausalLM.from_pretrained(
+            self.hf_model = AutoModelForCausalLM.from_pretrained(
                 model_id,
                 trust_remote_code=True,
                 attn_implementation="flash_attention_2",
