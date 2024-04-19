@@ -64,7 +64,9 @@ class LLMChatHandler():
             repetition_penalty=1.2)
         results_generator = self.vllm_model.generate(prompt, sampling_params, stream=True)
         for request_output in results_generator:
-            response_txt = "" + output.text for output in request_output.outputs
+            response_txt = ""
+            for output in request_output.outputs:
+                response_txt += output.text
             yield response_txt
 
     def chat_function_hf(self, prompt):
