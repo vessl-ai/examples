@@ -5,10 +5,12 @@ from typing import List
 from threading import Thread
 
 import gradio as gr
+from transformers import AutoTokenizer
 
 class LLMChatHandler():
     def __init__(self, model_id: str, use_vllm: bool = False):
         self.use_vllm = use_vllm
+        self.tokenizer = AutoTokenizer.from_pretrained(model_id)
         if use_vllm:
             from vllm import LLM, SamplingParams
             self.hf_model = LLM(
@@ -21,10 +23,8 @@ class LLMChatHandler():
             from transformers import (
                 pipeline,
                 AutoModelForCausalLM,
-                AutoTokenizer,
                 TextIteratorStreamer,
             )
-            self.tokenizer = AutoTokenizer.from_pretrained(model_id)
             self.vllm_model = AutoModelForCausalLM.from_pretrained(
                 model_id,
                 trust_remote_code=True,
