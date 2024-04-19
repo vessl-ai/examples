@@ -15,7 +15,7 @@ export:
 run:
   - command: |-
       pip install -r requirements.txt
-      python main.py --dataset /dataset --output-dir /artifacts
+      python main.py --dataset /dataset --output-dir /artifacts --batch-size 4 --max-seq-length 512
     workdir: /code/llama-3-finetuning
 env:
   HF_TOKEN: YOUR_HF_TOKEN

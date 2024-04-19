@@ -39,9 +39,10 @@ class VesslLogCallback(TrainerCallback):
                 vessl.log(payload=logs, step=state.global_step)
 
 
-def main(dataset_name: str, output_dir: str):
+def main(
+    dataset_name: str, output_dir: str, batch_size: int, max_seq_length: int = 512
+):
     model_name = "meta-llama/Meta-Llama-3-8B"
-    max_seq_len = 1024
 
     tokenizer = AutoTokenizer.from_pretrained(model_name, use_fast=True)
     tokenizer.pad_token = tokenizer.eos_token
@@ -77,11 +78,11 @@ def main(dataset_name: str, output_dir: str):
     )
 
     dataset = load_dataset(dataset_name)
-    dataset = dataset.filter(lambda example: len(example["prompt"]) <= max_seq_len)
+    dataset = dataset.filter(lambda example: len(example["prompt"]) <= max_seq_length)
 
     training_args = TrainingArguments(
         output_dir=output_dir,
-        per_device_train_batch_size=4,
+        per_device_train_batch_size=batch_size,
         gradient_accumulation_steps=1,
         gradient_checkpointing=True,
         max_grad_norm=0.3,
@@ -104,7 +105,7 @@ def main(dataset_name: str, output_dir: str):
         dataset_text_field="prompt",
         tokenizer=tokenizer,
         peft_config=peft_config,
-        max_seq_length=max_seq_len,
+        max_seq_length=max_seq_length,
         packing=True,
         callbacks=[VesslLogCallback],
     )
@@ -119,6 +120,10 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--dataset", help="the name of dataset to train on")
     parser.add_argument("--output-dir", help="output directory of training")
+    parser.add_argument("--batch-size", help="batch size", type=int)
+    parser.add_argument(
+        "--max-seq-length", help="max sequance length per each sample", type=int
+    )
     args = parser.parse_args()
 
-    main(args.dataset, args.output_dir)
+    main(args.dataset, args.output_dir, args.batch_size, args.max_seq_length)
