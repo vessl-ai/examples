@@ -104,9 +104,10 @@ def main(args):
 
     with gr.Blocks(title="Mistral Chatbot on vLLM", fill_height=True) as demo:
         with gr.Row():
-            gr.Markdown(f"<h2>Chatbot with {args.model_id}</h2>")
-            gr.Markdown("* Interact with LLM using chat interface!")
-            gr.Markdown(f"* Original model: [{args.model_id}](https://huggingface.co/{args.model_id})")
+            gr.Markdown(
+                f"<h2>Chatbot with {args.model_id}</h2><br>"
+                "* Interact with LLM using chat interface!<br>"
+                f"* Original model: [{args.model_id}](https://huggingface.co/{args.model_id})")
         gr.ChatInterface(hdlr.chat_function)
         with gr.Row():
             close_button = gr.Button("Close the app", variant="stop")
