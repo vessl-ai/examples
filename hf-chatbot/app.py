@@ -12,6 +12,10 @@ class LLMChatHandler():
     def __init__(self, model_id: str, use_vllm: bool = False):
         self.use_vllm = use_vllm
         self.tokenizer = AutoTokenizer.from_pretrained(model_id)
+        self.terminators = [
+            self.tokenizer.eos_token_id,
+            self.tokenizer.convert_tokens_to_ids("<|eot_id|>")
+        ]
         if use_vllm:
             from vllm.engine.arg_utils import AsyncEngineArgs
             from vllm.engine.async_llm_engine import AsyncLLMEngine
@@ -32,10 +36,6 @@ class LLMChatHandler():
                 attn_implementation="flash_attention_2",
                 torch_dtype="auto",
                 device_map="auto")
-            self.terminators = [
-                self.tokenizer.eos_token_id,
-                self.tokenizer.convert_tokens_to_ids("<|eot_id|>")
-            ]
 
     def chat_history_to_prompt(self, message: str, history: List[List[str]]) -> str:
         conversation = []
