@@ -1,0 +1,5 @@
+accelerate>=0.29.3
+autoawq==0.24.0
+gradio==4.15.0
+transformers>=4.40.0
+flash-attn==2.5.7
