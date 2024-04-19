@@ -12,7 +12,7 @@ class LLMChatHandler():
         self.use_vllm = use_vllm
         self.tokenizer = AutoTokenizer.from_pretrained(model_id)
         if use_vllm:
-            from vllm import LLM, SamplingParams
+            from vllm import LLM
             self.hf_model = LLM(
                 model=model_id,
                 trust_remote_code=True,
@@ -20,11 +20,7 @@ class LLMChatHandler():
                 dtype="auto",
             )
         else:
-            from transformers import (
-                pipeline,
-                AutoModelForCausalLM,
-                TextIteratorStreamer,
-            )
+            from transformers import AutoModelForCausalLM
             self.vllm_model = AutoModelForCausalLM.from_pretrained(
                 model_id,
                 trust_remote_code=True,
@@ -59,6 +55,7 @@ class LLMChatHandler():
             yield text
 
     def chat_function_vllm(self, prompt):
+        from vllm import SamplingParams
         sampling_params = SamplingParams(
             max_tokens=2048,
             temperature=0.6,
@@ -72,6 +69,7 @@ class LLMChatHandler():
             yield response_txt
 
     def chat_function_hf(self, prompt):
+        from transformers import pipeline, TextIteratorStreamer
         streamer = TextIteratorStreamer(self.tokenizer)
         pipe = pipeline(
             "text-generation",
