@@ -83,7 +83,7 @@ def main(args):
                 fn=lambda: gr.update(interactive=False), outputs=[close_button]
             ).then(fn=close_app)
 
-    demo.queue().launch(server_name="0.0.0.0")
+    demo.queue().launch(server_name="0.0.0.0", server_port=args.port)
 
 
 if __name__ == "__main__":
@@ -92,6 +92,7 @@ if __name__ == "__main__":
         description="Run open source LLMs from HuggingFace with a simple chat interface")
 
     parser.add_argument("--model-id", default="casperhansen/llama-3-8b-instruct-awq", help="HuggingFace model name for LLM.")
+    parser.add_argument("--port", default=7860, type=int, help="Port number for the Gradio app.")
     args = parser.parse_args()
 
     main(args)
