@@ -52,9 +52,11 @@ class LLMChatHandler():
     def chat_function(self, message, history):
         prompt = self.chat_history_to_prompt(message, history)
         if self.use_vllm:
-            return self.chat_function_vllm(prompt)
+            response_generator = self.chat_function_vllm(prompt)
         else:
-            return self.chat_function_hf(prompt)
+            response_generator = self.chat_function_hf(prompt)
+        for text in response_generator:
+            yield text
 
     def chat_function_vllm(self, prompt):
         sampling_params = SamplingParams(
