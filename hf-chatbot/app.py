@@ -51,6 +51,7 @@ class LLMChatHandler():
             temperature=0.6,
             top_p=0.9,
             repetition_penalty=1.2,
+            return_full_text=False,
             streamer=streamer
         )
         prompt = self.chat_history_to_prompt(message, history)
