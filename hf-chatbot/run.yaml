@@ -13,8 +13,9 @@ import:
       url: github.com/vessl-ai/examples.git
 run:
   - command: |
-      pip install -r requirements-accelerate.txt
+      pip install autoawq==0.2.4  # Install AutoAWQ separately to avoid conflicts
       pip install -r requirements.txt
+      pip install flash-attn==2.5.7
     workdir: /code/hf-chatbot
   - command: |
       python app.py --model-id $MODEL_ID
