@@ -5,6 +5,7 @@ from typing import List
 from threading import Thread
 
 import gradio as gr
+import torch
 from transformers import (
     pipeline,
     AutoModelForCausalLM,
@@ -74,7 +75,7 @@ def main(args):
 
     with gr.Blocks(title="Mistral Chatbot on vLLM", fill_height=True) as demo:
         with gr.Row():
-            gr.Markdown(f"<h2>Chatbot with {args.model}</h2>")
+            gr.Markdown(f"<h2>Chatbot with {args.model_id}</h2>")
         gr.ChatInterface(hdlr.chat_function)
         with gr.Row():
             close_button = gr.Button("Close the app", variant="stop")
