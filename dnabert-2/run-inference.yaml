@@ -1,0 +1,29 @@
+name: dnabert-2-covid-inference
+description: Gradio web app with DNABERT-2 finetuned on COVID-19 data
+tags:
+  - inference
+  - DNABERT-2
+  - LLM
+resources:
+  cluster: vessl-gcp-oregon
+  preset: cpu-small-spot
+image: quay.io/vessl-ai/torch:2.3.0-cuda12.3-r2
+import:
+  /code/:
+    git:
+      url: github.com/vessl-ai/examples.git
+  /model/: vessl-model://vessl-ai/dnabert-2-covid/1  # your model saved in the training run
+run:
+  - command: |-
+      pip install -r requirements-inference.txt
+      pip uninstall -y transformer-engine triton
+    workdir: /code/dnabert-2
+  - command: |-
+      python inference.py
+    workdir: /code/dnabert-2
+ports:
+  - name: gradio
+    type: http
+    port: 7860
+env:
+  MODEL_PATH: /model/checkpoint-4400  # you might have to change this if you used different value for train epochs

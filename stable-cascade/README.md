@@ -1,7 +1,7 @@
 # Stable Cascade
 ![img](https://github.com/Stability-AI/StableCascade/blob/master/figures/collage_1.jpg)
 
-This repository cotains code to run a Gradio app with [Stable Cascade](https://github.com/Stability-AI/StableCascade), a text to image model build upon the Würstchen architecture.
+This repository contains code to run a Gradio app with [Stable Cascade](https://github.com/Stability-AI/StableCascade), a text to image model build upon the Würstchen architecture.
 
 [Würstchen](https://openreview.net/forum?id=gU58d5QeGv) is a novel architecture for text-to-image synthesis that combines competitive performance with unprecedented cost-effectiveness for large-scale text-to-image diffusion models. It leverages a detailed but extremely compact semantic image representation to guide the diffusion process, which provides much more detailed guidance compared to latent representations of language and significantly reduces the computational requirements to achieve state-of-the-art results.
 
@@ -9,7 +9,7 @@ This repository cotains code to run a Gradio app with [Stable Cascade](https://g
 1. Clone the repository:
     ```bash
     $ git clone https://github.com/vessl-ai/examples.git
-    $ cd examples/iclr2024/stable-cascade
+    $ cd examples/stable-cascade
     ```
 2. Install required dependencies:
     ```bash

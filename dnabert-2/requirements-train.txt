@@ -1,0 +1,4 @@
+torch
+transformers==4.29.2
+peft==0.10.0
+gdown==5.1.0
