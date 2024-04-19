@@ -19,7 +19,6 @@ class LLMChatHandler():
                 tokenizer=None,
                 tokenizer_mode="auto",
                 trust_remote_code=True,
-                streaming=True,
                 quantization="awq" if "awq" in model_id or "AWQ" in model_id else None,
                 dtype="auto",
             )
@@ -61,12 +60,13 @@ class LLMChatHandler():
 
     def chat_function_vllm(self, prompt):
         from vllm import SamplingParams
+        from vllm.utils import random_uuid
         sampling_params = SamplingParams(
             max_tokens=2048,
             temperature=0.6,
             top_p=0.9,
             repetition_penalty=1.2)
-        results_generator = self.vllm_engine.generate(prompt, sampling_params)
+        results_generator = self.vllm_engine.generate(prompt, sampling_params, random_uuid())
         for request_output in results_generator:
             response_txt = ""
             for output in request_output.outputs:
