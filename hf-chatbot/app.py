@@ -65,6 +65,7 @@ class LLMChatHandler():
         from vllm import SamplingParams
         from vllm.utils import random_uuid
         sampling_params = SamplingParams(
+            stop_token_ids=self.terminators,
             max_tokens=2048,
             temperature=0.6,
             top_p=0.9,
@@ -73,7 +74,8 @@ class LLMChatHandler():
         async for request_output in results_generator:
             response_txt = ""
             for output in request_output.outputs:
-                response_txt += output.text
+                if output.text not in self.terminators:
+                    response_txt += output.text
             yield response_txt
 
     def chat_function_hf(self, prompt):
@@ -114,8 +116,8 @@ def main(args):
         with gr.Row():
             gr.Markdown(
                 f"<h2>Chatbot with 🤗 {args.model_id} 🤗</h2>"
-                "<h3>Interact with LLM using chat interface!<br>"
-                f"Original model: <a href='https://huggingface.co/{args.model_id}' target='_blank'>{args.model_id}</a></h3>")
+                "<h3>Interact with LLM using chat interface!<br></h3>"
+                f"<h3>Original model: <a href='https://huggingface.co/{args.model_id}' target='_blank'>{args.model_id}</a></h3>")
         gr.ChatInterface(hdlr.chat_function)
         with gr.Row():
             close_button = gr.Button("Close the app", variant="stop")
