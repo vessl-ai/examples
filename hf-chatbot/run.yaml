@@ -1,0 +1,27 @@
+name: huggingface-chatbot
+description: Chatbot using HuggingFace OSS models
+tags:
+  - chatbot
+  - LLM
+resources:
+  cluster: vessl-gcp-oregon
+  preset: gpu-l4-small-spot
+image: quay.io/vessl-ai/torch:2.1.0-cuda12.2-r3
+import:
+  /code/:
+    git:
+      url: github.com/vessl-ai/examples.git
+run:
+  - command: |
+      pip install -r requirements-accelerate.txt
+      pip install -r requirements.txt
+    workdir: /code/hf-chatbot
+  - command: |
+      python app.py --model-id $MODEL_ID
+    workdir: /code/hf-chatbot
+ports:
+  - name: gradio
+    type: http
+    port: 7860
+env:
+  MODEL_ID: casperhansen/llama-3-8b-instruct-awq

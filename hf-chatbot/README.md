@@ -2,7 +2,7 @@
 
 Run open source LLMs from HuggingFace with a simple chat interface using Gradio.
 
-You can load & run any models which can be loaded using `AutoModelForCausalLM.from_pretrained()`in [Transformers](https://github.com/huggingface/transformers) library.
+You can load & run models which can be loaded using `AutoModelForCausalLM.from_pretrained()` in [Transformers](https://github.com/huggingface/transformers) library or `AsyncLLMEngine` in [vLLM](https://docs.vllm.ai).
 
 ![screenshot](assets/screenshot.png)
 
@@ -20,6 +20,7 @@ You can load & run any models which can be loaded using `AutoModelForCausalLM.fr
 1. Install the required dependencies:
 
    ```bash
+   pip install -r requirements-accelerate.txt  # Optional dependencies for GPU acceleration
    pip install -r requirements.txt
    ```
 

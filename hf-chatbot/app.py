@@ -1,8 +1,7 @@
 import argparse
-import json
 import os
 from time import sleep
-from typing import List, AsyncGenerator
+from typing import List
 from threading import Thread
 
 import gradio as gr
