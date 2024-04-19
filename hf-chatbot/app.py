@@ -5,23 +5,32 @@ from typing import List
 from threading import Thread
 
 import gradio as gr
-import torch
-from transformers import (
-    pipeline,
-    AutoModelForCausalLM,
-    AutoTokenizer,
-    TextIteratorStreamer,
-)
 
 class LLMChatHandler():
-    def __init__(self, model_id: str):
+    def __init__(self, model_id: str, use_vllm: bool = False):
         self.tokenizer = AutoTokenizer.from_pretrained(model_id)
-        self.model = AutoModelForCausalLM.from_pretrained(
-            model_id,
-            trust_remote_code=True,
-            attn_implementation="flash_attention_2",
-            torch_dtype="auto",
-            device_map="auto")
+        self.use_vllm = use_vllm
+        if use_vllm:
+            from vllm import LLM, SamplingParams
+            self.hf_model = LLM(
+                model=model_id,
+                trust_remote_code=True,
+                quantization="awq",
+                dtype="auto",
+            )
+        else:
+            from transformers import (
+                pipeline,
+                AutoModelForCausalLM,
+                AutoTokenizer,
+                TextIteratorStreamer,
+            )
+            self.vllm_model = AutoModelForCausalLM.from_pretrained(
+                model_id,
+                trust_remote_code=True,
+                attn_implementation="flash_attention_2",
+                torch_dtype="auto",
+                device_map="auto")
         self.terminators = [
             self.tokenizer.eos_token_id,
             self.tokenizer.convert_tokens_to_ids("<|eot_id|>")
@@ -41,10 +50,28 @@ class LLMChatHandler():
         return prompt
 
     def chat_function(self, message, history):
+        prompt = self.chat_history_to_prompt(message, history)
+        if self.use_vllm:
+            return self.chat_function_vllm(prompt)
+        else:
+            return self.chat_function_hf(prompt)
+
+    def chat_function_vllm(self, prompt):
+        sampling_params = SamplingParams(
+            max_tokens=2048,
+            temperature=0.6,
+            top_p=0.9,
+            repetition_penalty=1.2)
+        results_generator = self.vllm_model.generate(prompt, sampling_params, stream=True)
+        for request_output in results_generator:
+            response_txt = "" + output.text for output in request_output.outputs
+            yield response_txt
+
+    def chat_function_hf(self, prompt):
         streamer = TextIteratorStreamer(self.tokenizer)
         pipe = pipeline(
             "text-generation",
-            model=self.model,
+            model=self.hf_model,
             tokenizer=self.tokenizer,
             eos_token_id=self.terminators,
             max_length=2048,
@@ -54,7 +81,6 @@ class LLMChatHandler():
             return_full_text=False,
             streamer=streamer
         )
-        prompt = self.chat_history_to_prompt(message, history)
         t = Thread(target=pipe, args=(prompt,))
         t.start()
 
@@ -72,11 +98,13 @@ def close_app():
 
 def main(args):
     print(f"Loading the model {args.model_id}...")
-    hdlr = LLMChatHandler(args.model_id)
+    hdlr = LLMChatHandler(args.model_id, args.use_vllm)
 
     with gr.Blocks(title="Mistral Chatbot on vLLM", fill_height=True) as demo:
         with gr.Row():
             gr.Markdown(f"<h2>Chatbot with {args.model_id}</h2>")
+            gr.Markdown("* Interact with LLM using chat interface!")
+            gr.Markdown(f"* Original model: [{args.model_id}](https://huggingface.co/{args.model_id})")
         gr.ChatInterface(hdlr.chat_function)
         with gr.Row():
             close_button = gr.Button("Close the app", variant="stop")
@@ -94,6 +122,7 @@ if __name__ == "__main__":
 
     parser.add_argument("--model-id", default="casperhansen/llama-3-8b-instruct-awq", help="HuggingFace model name for LLM.")
     parser.add_argument("--port", default=7860, type=int, help="Port number for the Gradio app.")
+    parser.add_argument("--use-vllm", action="store_true", help="Use vLLM instead of HuggingFace AutoModelForCausalLM.")
     args = parser.parse_args()
 
     main(args)
