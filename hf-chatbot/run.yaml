@@ -15,10 +15,11 @@ run:
   - command: |
       pip install autoawq==0.2.4  # Install AutoAWQ separately to avoid conflicts
       pip install -r requirements.txt
+      pip uninstall -y transformer-engine
       pip install flash-attn==2.5.7
     workdir: /code/hf-chatbot
   - command: |
-      python app.py --model-id $MODEL_ID
+      python app.py --model-id $MODEL_ID --use-vllm
     workdir: /code/hf-chatbot
 ports:
   - name: gradio
