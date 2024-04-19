@@ -1,7 +1,8 @@
 import argparse
+import json
 import os
 from time import sleep
-from typing import List
+from typing import List, AsyncGenerator
 from threading import Thread
 
 import gradio as gr
@@ -58,7 +59,7 @@ class LLMChatHandler():
         for text in response_generator:
             yield text
 
-    def chat_function_vllm(self, prompt):
+    async def chat_function_vllm(self, prompt):
         from vllm import SamplingParams
         from vllm.utils import random_uuid
         sampling_params = SamplingParams(
@@ -67,7 +68,7 @@ class LLMChatHandler():
             top_p=0.9,
             repetition_penalty=1.2)
         results_generator = self.vllm_engine.generate(prompt, sampling_params, random_uuid())
-        for request_output in results_generator:
+        async for request_output in results_generator:
             response_txt = ""
             for output in request_output.outputs:
                 response_txt += output.text
@@ -110,9 +111,9 @@ def main(args):
     with gr.Blocks(title=f"🤗 Chatbot with {args.model_id}", fill_height=True) as demo:
         with gr.Row():
             gr.Markdown(
-                f"<h2>Chatbot with 🤗{args.model_id}🤗</h2>"
-                "<h3>Interact with LLM using chat interface!</h3>"
-                f"* Original model: <a href='https://huggingface.co/{args.model_id}' target='_blank'>{args.model_id}</a>")
+                f"<h2>Chatbot with 🤗 {args.model_id} 🤗</h2>"
+                "<h3>Interact with LLM using chat interface!<br>"
+                f"Original model: <a href='https://huggingface.co/{args.model_id}' target='_blank'>{args.model_id}</a></h3>")
         gr.ChatInterface(hdlr.chat_function)
         with gr.Row():
             close_button = gr.Button("Close the app", variant="stop")
