@@ -8,7 +8,6 @@ import gradio as gr
 
 class LLMChatHandler():
     def __init__(self, model_id: str, use_vllm: bool = False):
-        self.tokenizer = AutoTokenizer.from_pretrained(model_id)
         self.use_vllm = use_vllm
         if use_vllm:
             from vllm import LLM, SamplingParams
@@ -25,16 +24,17 @@ class LLMChatHandler():
                 AutoTokenizer,
                 TextIteratorStreamer,
             )
+            self.tokenizer = AutoTokenizer.from_pretrained(model_id)
             self.vllm_model = AutoModelForCausalLM.from_pretrained(
                 model_id,
                 trust_remote_code=True,
                 attn_implementation="flash_attention_2",
                 torch_dtype="auto",
                 device_map="auto")
-        self.terminators = [
-            self.tokenizer.eos_token_id,
-            self.tokenizer.convert_tokens_to_ids("<|eot_id|>")
-        ]
+            self.terminators = [
+                self.tokenizer.eos_token_id,
+                self.tokenizer.convert_tokens_to_ids("<|eot_id|>")
+            ]
 
     def chat_history_to_prompt(self, message: str, history: List[List[str]]) -> str:
         conversation = []
