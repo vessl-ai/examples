@@ -50,14 +50,16 @@ class LLMChatHandler():
         prompt = self.tokenizer.apply_chat_template(conversation, tokenize=False, add_generation_prompt=True)
         return prompt
 
-    def chat_function(self, message, history):
+    async def chat_function(self, message, history):
         prompt = self.chat_history_to_prompt(message, history)
         if self.use_vllm:
             response_generator = self.chat_function_vllm(prompt)
+            async for text in response_generator:
+                yield text
         else:
             response_generator = self.chat_function_hf(prompt)
-        for text in response_generator:
-            yield text
+            for text in response_generator:
+                yield text
 
     async def chat_function_vllm(self, prompt):
         from vllm import SamplingParams
