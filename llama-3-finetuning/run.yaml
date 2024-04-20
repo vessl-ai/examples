@@ -1,0 +1,21 @@
+name: llama-3-finetuning
+description: A template Run to finetune Llama 3 with code instruction alpaca dataset
+resources:
+  cluster: vessl-gcp-oregon
+  preset: gpu-l4-small-spot
+image: quay.io/vessl-ai/torch:2.2.0-cuda12.3-r4
+import:
+  /code/:
+    git:
+      url: https://github.com/vessl-ai/examples
+      ref: main
+  /dataset/: hf://huggingface.co/datasets/VESSL/code_instructions_small_alpaca
+export:
+  /artifacts/: vessl-artifact://
+run:
+  - command: |-
+      pip install -r requirements.txt
+      python main.py --dataset /dataset --output-dir /artifacts --batch-size 4 --max-seq-length 512
+    workdir: /code/llama-3-finetuning
+env:
+  HF_TOKEN: YOUR_HF_TOKEN
