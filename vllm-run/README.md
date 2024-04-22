@@ -50,6 +50,10 @@ ports: # Endpoint configuration
   - name: prometheus
     type: http
     port: 9090
+env: # Environment variables
+  MODEL_NAME: mistralai/Mistral-7B-Instruct-v0.2
+  API_KEY: {API_KEY} # API key for your vLLM server
+  HF_TOKEN: {HF_TOKEN} # Your Huggingface API token
 ```
 This [vllm-run.yaml](vllm-run.yaml) file defines the following:
 * The resources and container image to be used
@@ -87,16 +91,13 @@ Select Connect -> `vllm` in the Run Dashboard to navigate to the API endpoint. Y
 
 ![API endpoint](asset/api-endpoint.png)
 
-Navigate to `http://{API_ENDPOINT_URL}:8000/docs` to verify the API server is functioning correctly.
-
-Send a simple HTTP POST request to test if the API server is operating correctly.
+Run a simple python script([`api-test.py`](api-test.py)) to test if the API server is operating correctly.
 
 ```sh
-$ curl -X POST \
-    http://{API_ENDPOINT_URL}/generate \
-    -d '{"prompt":"What is the capital state of South Korea?"}'
+$ BASE_URL={API_ENDPOINT_URL} API_KEY={API_KEY} MODEL_NAME=mistralai/Mistral-7B-Instruct-v0.2 \
+    python vllm-run/api-test.py
 
-{"text":["\n\nThe capital state of South Korea is Seoul.\n\n"]}
+ChatCompletionMessage(content=" The capital city of South Korea is Seoul. It is the largest metropolis in the country and is home to over half of South Korea's population. Seoul is known for its modern architecture, vibrant culture, and rich history. Some popular tourist attractions in Seoul include Gyeongbokgung Palace, Bukchon Hanok Village, Namsan Tower, and Myeong-dong shopping district.", role='assistant', function_call=None, tool_calls=None)
 ```
 
 ## Advanced: Benchmarking the API Server
@@ -155,9 +156,9 @@ Project: llm-demo-20240124
  ID            Name           Type         Status      Created                    Description
  ............  rag-chatbot    batch        terminated  2024-01-25 01:37:52+00:00
  ............  rag-chatbot    interactive  terminated  2024-01-25 01:47:11+00:00
- ............  vllm-demo      batch        terminated  2024-02-05 14:37:27+00:00
+ ............  vllm-server    batch        terminated  2024-02-05 14:37:27+00:00
  ............  test-notebook  interactive  terminated  2024-02-05 14:47:10+00:00
- 369367189168  vllm-demo      batch        running     2024-02-06 04:16:36+00:00
+ 369367189168  vllm-server    batch        running     2024-02-06 04:16:36+00:00
 
 # Terminate the run
 $ vessl run terminate 369367189168
@@ -198,13 +199,11 @@ RUN rm prometheus-$PROMETHEUS_VERSION.linux-amd64.tar.gz
 COPY monitoring/prometheus.yml /app/prometheus/prometheus.yml
 
 # Install dependencies
-COPY requirements.txt /
-
-app/requirements.txt
+COPY requirements.txt /app/requirements.txt
 RUN pip install -r /app/requirements.txt
 
 # Entrypoint
-ENTRYPOINT ["python", "-m", "api.py"]
+ENTRYPOINT ["python", "-m", "vllm.entrypoints.openai.api_server", "--model", "mistralai/Mistral-7B-Instruct-v0.2"]
 ```
 
 ### Caching `~/.cache/huggingface` for Faster Model Loading

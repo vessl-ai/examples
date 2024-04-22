@@ -51,6 +51,10 @@ ports: # Endpoint configuration
   - name: prometheus
     type: http
     port: 9090
+env: # Environment variables
+  MODEL_NAME: mistralai/Mistral-7B-Instruct-v0.2
+  API_KEY: {API_KEY} # API key for your vLLM server
+  HF_TOKEN: {HF_TOKEN} # Your Huggingface API token
 ```
 
 예제 폴더에 포함된 [vllm-run.yaml](vllm-run.yaml) 파일을 사용하여 Run을 생성해봅니다.
@@ -88,16 +92,13 @@ Run Dashboard에서 Connect -> `vllm` 을 선택해서 API endpoint로 이동합
 
 ![API endpoint](asset/api-endpoint.png)
 
-`http://{API_ENDPOINT_URL}:8000/docs` 로 이동하여 API 서버가 잘 작동하는지 확인하실 수 있습니다.
-
-간단한 HTTP POST request를 보내서 API 서버가 잘 작동하는지 확인해봅니다.
+API 테스트를 위해 작성한 간단한 파이썬 스크립트([`api-test.py`](api-test.py))를 이용하여 API 서버가 잘 작동하는지 확인해 봅니다.
 
 ```sh
-$ curl -X POST \
-    http://{API_ENDPOINT_URL}/generate \
-    -d '{"prompt":"What is the capital state of South Korea?"}'
+$ BASE_URL={API_ENDPOINT_URL} API_KEY={API_KEY} MODEL_NAME=mistralai/Mistral-7B-Instruct-v0.2 \
+    python vllm-run/api-test.py
 
-{"text":["\n\nThe capital state of South Korea is Seoul.\n\n"]}
+ChatCompletionMessage(content=" The capital city of South Korea is Seoul. It is the largest metropolis in the country and is home to over half of South Korea's population. Seoul is known for its modern architecture, vibrant culture, and rich history. Some popular tourist attractions in Seoul include Gyeongbokgung Palace, Bukchon Hanok Village, Namsan Tower, and Myeong-dong shopping district.", role='assistant', function_call=None, tool_calls=None)
 ```
 
 ## Advanced: Benchmarking API server
@@ -156,9 +157,9 @@ Project: llm-demo-20240124
  ID            Name           Type         Status      Created                    Description
  ............  rag-chatbot    batch        terminated  2024-01-25 01:37:52+00:00
  ............  rag-chatbot    interactive  terminated  2024-01-25 01:47:11+00:00
- ............  vllm-demo      batch        terminated  2024-02-05 14:37:27+00:00
+ ............  vllm-server    batch        terminated  2024-02-05 14:37:27+00:00
  ............  test-notebook  interactive  terminated  2024-02-05 14:47:10+00:00
- 369367189168  vllm-demo      batch        running     2024-02-06 04:16:36+00:00
+ 369367189168  vllm-server    batch        running     2024-02-06 04:16:36+00:00
 
 # Terminate the run
 $ vessl run terminate 369367189168
@@ -203,7 +204,7 @@ COPY requirements.txt /app/requirements.txt
 RUN pip install -r /app/requirements.txt
 
 # Entrypoint
-ENTRYPOINT ["python", "-m", "api.py"]
+ENTRYPOINT ["python", "-m", "vllm.entrypoints.openai.api_server", "--model", "mistralai/Mistral-7B-Instruct-v0.2"]
 ```
 
 ### Caching `~/.cache/huggingface` for faster model loading

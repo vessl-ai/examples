@@ -37,4 +37,5 @@ ports:
     port: 9090
 env:
   MODEL_NAME: mistralai/Mistral-7B-Instruct-v0.2
-  API_KEY: token-abc123
+  API_KEY: token-abc123  # An API Key for the vLLM server
+  HF_TOKEN: hf_abcd1234  # Your Huggingface API token
