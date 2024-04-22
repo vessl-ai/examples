@@ -91,7 +91,7 @@ Select Connect -> `vllm` in the Run Dashboard to navigate to the API endpoint. Y
 
 ![API endpoint](asset/api-endpoint.png)
 
-Run a simple python script([`api-test.py`](api-test.py)) to test if the API server is operating correctly.
+Run a simple python script([`api-test.py`](api-test.py)) to test if the API server is operating correctly. Replace `{API_KEY}` with the API key configured in the Run YAML file.
 
 ```sh
 $ BASE_URL={API_ENDPOINT_URL} API_KEY={API_KEY} MODEL_NAME=mistralai/Mistral-7B-Instruct-v0.2 \

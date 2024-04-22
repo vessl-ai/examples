@@ -92,7 +92,7 @@ Run Dashboard에서 Connect -> `vllm` 을 선택해서 API endpoint로 이동합
 
 ![API endpoint](asset/api-endpoint.png)
 
-API 테스트를 위해 작성한 간단한 파이썬 스크립트([`api-test.py`](api-test.py))를 이용하여 API 서버가 잘 작동하는지 확인해 봅니다.
+API 테스트를 위해 작성한 간단한 파이썬 스크립트([`api-test.py`](api-test.py))를 이용하여 API 서버가 잘 작동하는지 확인해 봅니다. `{API_KEY}`를 위의 Run YAML 파일에서 지정한 API 키로 변경해 주세요.
 
 ```sh
 $ BASE_URL={API_ENDPOINT_URL} API_KEY={API_KEY} MODEL_NAME=mistralai/Mistral-7B-Instruct-v0.2 \
