@@ -24,6 +24,8 @@ VESSL에서 Run은 태스크 실행의 기본 단위입니다. Run의 정의에�
 
 Run의 정의는 YAML 파일로 작성됩니다. 예를 들면, 이번 예제의 YAML 파일 중 일부를 아래와 같이 작성할 수 있습니다:
 
+> Run 실행 전에 `{HF_TOKEN}`을 자신의 허깅페이스 API 토큰으로 변경해야 합니다. 허깅페이스 API 토큰을 발급받는 방법에 대해서는 [허깅페이스 공식 문서](https://huggingface.co/docs/api-inference/en/quicktour#get-your-api-token)를 참고해 주시기 바랍니다.
+
 ```yaml
 # vllm-run.yaml
 name: vllm-server
@@ -92,7 +94,7 @@ Run Dashboard에서 Connect -> `vllm` 을 선택해서 API endpoint로 이동합
 
 ![API endpoint](asset/api-endpoint.png)
 
-API 테스트를 위해 작성한 간단한 파이썬 스크립트([`api-test.py`](api-test.py))를 이용하여 API 서버가 잘 작동하는지 확인해 봅니다. `{API_KEY}`를 위의 Run YAML 파일에서 지정한 API 키로 변경해 주세요.
+API 테스트를 위해 작성한 간단한 파이썬 스크립트([`api-test.py`](api-test.py))를 이용하여 API 서버가 잘 작동하는지 확인해 봅니다. `{API_KEY}`를 위의 Run YAML 파일에서 지정한 API 키로 변경해야 합니다.
 
 ```sh
 $ BASE_URL={API_ENDPOINT_URL} API_KEY={API_KEY} MODEL_NAME=mistralai/Mistral-7B-Instruct-v0.2 \

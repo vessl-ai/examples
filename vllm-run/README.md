@@ -24,6 +24,8 @@ This document outlines how to deploy a fast and efficient LLM API using VESSL Ru
 
 The definition of a Run is written in a YAML file. For instance, here is a snippet of the YAML file for this example:
 
+> You have to replace `{HF_TOKEN}` with your own Huggingface API token. Please refer to the [Huggingface official document](https://huggingface.co/docs/api-inference/en/quicktour#get-your-api-token) if you don't know how to get an API token.
+
 ```yaml
 # vllm-run.yaml
 name: vllm-server
