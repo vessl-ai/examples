@@ -39,4 +39,4 @@ ports:
     port: 9090
 env:
   MODEL_NAME: casperhansen/llama-3-8b-instruct-awq
-  HF_TOKEN: hf_abcd1234  # Your Huggingface API token
+  HF_TOKEN: {HF_TOKEN}  # Your Huggingface API token
