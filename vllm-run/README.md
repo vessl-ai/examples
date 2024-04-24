@@ -24,6 +24,9 @@ This document outlines how to deploy a fast and efficient LLM API using VESSL Ru
 
 The definition of a Run is written in a YAML file. For instance, here is a snippet of the YAML file for this example:
 
+> If you want to use a gated model such as `meta-llama/Meta-Llama-3-8B-Instruct`, you have to replace `{HF_TOKEN}` with your own Huggingface API token. Please refer to the [Huggingface official document](https://huggingface.co/docs/api-inference/en/quicktour#get-your-api-token) if you don't know how to get an API token.
+> In this example, [`casperhansen/llama-3-8b-instruct-awq`](https://huggingface.co/casperhansen/llama-3-8b-instruct-awq), a quantized Llama 3 8B model is used for perfomance and accessibility.
+
 ```yaml
 # vllm-run.yaml
 name: vllm-server
@@ -42,7 +45,7 @@ import: # Code, data, or model to import
 run:
   - command: |- # Command to run the API server
       ...
-    workdir: /code
+    workdir: /code/vllm-run
 ports: # Endpoint configuration
   - name: vllm
     type: http
@@ -50,6 +53,9 @@ ports: # Endpoint configuration
   - name: prometheus
     type: http
     port: 9090
+env: # Environment variables
+  MODEL_NAME: casperhansen/llama-3-8b-instruct-awq
+  HF_TOKEN: {HF_TOKEN} # Your Huggingface API token
 ```
 This [vllm-run.yaml](vllm-run.yaml) file defines the following:
 * The resources and container image to be used
@@ -87,16 +93,14 @@ Select Connect -> `vllm` in the Run Dashboard to navigate to the API endpoint. Y
 
 ![API endpoint](asset/api-endpoint.png)
 
-Navigate to `http://{API_ENDPOINT_URL}:8000/docs` to verify the API server is functioning correctly.
-
-Send a simple HTTP POST request to test if the API server is operating correctly.
+Run a simple python script([`api-test.py`](api-test.py)) to test if the API server is operating correctly. Replace `{API_KEY}` with the API key configured in the Run YAML file.
 
 ```sh
-$ curl -X POST \
-    http://{API_ENDPOINT_URL}/generate \
-    -d '{"prompt":"What is the capital state of South Korea?"}'
+$ python vllm-run/api-test.py \
+    --base-url {API_ENDPOINT_URL} \
+    --model-name casperhansen/llama-3-8b-instruct-awq
 
-{"text":["\n\nThe capital state of South Korea is Seoul.\n\n"]}
+ChatCompletionMessage(content='The capital of South Korea is Seoul ().', role='assistant', function_call=None, tool_calls=None)
 ```
 
 ## Advanced: Benchmarking the API Server
@@ -155,9 +159,9 @@ Project: llm-demo-20240124
  ID            Name           Type         Status      Created                    Description
  ............  rag-chatbot    batch        terminated  2024-01-25 01:37:52+00:00
  ............  rag-chatbot    interactive  terminated  2024-01-25 01:47:11+00:00
- ............  vllm-demo      batch        terminated  2024-02-05 14:37:27+00:00
+ ............  vllm-server    batch        terminated  2024-02-05 14:37:27+00:00
  ............  test-notebook  interactive  terminated  2024-02-05 14:47:10+00:00
- 369367189168  vllm-demo      batch        running     2024-02-06 04:16:36+00:00
+ 369367189168  vllm-server    batch        running     2024-02-06 04:16:36+00:00
 
 # Terminate the run
 $ vessl run terminate 369367189168
@@ -185,6 +189,7 @@ Below is an example of building a Docker image that includes various dependencie
 FROM quay.io/vessl-ai/torch:2.2.0-cuda12.3-r3
 
 ENV PROMETHEUS_VERSION=2.49.1
+ENV MODEL_NAME=casperhansen/llama-3-8b-instruct-awq
 
 WORKDIR /app
 
@@ -198,13 +203,14 @@ RUN rm prometheus-$PROMETHEUS_VERSION.linux-amd64.tar.gz
 COPY monitoring/prometheus.yml /app/prometheus/prometheus.yml
 
 # Install dependencies
-COPY requirements.txt /
-
-app/requirements.txt
+COPY requirements.txt /app/requirements.txt
+RUN pip install autoawq==0.2.4
 RUN pip install -r /app/requirements.txt
+RUN pip uninstall -y transformer-engine
+RUN pip install flash-attn==2.5.7
 
 # Entrypoint
-ENTRYPOINT ["python", "-m", "api.py"]
+ENTRYPOINT python -m vllm.entrypoints.openai.api_server --model $MODEL_NAME
 ```
 
 ### Caching `~/.cache/huggingface` for Faster Model Loading
