@@ -1,0 +1,31 @@
+name: llama-3-chatbot
+message: Quickstart to serve Llama 3 chatbot
+image: quay.io/vessl-ai/torch:2.1.0-cuda12.2-r3
+resources:
+  cluster: vessl-gcp-oregon
+  preset: gpu-l4-small-spot
+import:
+  /code/:
+    git:
+      url: github.com/vessl-ai/examples.git
+      ref: vssl-8554
+run:
+- command: |
+    pip install autoawq==0.2.4
+    pip install git+https://github.com/vllm-project/vllm.git@v0.4.1 fastapi==0.109.2
+    pip uninstall -y transformer-engine
+    pip install flash-attn==2.5.7
+    python -m vllm.entrypoints.openai.api_server --model $MODEL_NAME
+  workdir: /code/serve-llama-3
+env:
+  MODEL_NAME: casperhansen/llama-3-8b-instruct-awq
+ports:
+- port: 8000
+service:
+  autoscaling:
+    max: 1
+    metric: cpu
+    min: 1
+    target: 50
+  expose: 8000
+
