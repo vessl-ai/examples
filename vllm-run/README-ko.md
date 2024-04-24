@@ -24,7 +24,8 @@ VESSL에서 Run은 태스크 실행의 기본 단위입니다. Run의 정의에�
 
 Run의 정의는 YAML 파일로 작성됩니다. 예를 들면, 이번 예제의 YAML 파일 중 일부를 아래와 같이 작성할 수 있습니다:
 
-> Run 실행 전에 `{HF_TOKEN}`을 자신의 허깅페이스 API 토큰으로 변경해야 합니다. 허깅페이스 API 토큰을 발급받는 방법에 대해서는 [허깅페이스 공식 문서](https://huggingface.co/docs/api-inference/en/quicktour#get-your-api-token)를 참고해 주시기 바랍니다.
+> `meta-llama/Meta-Llama-3-8B` 등 사전 승인이 필요한 모델을 사용할 경우, Run 실행 전에 {HF_TOKEN}을 자신의 허깅페이스 API 토큰으로 변경해야 합니다. 허깅페이스 API 토큰을 발급받는 방법에 대해서는 [허깅페이스 공식 문서](https://huggingface.co/docs/api-inference/en/quicktour#get-your-api-token)를 참고해 주시기 바랍니다.
+> 본 예시에서는 성능과 접근성을 위해 Llama 3 8B를 AWQ 양자화한 모델인 [`casperhansen/llama-3-8b-instruct-awq`](https://huggingface.co/casperhansen/llama-3-8b-instruct-awq)을 사용하였습니다.
 
 ```yaml
 # vllm-run.yaml
@@ -45,7 +46,7 @@ import: # Code, data, or model to import
 run:
   - command: |- # Command to run the API server
       ...
-    workdir: /code
+    workdir: /code/vllm-run
 ports: # Endpoint configuration
   - name: vllm
     type: http
@@ -54,8 +55,7 @@ ports: # Endpoint configuration
     type: http
     port: 9090
 env: # Environment variables
-  MODEL_NAME: mistralai/Mistral-7B-Instruct-v0.2
-  API_KEY: {API_KEY} # API key for your vLLM server
+  MODEL_NAME: casperhansen/llama-3-8b-instruct-awq
   HF_TOKEN: {HF_TOKEN} # Your Huggingface API token
 ```
 
@@ -97,10 +97,11 @@ Run Dashboard에서 Connect -> `vllm` 을 선택해서 API endpoint로 이동합
 API 테스트를 위해 작성한 간단한 파이썬 스크립트([`api-test.py`](api-test.py))를 이용하여 API 서버가 잘 작동하는지 확인해 봅니다. `{API_KEY}`를 위의 Run YAML 파일에서 지정한 API 키로 변경해야 합니다.
 
 ```sh
-$ BASE_URL={API_ENDPOINT_URL} API_KEY={API_KEY} MODEL_NAME=mistralai/Mistral-7B-Instruct-v0.2 \
-    python vllm-run/api-test.py
+$ python vllm-run/api-test.py \
+    --base-url {API_ENDPOINT_URL} \
+    --model-name casperhansen/llama-3-8b-instruct-awq
 
-ChatCompletionMessage(content=" The capital city of South Korea is Seoul. It is the largest metropolis in the country and is home to over half of South Korea's population. Seoul is known for its modern architecture, vibrant culture, and rich history. Some popular tourist attractions in Seoul include Gyeongbokgung Palace, Bukchon Hanok Village, Namsan Tower, and Myeong-dong shopping district.", role='assistant', function_call=None, tool_calls=None)
+ChatCompletionMessage(content='The capital of South Korea is Seoul ().', role='assistant', function_call=None, tool_calls=None)
 ```
 
 ## Advanced: Benchmarking API server
@@ -189,6 +190,7 @@ Run을 실행하는 과정에서 Prometheus와 vLLM 설치 등 초기화 작업�
 FROM quay.io/vessl-ai/torch:2.2.0-cuda12.3-r3
 
 ENV PROMETHEUS_VERSION=2.49.1
+ENV MODEL_NAME=casperhansen/llama-3-8b-instruct-awq
 
 WORKDIR /app
 
@@ -203,10 +205,13 @@ COPY monitoring/prometheus.yml /app/prometheus/prometheus.yml
 
 # Install dependencies
 COPY requirements.txt /app/requirements.txt
+RUN pip install autoawq==0.2.4
 RUN pip install -r /app/requirements.txt
+RUN pip uninstall -y transformer-engine
+RUN pip install flash-attn==2.5.7
 
 # Entrypoint
-ENTRYPOINT ["python", "-m", "vllm.entrypoints.openai.api_server", "--model", "mistralai/Mistral-7B-Instruct-v0.2"]
+ENTRYPOINT python -m vllm.entrypoints.openai.api_server --model $MODEL_NAME
 ```
 
 ### Caching `~/.cache/huggingface` for faster model loading

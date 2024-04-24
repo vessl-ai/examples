@@ -24,10 +24,12 @@ run:
     workdir: /app
   - command: |-
       # Start vLLM API server
-      cd vllm-run
+      pip install autoawq==0.2.4
       pip install -r requirements.txt
-      python -m vllm.entrypoints.openai.api_server --model $MODEL_NAME --dtype bfloat16 --api-key $API_KEY --max-model-len 4096 --disable-log-requests
-    workdir: /code
+      pip uninstall -y transformer-engine
+      pip install flash-attn==2.5.7
+      python -m vllm.entrypoints.openai.api_server --model $MODEL_NAME
+    workdir: /code/vllm-run
 ports:
   - name: vllm
     type: http
@@ -36,6 +38,5 @@ ports:
     type: http
     port: 9090
 env:
-  MODEL_NAME: mistralai/Mistral-7B-Instruct-v0.2
-  API_KEY: token-abc123  # An API Key for the vLLM server
+  MODEL_NAME: casperhansen/llama-3-8b-instruct-awq
   HF_TOKEN: hf_abcd1234  # Your Huggingface API token

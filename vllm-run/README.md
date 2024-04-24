@@ -24,7 +24,8 @@ This document outlines how to deploy a fast and efficient LLM API using VESSL Ru
 
 The definition of a Run is written in a YAML file. For instance, here is a snippet of the YAML file for this example:
 
-> You have to replace `{HF_TOKEN}` with your own Huggingface API token. Please refer to the [Huggingface official document](https://huggingface.co/docs/api-inference/en/quicktour#get-your-api-token) if you don't know how to get an API token.
+> If you want to use a gated model such as `meta-llama/Meta-Llama-3-8B-Instruct`, you have to replace `{HF_TOKEN}` with your own Huggingface API token. Please refer to the [Huggingface official document](https://huggingface.co/docs/api-inference/en/quicktour#get-your-api-token) if you don't know how to get an API token.
+> In this example, [`casperhansen/llama-3-8b-instruct-awq`](https://huggingface.co/casperhansen/llama-3-8b-instruct-awq), a quantized Llama 3 8B model is used for perfomance and accessibility.
 
 ```yaml
 # vllm-run.yaml
@@ -44,7 +45,7 @@ import: # Code, data, or model to import
 run:
   - command: |- # Command to run the API server
       ...
-    workdir: /code
+    workdir: /code/vllm-run
 ports: # Endpoint configuration
   - name: vllm
     type: http
@@ -53,8 +54,7 @@ ports: # Endpoint configuration
     type: http
     port: 9090
 env: # Environment variables
-  MODEL_NAME: mistralai/Mistral-7B-Instruct-v0.2
-  API_KEY: {API_KEY} # API key for your vLLM server
+  MODEL_NAME: casperhansen/llama-3-8b-instruct-awq
   HF_TOKEN: {HF_TOKEN} # Your Huggingface API token
 ```
 This [vllm-run.yaml](vllm-run.yaml) file defines the following:
@@ -96,10 +96,11 @@ Select Connect -> `vllm` in the Run Dashboard to navigate to the API endpoint. Y
 Run a simple python script([`api-test.py`](api-test.py)) to test if the API server is operating correctly. Replace `{API_KEY}` with the API key configured in the Run YAML file.
 
 ```sh
-$ BASE_URL={API_ENDPOINT_URL} API_KEY={API_KEY} MODEL_NAME=mistralai/Mistral-7B-Instruct-v0.2 \
-    python vllm-run/api-test.py
+$ python vllm-run/api-test.py \
+    --base-url {API_ENDPOINT_URL} \
+    --model-name casperhansen/llama-3-8b-instruct-awq
 
-ChatCompletionMessage(content=" The capital city of South Korea is Seoul. It is the largest metropolis in the country and is home to over half of South Korea's population. Seoul is known for its modern architecture, vibrant culture, and rich history. Some popular tourist attractions in Seoul include Gyeongbokgung Palace, Bukchon Hanok Village, Namsan Tower, and Myeong-dong shopping district.", role='assistant', function_call=None, tool_calls=None)
+ChatCompletionMessage(content='The capital of South Korea is Seoul ().', role='assistant', function_call=None, tool_calls=None)
 ```
 
 ## Advanced: Benchmarking the API Server
@@ -188,6 +189,7 @@ Below is an example of building a Docker image that includes various dependencie
 FROM quay.io/vessl-ai/torch:2.2.0-cuda12.3-r3
 
 ENV PROMETHEUS_VERSION=2.49.1
+ENV MODEL_NAME=casperhansen/llama-3-8b-instruct-awq
 
 WORKDIR /app
 
@@ -202,10 +204,13 @@ COPY monitoring/prometheus.yml /app/prometheus/prometheus.yml
 
 # Install dependencies
 COPY requirements.txt /app/requirements.txt
+RUN pip install autoawq==0.2.4
 RUN pip install -r /app/requirements.txt
+RUN pip uninstall -y transformer-engine
+RUN pip install flash-attn==2.5.7
 
 # Entrypoint
-ENTRYPOINT ["python", "-m", "vllm.entrypoints.openai.api_server", "--model", "mistralai/Mistral-7B-Instruct-v0.2"]
+ENTRYPOINT python -m vllm.entrypoints.openai.api_server --model $MODEL_NAME
 ```
 
 ### Caching `~/.cache/huggingface` for Faster Model Loading
