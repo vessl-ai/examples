@@ -2,17 +2,18 @@ name: thin-plate-spline-motion-model
 description: "Model for image Animation"
 resources:
   cluster: vessl-gcp-oregon
-  preset: gpu-l4-small-spot
-image: quay.io/vessl-ai/ngc-pytorch-kernel:22.12-py3-202301160809
+  preset: gpu-l4-small
+image: quay.io/vessl-ai/torch:2.1.0-cuda12.2-r3
 import:
-  /ckpt/: hf://huggingface.co/VESSL/thin-plate-spline-motion-model
-  /root/examples/:
+  /code/:
     git:
-      url: github.com/vessl-ai/examples.git
+      url: https://github.com/vessl-ai/examples
       ref: main
-run:
-  - command: pip install -r requirements.txt && streamlit run run_st.py
-    workdir: /root/examples/thin-plate-spline-motion-model
+  /model/: hf://huggingface.co/VESSL/thin-plate-spline-motion-model
+run:z
+  - command: |-
+    pip install -r requirements.txt && streamlit run run_st.py
+    workdir: /code/deprecated/thin-plate-spline-motion-model
 interactive:
   max_runtime: 24h
   jupyter:
@@ -20,4 +21,4 @@ interactive:
 ports:
   - name: streamlit
     type: http
-    port: 8501
+    port: 8000
