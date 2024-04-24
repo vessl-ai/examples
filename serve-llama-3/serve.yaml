@@ -7,7 +7,7 @@ resources:
 run:
 - command: |
     pip install autoawq==0.2.4
-    pip install git+https://github.com/vllm-project/vllm.git@v0.4.1 fastapi==0.109.2
+    pip install vllm==v0.4.1 fastapi==0.109.2
     pip uninstall -y transformer-engine
     pip install flash-attn==2.5.7
     python -m vllm.entrypoints.openai.api_server --model $MODEL_NAME
