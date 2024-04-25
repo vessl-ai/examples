@@ -9,10 +9,11 @@ import:
     git:
       url: https://github.com/vessl-ai/examples
       ref: main
-  /model/: hf://huggingface.co/VESSL/thin-plate-spline-motion-model
-run:z
+  /ckpt/: hf://huggingface.co/VESSL/thin-plate-spline-motion-model
+run:
   - command: |-
-    pip install -r requirements.txt && streamlit run run_st.py
+      pip install -r requirements.txt
+      streamlit run run_st.py
     workdir: /code/deprecated/thin-plate-spline-motion-model
 interactive:
   max_runtime: 24h
@@ -21,4 +22,4 @@ interactive:
 ports:
   - name: streamlit
     type: http
-    port: 8000
+    port: 8501
