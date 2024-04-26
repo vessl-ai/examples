@@ -15,9 +15,7 @@ In the background, VESSL Serves offloads the common logic required for deploying
 * Push the model and the API scripts to the cloud
 * Create an API server with a dedicated port for receiving inference requests
 
-![](assets/fastapi.png)
-
-Once the instance gets up and running, you can now interact with the model using the API endpoint. Click the endpoint to see how the app works.
+Once the instance gets up and running, you can now interact with the model using the API endpoint. 
 
 As defined under `/generate` in `api.py`, the app generates responses based on the input JSON request which accepts input to the language model as `"prompt"`. Try out the following `curl` command to see the app in action. 
 ```
@@ -26,6 +24,9 @@ curl -X 'POST' \
   -H 'accept: application/json' \
   -d '{"prompt": "Can you explain the background concept of LLM?"}'
 ```
+
+Click the endpoint URL to see how you can interact with the app, using additional input JSON fields, for example. 
+![](assets/fastapi.png)
 
 VESSL Serve offloads the complex challenges of deploying custom models while ensuring availability, scalability, and reliability.
 * Autoscale the model to handle peak loads and scale to zero when it's not being used
