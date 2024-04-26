@@ -15,6 +15,7 @@ In the background, VESSL Serves offloads the common logic required for deploying
 * Push the model and the API scripts to the cloud
 * Create an API server with a dedicated port for receiving inference requests
 
+### Using the app
 Once the instance gets up and running, you can now interact with the model using the API endpoint. 
 
 As defined under `/generate` in `api.py`, the app generates responses based on the input JSON request which accepts input to the language model as `"prompt"`. Try out the following `curl` command to see the app in action. 
