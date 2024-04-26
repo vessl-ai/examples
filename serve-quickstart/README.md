@@ -1,4 +1,4 @@
-# 1-minute quick guide to VESSL Serve
+# 1-minute guide to VESSL Serve
 
 ## What's included
 * `api.py` - Creates a FastAPI-enabled text generation app that communicates with vLLM-accelerated Mistral-7B.
