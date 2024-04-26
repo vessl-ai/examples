@@ -39,7 +39,15 @@ class ChatHandler:
     def chat_function(self, message, history):
         messages = self.build_messages_with_prompt(message, history)
         stream = self.client.chat.completions.create(
-            model=self.model_name, messages=messages, stream=True
+            model=self.model_name,
+            messages=messages,
+            stream=True,
+            stop=[
+                "<|start_header_id|>",
+                "<|end_header_id|>",
+                "<|eot_id|>",
+                "<|reserved_special_token|>",
+            ],
         )
 
         partial_message = ""
