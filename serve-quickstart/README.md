@@ -1,11 +1,11 @@
 # 1-minute quick guide to VESSL Serve
 
-### What's included
+## What's included
 * `api.py` - Creates a FastAPI-enabled text generation app that communicates with vLLM-accelerated Mistral-7B.
 * `quickstart.yaml` - Defines the service spec for the API server such as compute options, autoscaling, and port routing
 * `requirements.txt` - Lists the additional dependencies that are not included in the Docker image
 
-### Launch the app
+## Launch the app
 You can launch the service using the `vessl serve` command. This rolls out a new "revision" of your model in production.
 ```
 vessl serve revision create -f quickstart.yaml
@@ -15,7 +15,7 @@ In the background, VESSL Serves offloads the common logic required for deploying
 * Push the model and the API scripts to the cloud
 * Create an API server with a dedicated port for receiving inference requests
 
-### Using the app
+## Using the app
 Once the instance gets up and running, you can now interact with the model using the API endpoint. 
 
 As defined under `/generate` in `api.py`, the app generates responses based on the input JSON request which accepts input to the language model as `"prompt"`. Try out the following `curl` command to see the app in action. 
