@@ -1,0 +1,22 @@
+name: vllm-chatbot
+description: llama 3 chatbot (vLLM)
+resources:
+  cluster: vessl-gcp-oregon
+  preset: cpu-small
+image: quay.io/vessl-ai/python:3.10-r9
+import:
+  /root/code:
+    git:
+      url: https://github.com/vessl-ai/examples
+      ref: expo-2024
+run:
+  - command: |-
+      pip install -r requirements.txt
+      python app.py --mode vllm
+    workdir: /root/code/deprecated/expo
+ports:
+  - name: gradio
+    port: 7860
+env:
+  MODEL_NAME: casperhansen/llama-3-8b-instruct-awq
+  ENDPOINT: model-service-gateway-hci9ej65piog.oregon.google-cluster.vessl.ai
