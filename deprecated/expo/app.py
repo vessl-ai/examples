@@ -52,6 +52,8 @@ class ChatHandler:
         partial_message = ""
         for chunk in stream:
             if chunk.choices[0].delta.content is not None:
+                if chunk.choices[0].delta.content in self.stop_tokens:
+                    break
                 partial_message = partial_message + chunk.choices[0].delta.content
                 yield partial_message
 
