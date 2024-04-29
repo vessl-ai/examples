@@ -1,16 +1,18 @@
 # 1-minute guide to VESSL Serve
 
-Welcome to the fast track for deploying your LLaMA 3 model with VESSL Serve! This guide will walk you through setting up a text generation API using vLLM acceleration.
+Here's a 1-minute quickstart for deploying your Llama 3 model with VESSL Serve. You will set up a text generation API using vLLM acceleration.
 
 ## What's included
 * `quickstart.yaml` - A YAML configuration file that specifies the service details such as computing resources, autoscaling options, and port settings for your API server.
 * `api-test.py` - A script to interact with your FastAPI-enabled text generation app which utilizes vLLM-accelerated LLaMA 3.
 
 ## Launch the app
-Deploy your service easily with VESSL Serve using the following command, which creates a new revision of your model ready for production:
+
+Easiily deploy your service with VESSL Serve using the following command, which creates a new revision of your production model.
 ```
 vessl serve revision create -f quickstart.yaml
 ```
+
 Behind the scenes, VESSL Serve manages several operations to facilitate model deployment:
 
 * Spin up a GPU-accelerated workload and set up a service environment
@@ -26,7 +28,7 @@ To explore the API's capabilities, append `/docs` to the endpoint URL and naviga
  
 ![](assets/fastapi.png)
 
-vLLM provides a full compatibilty with OpenAI client. Install the OpenAI Python package if not already installed:
+vLLM provides a full compatibility with OpenAI clients. Install the OpenAI Python package if not already installed:
 
 ```
 pip install openai
@@ -44,4 +46,4 @@ python api-test.py \
 VESSL Serve offloads the complex challenges of deploying custom models while ensuring availability, scalability, and reliability.
 * Autoscale the model to handle peak loads and scale to zero when it's not being used
 * Routes traffic efficiently across different model versions.
-* Provides real-time monitoring of predictions and performance metrics through comprehensive dashboards and logs.
+* Provides a real-time monitoring of predictions and performance metrics through comprehensive dashboards and logs.
