@@ -8,19 +8,19 @@ This is a 1-minute quickstart for deploying Llama 3 with VESSL Serve. Here, you 
 
 ## Launch the app
 
-Easiily deploy your service with VESSL Serve using the following command, which creates a new revision of your production model.
+Deploy your service with VESSL Serve with a single command. This will create a first revision of your production Llama 3.
 ```
 vessl serve revision create -f quickstart.yaml
 ```
 
-Behind the scenes, VESSL Serve manages several operations to facilitate model deployment:
+Behind the scenes, VESSL Serve facilitates the common logics of model deployment:
 
 * Spin up a GPU-accelerated workload and set up a service environment
 * Deploys your model and associated API scripts to the cloud infrastructure.
 * Establishes an API server configured to receive inference requests through a dedicated port.
 
 ## Using the app
-After your service is active, you can access the model through the provided endpoint.
+After your service is active, you can access the model with the resulting endpoint.
 
 ![](assets/endpoint.png)
 
