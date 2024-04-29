@@ -23,6 +23,13 @@ class ChatHandler:
         self.model_name = "tgi" if mode == "vanilla" else os.environ.get("MODEL_NAME")
         self.client = OpenAI(base_url=self.endpoint, api_key="-")
 
+        self.stop_tokens = [
+            "<|start_header_id|>",
+            "<|end_header_id|>",
+            "<|eot_id|>",
+            "<|reserved_special_token|>",
+        ]
+
     def build_messages_with_prompt(self, message, history):
         messages = []
         for h in history:
@@ -39,15 +46,7 @@ class ChatHandler:
     def chat_function(self, message, history):
         messages = self.build_messages_with_prompt(message, history)
         stream = self.client.chat.completions.create(
-            model=self.model_name,
-            messages=messages,
-            stream=True,
-            stop=[
-                "<|start_header_id|>",
-                "<|end_header_id|>",
-                "<|eot_id|>",
-                "<|reserved_special_token|>",
-            ],
+            model=self.model_name, messages=messages, stream=True, stop=self.tokens
         )
 
         partial_message = ""
