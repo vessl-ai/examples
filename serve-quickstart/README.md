@@ -1,9 +1,9 @@
 # 1-minute guide to VESSL Serve
 
-Here's a 1-minute quickstart for deploying your Llama 3 model with VESSL Serve. You will set up a text generation API using vLLM acceleration.
+This is a 1-minute quickstart for deploying Llama 3 with VESSL Serve. Here, you will set up a text generation API using vLLM acceleration.
 
 ## What's included
-* `quickstart.yaml` - A YAML configuration file that specifies the service details such as computing resources, autoscaling options, and port settings for your API server.
+* `quickstart.yaml` - A YAML configuration that specifies the service details such as computing resources, autoscaling options, and port settings for your API server.
 * `api-test.py` - A script to interact with your FastAPI-enabled text generation app which utilizes vLLM-accelerated LLaMA 3.
 
 ## Launch the app
