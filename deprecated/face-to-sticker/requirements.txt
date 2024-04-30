@@ -1,0 +1,15 @@
+accelerate>=0.29.3
+diffusers>=0.27.2
+huggingface-hub>=0.22.2
+insightface>=0.7.3
+numpy>=1.26.4
+opencv-python>=4.9.0.80
+onnxruntime>=1.17.3
+onnxruntime-gpu>=1.17.1
+peft>=0.10.0
+pillow>=10.3.0
+safetensors>=0.4.3
+streamlit>=1.33.0
+torch>=2.2.2
+torchvision>=0.17.2
+transformers>=4.40.1

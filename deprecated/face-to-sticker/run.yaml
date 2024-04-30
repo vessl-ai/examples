@@ -1,0 +1,39 @@
+name: face-to-sticker
+description: Convert images to stickers
+resources:
+  cluster: vessl-gcp-oregon
+  preset: gpu-l4-small
+image: quay.io/vessl-ai/torch:2.2.0-cuda12.3-r4
+import:
+  /root/code:
+    git:
+      url: https://github.com/vessl-ai/examples.git
+      ref: expo-2024
+  /root/code/deprecated/face-to-sticker/instant_id:
+    git:
+      url: https://github.com/InstantID/InstantID.git
+      ref: main
+run:
+  - |-
+    apt-get update
+    apt-get install python3-venv ffmpeg unzip wget -y
+    rm -rf /usr/local/lib/python3.10/dist-packages/cv2
+    pip uninstall torch torchvision transformer-engine -y
+  - command: |-
+      pip install -r requirements.txt
+      python download_weight.py
+      mkdir models
+      cd models
+      wget https://huggingface.co/MonsterMMORPG/tools/resolve/main/antelopev2.zip
+      unzip antelopev2.zip
+    workdir: /root/code/deprecated/face-to-sticker
+  - command: |-
+      sed -i 's/from ip_adapter/from .ip_adapter/g' pipeline_stable_diffusion_xl_instantid.py
+    workdir: /root/code/deprecated/face-to-sticker/instant_id
+  - command: |-
+      streamlit run app.py
+    workdir: /root/code/deprecated/face-to-sticker
+ports:
+  - name: streamlit
+    type: http
+    port: 8501
