@@ -1,46 +1,47 @@
-import os
 import base64
-
-import streamlit as st
-from PIL import Image
+import os
 from io import BytesIO
+
+import boto3
+import streamlit as st
+from botocore.exceptions import ClientError
+from PIL import Image
 
 from model import get_antelope_app, load_model, run_pipe
 
-import boto3
-from botocore.exceptions import ClientError
 
 def send_email(html):
-    client = boto3.client('ses',region_name='us-west-2')
+    client = boto3.client("ses", region_name="us-west-2")
     # Try to send the email.
     try:
-        #Provide the contents of the email.
+        # Provide the contents of the email.
         response = client.send_email(
             Destination={
-                'ToAddresses': [
-                    'vesslai@icloud.com',
+                "ToAddresses": [
+                    "vesslai@icloud.com",
                 ],
             },
             Message={
-                'Body': {
-                    'Html': {
-                        'Charset': 'UTF-8',
-                        'Data': html,
+                "Body": {
+                    "Html": {
+                        "Charset": "UTF-8",
+                        "Data": html,
                     }
                 },
-                'Subject': {
-                    'Charset': 'UTF-8',
-                    'Data': 'Photo request',
+                "Subject": {
+                    "Charset": "UTF-8",
+                    "Data": "Photo request",
                 },
             },
-            Source='seokju@vssl.ai',
+            Source="seokju@vssl.ai",
         )
     # Display an error if something goes wrong.
     except ClientError as e:
-        print(e.response['Error']['Message'])
+        print(e.response["Error"]["Message"])
     else:
-        print("Email sent! Message ID:"),
-        print(response['MessageId'])
+        (print("Email sent! Message ID:"),)
+        print(response["MessageId"])
+
 
 st.title("Convert your photo to sticker!😃")
 
@@ -126,18 +127,18 @@ if submit_button:
         )
 
     stream = BytesIO()
-    images.save(stream, format="png")
+    email_image = images[0].resize((512, 512), Image.Resampling.LANCZOS)
+    email_image.save(stream, format="png")
     stream.seek(0)
-    imgObj=stream.read()
-    b64img=base64.b64encode(imgObj)
-    mail=f'''<html>
-<body> 
+    imgObj = stream.read()
+    b64img = base64.b64encode(imgObj)
+    mail = f"""<html>
+<body>
 <h1>Here is your sticker!</h1>
-<img src="data:image/png;base64,{str(b64img)}" alt="sticker">
+<img src="data:image/png;base64,{b64img.decode()}" alt="sticker">
 </body>
-</html>'''
+</html>"""
     send_email(mail)
-
 
     st.image(images)
 
