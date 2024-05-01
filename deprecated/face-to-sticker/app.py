@@ -1,9 +1,46 @@
 import os
+import base64
 
 import streamlit as st
 from PIL import Image
+from io import BytesIO
 
 from model import get_antelope_app, load_model, run_pipe
+
+import boto3
+from botocore.exceptions import ClientError
+
+def send_email(html):
+    client = boto3.client('ses',region_name='us-west-2')
+    # Try to send the email.
+    try:
+        #Provide the contents of the email.
+        response = client.send_email(
+            Destination={
+                'ToAddresses': [
+                    'vesslai@icloud.com',
+                ],
+            },
+            Message={
+                'Body': {
+                    'Html': {
+                        'Charset': 'UTF-8',
+                        'Data': html,
+                    }
+                },
+                'Subject': {
+                    'Charset': 'UTF-8',
+                    'Data': 'Photo request',
+                },
+            },
+            Source='seokju@vssl.ai',
+        )
+    # Display an error if something goes wrong.
+    except ClientError as e:
+        print(e.response['Error']['Message'])
+    else:
+        print("Email sent! Message ID:"),
+        print(response['MessageId'])
 
 st.title("Convert your photo to sticker!😃")
 
@@ -87,6 +124,20 @@ if submit_button:
             guidance_scale=guidance,
             num_images_per_prompt=num_photos,
         )
+
+    stream = BytesIO()
+    images.save(stream, format="png")
+    stream.seek(0)
+    imgObj=stream.read()
+    b64img=base64.b64encode(imgObj)
+    mail=f'''<html>
+<body> 
+<h1>Here is your sticker!</h1>
+<img src="data:image/png;base64,{str(b64img)}" alt="sticker">
+</body>
+</html>'''
+    send_email(mail)
+
 
     st.image(images)
 
