@@ -117,10 +117,11 @@ class RAGInterface:
         return gr.update(value="Upload PDF documents", interactive=True)
 
     def handle_chat(self, message, history):
-        streaming_response = self.chat_engine.stream(message)
         full_response = ""
-        for token in streaming_response:
-            print(token)
+        for response in self.chat_engine.stream(message):
+            print(response)
+            print(response.content)
+            full_response += response.content
             yield full_response
         return full_response
 
