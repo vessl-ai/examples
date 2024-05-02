@@ -145,7 +145,7 @@ def main(args: argparse.Namespace):
         docs_folder="./docs",
         embedding_model_name=args.embedding_model_name,
         llm_api_endpoint=args.llm_api_endpoint,
-        llm_api_key=None,
+        llm_api_key=args.llm_api_key,
         llm_model_name=args.model_name,
         chroma_server_host=args.chroma_server_host,
         chroma_server_http_port=args.chroma_server_http_port,
