@@ -77,10 +77,10 @@ class RAGInterface:
             self.vector_store.add_documents(chunks)
 
         logger.info("Initializing conversation chain...")
+        os.environ["OPENAI_API_KEY"] = self.llm_api_key or ""
         llm = ChatOpenAI(
             base_url=self.llm_endpoint,
-            openai_api_key=self.llm_api_key or "",
-            model_name=self.llm_model_name,
+            model=self.llm_model_name,
             streaming=True,
             temperature=0.5,
             max_tokens=4096,
