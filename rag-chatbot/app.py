@@ -13,6 +13,9 @@ from langchain.chains.conversational_retrieval.base import ConversationalRetriev
 from langchain_chroma import Chroma
 from langchain_community.document_loaders.pdf import PyMuPDFLoader
 from langchain_community.embeddings.huggingface import HuggingFaceBgeEmbeddings
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.runnables import RunnableParallel, RunnablePassthrough
+from langchain_core.prompts import ChatPromptTemplate
 from langchain.memory import ConversationBufferMemory
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_openai import ChatOpenAI
@@ -30,7 +33,7 @@ def generate_text_chunks(pdf_doc_path: str):
     logger.info(f"Parsed {len(text_chunks)} chunks from {pdf_doc_path}")
     return text_chunks
 
-class RAGInterface:
+class RetrievalChain:
     def __init__(
         self,
         docs_folder: str,
@@ -60,7 +63,7 @@ class RAGInterface:
             embedding_function=self.embeddings,
             client_settings=chroma_client_settings)
 
-    def initialize_chat_engine(self, initial_docs: List[str]):
+    def initialize_chain(self, initial_docs: List[str]):
         """
         Initialize a vector database from a list of PDF documents.
 
@@ -76,7 +79,12 @@ class RAGInterface:
             chunks = generate_text_chunks(pdf_file_path)
             self.vector_store.add_documents(chunks)
 
-        logger.info("Initializing conversation chain...")
+        prompt = ChatPromptTemplate.from_template(
+            "You are an assistant for question-answering tasks. Use the following pieces of retrieved context to answer the question. If you don't know the answer, just say that you don't know. Use three sentences maximum and keep the answer concise.\n"
+            "Question: {question}\n"
+            "Context: {context}]\n"
+            "Answer:")
+
         # os.environ["OPENAI_API_KEY"] = self.llm_api_key or ""
         llm = ChatOpenAI(
             base_url=self.llm_endpoint,
@@ -86,10 +94,19 @@ class RAGInterface:
             temperature=0.5,
             max_tokens=4096,
         )
-        memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
-        self.chat_engine = ConversationalRetrievalChain.from_llm(
-            llm=llm, retriever=self.vector_store.as_retriever(), memory=memory
+
+        # Conform chain
+        rag_chain_from_docs = (
+            RunnablePassthrough.assign(context=(lambda x: "\n\n".join(doc.page_content for doc in x["context"])))
+            | prompt
+            | llm
+            | StrOutputParser()
         )
+
+        # Connect chain with retriever
+        self.chain = RunnableParallel(
+            {"context": self.vector_store.as_retriever(), "question": RunnablePassthrough()}
+        ).assign(answer=rag_chain_from_docs)
 
     def add_document(self, list_file_obj: List, progress=gr.Progress()):
         if self.vector_store is None:
@@ -118,7 +135,7 @@ class RAGInterface:
 
     def handle_chat(self, message, history):
         full_response = ""
-        for response in self.chat_engine.stream(message):
+        for response in self.chain.stream(message):
             print(response)
             if "answer" in response:
                 full_response += response["answer"]
@@ -143,7 +160,7 @@ def main(args: argparse.Namespace):
             if file.endswith(".pdf"):
                 initial_docs.append(os.path.join(root, file))
 
-    ragger = RAGInterface(
+    chain = RetrievalChain(
         docs_folder="./docs",
         embedding_model_name=args.embedding_model_name,
         llm_model_name=args.llm_model_name,
@@ -152,12 +169,12 @@ def main(args: argparse.Namespace):
         chroma_server_host=args.chroma_server_host,
         chroma_server_http_port=args.chroma_server_http_port,
     )
-    ragger.initialize_chat_engine(initial_docs)
+    chain.initialize_chain(initial_docs)
 
     with gr.Blocks(css=css, title="RAG Chatbot with LlamaIndex🦙 and Open-source LLMs") as demo:
         with gr.Row():
             gr.Markdown(
-            f"""<h2>RAG Chatbot with LlamaIndex🦙 and {args.llm_model_name}</h2>
+            f"""<h2>RAG Chatbot with PDF documents</h2>
             <h3>Ask any questions about your PDF documents, along with follow-ups</h3>
             <b>Note:</b> This AI assistant performs retrieval-augmented generation from your PDF documents.<br>
             Initial documents are loaded from the `{args.docs_folder}` folder. You can add more documents by clicking the button below.<br>
@@ -177,9 +194,9 @@ def main(args: argparse.Namespace):
                     generate_vectordb_btn.click(
                         fn=lambda: gr.update(value="Uploading...", interactive=False), outputs=[generate_vectordb_btn]
                     ).then(
-                        fn=ragger.add_document, inputs=[document], outputs=[generate_vectordb_btn])
+                        fn=chain.add_document, inputs=[document], outputs=[generate_vectordb_btn])
             with gr.Column(scale=2):
-                gr.ChatInterface(ragger.handle_chat)
+                gr.ChatInterface(chain.handle_chat)
         with gr.Row():
             close_button = gr.Button("Close the app", variant="stop")
             close_button.click(fn=lambda: gr.update(interactive=False), outputs=[close_button]).then(fn=close_app)
