@@ -35,9 +35,9 @@ class RAGInterface:
         self,
         docs_folder: str,
         embedding_model_name: str,
+        llm_model_name: str,
         llm_api_endpoint: str,
         llm_api_key: Optional[str],
-        llm_model_name: str,
         chroma_server_host: Optional[str] = None,
         chroma_server_http_port: Optional[int] = None,
         chroma_collection_name: str = "rag-chatbot",
@@ -144,9 +144,9 @@ def main(args: argparse.Namespace):
     ragger = RAGInterface(
         docs_folder="./docs",
         embedding_model_name=args.embedding_model_name,
+        llm_model_name=args.llm_model_name,
         llm_api_endpoint=args.llm_api_endpoint,
         llm_api_key=args.llm_api_key,
-        llm_model_name=args.model_name,
         chroma_server_host=args.chroma_server_host,
         chroma_server_http_port=args.chroma_server_http_port,
     )
@@ -191,8 +191,8 @@ if __name__ == "__main__":
 
     parser.add_argument("--docs-folder", default="./docs", help="Path to the folder containing the PDF documents.")
     parser.add_argument("--embedding-model-name", default="BAAI/bge-m3", help="HuggingFace model name for text embeddings.")
-    parser.add_argument("--llm_api_endpoint", default="https://run-execution-l96uwyig3uzm-run-execution-8080.oregon.google-cluster.vessl.ai/v1", help="OpenAI-compatible API endpoint.")
     parser.add_argument("--llm-model-name", default="TheBloke/Mistral-7B-Instruct-v0.2-AWQ", help="HuggingFace model name for LLM.")
+    parser.add_argument("--llm_api_endpoint", default="https://run-execution-l96uwyig3uzm-run-execution-8080.oregon.google-cluster.vessl.ai/v1", help="OpenAI-compatible API endpoint.")
     parser.add_argument("--llm_api_key", default=None, help="API key for OpenAI-compatible LLM API.")
     parser.add_argument("--chroma-server-host", default=None, help="Chroma server host. If not provided, Chroma will run as in-memory ephemeral client.")
     parser.add_argument("--chroma-server-http-port", default=None, type=int, help="Chroma server HTTP port.")
