@@ -194,8 +194,8 @@ if __name__ == "__main__":
     parser.add_argument("--docs-folder", default="./docs", help="Path to the folder containing the PDF documents.")
     parser.add_argument("--embedding-model-name", default="BAAI/bge-m3", help="HuggingFace model name for text embeddings.")
     parser.add_argument("--llm-model-name", default="TheBloke/Mistral-7B-Instruct-v0.2-AWQ", help="HuggingFace model name for LLM.")
-    parser.add_argument("--llm_api_endpoint", default="https://run-execution-l96uwyig3uzm-run-execution-8080.oregon.google-cluster.vessl.ai/v1", help="OpenAI-compatible API endpoint.")
-    parser.add_argument("--llm_api_key", default=None, help="API key for OpenAI-compatible LLM API.")
+    parser.add_argument("--llm-api-endpoint", default="https://run-execution-l96uwyig3uzm-run-execution-8080.oregon.google-cluster.vessl.ai/v1", help="OpenAI-compatible API endpoint.")
+    parser.add_argument("--llm-api-key", default=None, help="API key for OpenAI-compatible LLM API.")
     parser.add_argument("--chroma-server-host", default=None, help="Chroma server host. If not provided, Chroma will run as in-memory ephemeral client.")
     parser.add_argument("--chroma-server-http-port", default=None, type=int, help="Chroma server HTTP port.")
 
