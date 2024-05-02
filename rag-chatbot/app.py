@@ -79,7 +79,7 @@ class RAGInterface:
         logger.info("Initializing conversation chain...")
         llm = ChatOpenAI(
             base_url=self.llm_endpoint,
-            openai_api_key=self.llm_api_key,
+            openai_api_key=self.llm_api_key or "",
             model_name=self.llm_model_name,
             streaming=True,
             temperature=0.5,
