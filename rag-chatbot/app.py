@@ -183,13 +183,14 @@ def main(args: argparse.Namespace):
             close_button = gr.Button("Close the app", variant="stop")
             close_button.click(fn=lambda: gr.update(interactive=False), outputs=[close_button]).then(fn=close_app)
 
-    demo.queue().launch(server_name="0.0.0.0")
+    demo.queue().launch(server_name="0.0.0.0", server_port=args.port)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         prog="RAG Chatbot",
         description="Question Answering with LangChain and Chroma vector stores.")
 
+    parser.add_argument("--port", default=7860, type=int, help="Port to run the Gradio server.")
     parser.add_argument("--docs-folder", default="./docs", help="Path to the folder containing the PDF documents.")
     parser.add_argument("--embedding-model-name", default="BAAI/bge-m3", help="HuggingFace model name for text embeddings.")
     parser.add_argument("--llm-model-name", default="TheBloke/Mistral-7B-Instruct-v0.2-AWQ", help="HuggingFace model name for LLM.")
