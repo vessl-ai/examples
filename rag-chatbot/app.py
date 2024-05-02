@@ -79,13 +79,17 @@ class RetrievalChain:
             chunks = generate_text_chunks(pdf_file_path)
             self.vector_store.add_documents(chunks)
 
+        # Turn off tokenizers parallelism to avoid deadlocks potentially caused by parallel chains
+        os.environ["TOKENIZERS_PARALLELISM"] = "false"
+
+        # Prompt
         prompt = ChatPromptTemplate.from_template(
             "You are an assistant for question-answering tasks. Use the following pieces of retrieved context to answer the question. Keep the answer concise. If you don't know the answer, Explain there is not enough information to answer the question.\n"
             "Question: {question}\n"
             "Context: {context}]\n"
             "Answer:")
 
-        # os.environ["OPENAI_API_KEY"] = self.llm_api_key or ""
+        # LLM
         llm = ChatOpenAI(
             base_url=self.llm_endpoint,
             model=self.llm_model_name,
@@ -135,10 +139,13 @@ class RetrievalChain:
 
     def handle_chat(self, message, history):
         full_response = ""
-        for response in self.chain.stream(message):
-            if "answer" in response:
-                full_response += response["answer"]
-            yield full_response
+        try:
+            for response in self.chain.stream(message):
+                if "answer" in response:
+                    full_response += response["answer"]
+                yield full_response
+        except Exception as e:
+            gr.Warning(f"Error while generating message:\n{e}")
         return full_response
 
 def close_app():
@@ -170,7 +177,7 @@ def main(args: argparse.Namespace):
     )
     chain.initialize_chain(initial_docs)
 
-    with gr.Blocks(css=css, title="RAG Chatbot with LlamaIndex🦙 and Open-source LLMs") as demo:
+    with gr.Blocks(css=css, title="🦜🔗 RAG Chatbot with LangChain and Open-source LLMs") as demo:
         with gr.Row():
             gr.Markdown(
             f"""<h2>RAG Chatbot with PDF documents</h2>
@@ -204,14 +211,14 @@ def main(args: argparse.Namespace):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        prog="RAG Chatbot",
+        prog="🦜🔗 RAG Chatbot",
         description="Question Answering with LangChain and Chroma vector stores.")
 
     parser.add_argument("--port", default=7860, type=int, help="Port to run the Gradio server.")
     parser.add_argument("--docs-folder", default="./docs", help="Path to the folder containing the PDF documents.")
     parser.add_argument("--embedding-model-name", default="BAAI/bge-m3", help="HuggingFace model name for text embeddings.")
-    parser.add_argument("--llm-model-name", default="TheBloke/Mistral-7B-Instruct-v0.2-AWQ", help="HuggingFace model name for LLM.")
-    parser.add_argument("--llm-api-endpoint", default="https://run-execution-l96uwyig3uzm-run-execution-8080.oregon.google-cluster.vessl.ai/v1", help="OpenAI-compatible API endpoint.")
+    parser.add_argument("--llm-model-name", default="casperhansen/llama-3-8b-instruct-awq", help="HuggingFace model name for LLM.")
+    parser.add_argument("--llm-api-endpoint", default=None, help="OpenAI or compatible API endpoint.")
     parser.add_argument("--llm-api-key", default=None, help="API key for OpenAI-compatible LLM API.")
     parser.add_argument("--chroma-server-host", default=None, help="Chroma server host. If not provided, Chroma will run as in-memory ephemeral client.")
     parser.add_argument("--chroma-server-http-port", default=None, type=int, help="Chroma server HTTP port.")
