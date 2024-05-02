@@ -2,6 +2,7 @@ import argparse
 import logging
 import os
 import shutil
+import sys
 from time import sleep
 from typing import List, Optional
 
@@ -9,19 +10,18 @@ import gradio as gr
 import torch
 
 from chromadb.config import Settings as ChromaDBSettings
-from langchain.chains.conversational_retrieval.base import ConversationalRetrievalChain
 from langchain_chroma import Chroma
 from langchain_community.document_loaders.pdf import PyMuPDFLoader
 from langchain_community.embeddings.huggingface import HuggingFaceBgeEmbeddings
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnableParallel, RunnablePassthrough
 from langchain_core.prompts import ChatPromptTemplate
-from langchain.memory import ConversationBufferMemory
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_openai import ChatOpenAI
 
-
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+logger.addHandler(logging.StreamHandler(sys.stdout))
 
 def generate_text_chunks(pdf_doc_path: str):
     loader = PyMuPDFLoader(file_path=pdf_doc_path)
@@ -80,7 +80,7 @@ class RetrievalChain:
             self.vector_store.add_documents(chunks)
 
         prompt = ChatPromptTemplate.from_template(
-            "You are an assistant for question-answering tasks. Use the following pieces of retrieved context to answer the question. If you don't know the answer, just say that you don't know. Use three sentences maximum and keep the answer concise.\n"
+            "You are an assistant for question-answering tasks. Use the following pieces of retrieved context to answer the question. Keep the answer concise. If you don't know the answer, Explain there is not enough information to answer the question.\n"
             "Question: {question}\n"
             "Context: {context}]\n"
             "Answer:")
@@ -136,7 +136,6 @@ class RetrievalChain:
     def handle_chat(self, message, history):
         full_response = ""
         for response in self.chain.stream(message):
-            print(response)
             if "answer" in response:
                 full_response += response["answer"]
             yield full_response
