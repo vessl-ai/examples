@@ -82,7 +82,8 @@ class RAGInterface:
             openai_api_key=self.llm_api_key,
             model_name=self.llm_model_name,
             streaming=True,
-            model_kwargs={"temperature": 0.5, "max_length": 4096}
+            temperature=0.5,
+            max_tokens=4096,
         )
         memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
         self.chat_engine = ConversationalRetrievalChain.from_llm(
@@ -143,9 +144,11 @@ def main(args: argparse.Namespace):
     ragger = RAGInterface(
         docs_folder="./docs",
         embedding_model_name=args.embedding_model_name,
-        llm_api_endpoint="https://run-execution-l96uwyig3uzm-run-execution-8080.oregon.google-cluster.vessl.ai/v1",
+        llm_api_endpoint=args.llm_api_endpoint,
         llm_api_key=None,
         llm_model_name=args.model_name,
+        chroma_server_host=args.chroma_server_host,
+        chroma_server_http_port=args.chroma_server_http_port,
     )
     ragger.initialize_chat_engine(initial_docs)
 
@@ -184,11 +187,15 @@ def main(args: argparse.Namespace):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         prog="RAG Chatbot",
-        description="Question Answering with Langchain and Chroma vector stores.")
+        description="Question Answering with LangChain and Chroma vector stores.")
 
     parser.add_argument("--docs-folder", default="./docs", help="Path to the folder containing the PDF documents.")
     parser.add_argument("--embedding-model-name", default="BAAI/bge-m3", help="HuggingFace model name for text embeddings.")
-    parser.add_argument("--model-name", default="TheBloke/Mistral-7B-Instruct-v0.2-AWQ", help="HuggingFace model name for LLM.")
+    parser.add_argument("--llm_api_endpoint", default="https://run-execution-l96uwyig3uzm-run-execution-8080.oregon.google-cluster.vessl.ai/v1", help="OpenAI-compatible API endpoint.")
+    parser.add_argument("--llm-model-name", default="TheBloke/Mistral-7B-Instruct-v0.2-AWQ", help="HuggingFace model name for LLM.")
+    parser.add_argument("--llm_api_key", default=None, help="API key for OpenAI-compatible LLM API.")
+    parser.add_argument("--chroma-server-host", default=None, help="Chroma server host. If not provided, Chroma will run as in-memory ephemeral client.")
+    parser.add_argument("--chroma-server-http-port", default=None, type=int, help="Chroma server HTTP port.")
 
     args = parser.parse_args()
 
