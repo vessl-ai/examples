@@ -120,8 +120,8 @@ class RAGInterface:
         full_response = ""
         for response in self.chat_engine.stream(message):
             print(response)
-            print(response.content)
-            full_response += response.content
+            if "answer" in response:
+                full_response += response["answer"]
             yield full_response
         return full_response
 
