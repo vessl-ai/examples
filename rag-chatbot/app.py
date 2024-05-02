@@ -155,7 +155,7 @@ def main(args: argparse.Namespace):
     with gr.Blocks(css=css, title="RAG Chatbot with LlamaIndex🦙 and Open-source LLMs") as demo:
         with gr.Row():
             gr.Markdown(
-            f"""<h2>RAG Chatbot with LlamaIndex🦙 and {args.model_name}</h2>
+            f"""<h2>RAG Chatbot with LlamaIndex🦙 and {args.llm_model_name}</h2>
             <h3>Ask any questions about your PDF documents, along with follow-ups</h3>
             <b>Note:</b> This AI assistant performs retrieval-augmented generation from your PDF documents.<br>
             Initial documents are loaded from the `{args.docs_folder}` folder. You can add more documents by clicking the button below.<br>
