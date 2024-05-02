@@ -13,10 +13,9 @@ from langchain.chains.conversational_retrieval.base import ConversationalRetriev
 from langchain_chroma import Chroma
 from langchain_community.document_loaders.pdf import PyMuPDFLoader
 from langchain_community.embeddings.huggingface import HuggingFaceBgeEmbeddings
-from langchain_community.llms import HuggingFaceHub
 from langchain.memory import ConversationBufferMemory
-from langchain.llms.openai import OpenAIChat
 from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_openai import ChatOpenAI
 
 
 logger = logging.getLogger(__name__)
@@ -78,9 +77,9 @@ class RAGInterface:
             self.vector_store.add_documents(chunks)
 
         logger.info("Initializing conversation chain...")
-        llm = OpenAIChat(
+        llm = ChatOpenAI(
             base_url=self.llm_endpoint,
-            api_key=self.llm_api_key,
+            openai_api_key=self.llm_api_key,
             model_name=self.llm_model_name,
             streaming=True,
             model_kwargs={"temperature": 0.5, "max_length": 4096}
