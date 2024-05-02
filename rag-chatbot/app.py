@@ -1,103 +1,67 @@
 import argparse
+import logging
 import os
 import shutil
 from time import sleep
-from typing import Dict, Any, List, Optional
+from typing import List, Optional
 
-import faiss
 import gradio as gr
-
-from llama_index.core import StorageContext, VectorStoreIndex
-from llama_index.core.node_parser import SentenceSplitter
-from llama_index.core.chat_engine import ContextChatEngine
-from llama_index.core.schema import TextNode
-from llama_index.embeddings.huggingface import HuggingFaceEmbedding
-from llama_index.readers.file import PyMuPDFReader
-from llama_index.vector_stores.faiss import FaissVectorStore
-
 import torch
 
-CHAT_TEMPLATE = """
-{%- set ns = namespace(first_system=false) -%}
-{{-'<s>'-}}
-{%- for message in messages %}
-    {%- if message['role'] == 'system' -%}
-        {{-' [INST] ' + message['content'] + '\n\n'-}}
-        {%- set ns.first_system = true -%}
-    {%- else -%}
-        {%- if message['role'] == 'user' -%}
-            {%- if ns.first_system -%}
-                {{-'' + message['content'].rstrip() + ' [/INST] '-}}
-                {%- set ns.first_system = false -%}
-            {%- else -%}
-                {{-' [INST] ' + message['content'].rstrip() + ' [/INST] '-}}
-            {%- endif -%}
-        {%- else -%}
-            {{-'' + message['content'] + '</s>' -}}
-        {%- endif -%}
-    {%- endif -%}
-{%- endfor -%}
-{%- if add_generation_prompt -%}
-    {{-''-}}
-{%- endif -%}
-"""
+from chromadb.config import Settings as ChromaDBSettings
+from langchain.chains.conversational_retrieval.base import ConversationalRetrievalChain
+from langchain_chroma import Chroma
+from langchain_community.document_loaders.pdf import PyMuPDFLoader
+from langchain_community.embeddings.huggingface import HuggingFaceBgeEmbeddings
+from langchain_community.llms import HuggingFaceHub
+from langchain.memory import ConversationBufferMemory
+from langchain.llms.openai import OpenAIChat
+from langchain.text_splitter import RecursiveCharacterTextSplitter
 
-def generate_vector_store_nodes(pdf_doc_path: str, embed_model: HuggingFaceEmbedding):
-    loader = PyMuPDFReader()
-    documents = loader.load(file_path=pdf_doc_path)
-    text_parser = SentenceSplitter(chunk_size=1024)
 
-    text_chunks = []
-    # maintain relationship with source doc index, to help inject doc metadata later
-    doc_indices = []
-    for doc_idx, doc in enumerate(documents):
-        cur_text_chunks = text_parser.split_text(doc.text)
-        text_chunks.extend(cur_text_chunks)
-        doc_indices.extend([doc_idx] * len(cur_text_chunks))
+logger = logging.getLogger(__name__)
 
-    nodes = []
-    for idx, text_chunk in enumerate(text_chunks):
-        node = TextNode(text=text_chunk)
-        src_doc = documents[doc_indices[idx]]
-        node.metadata = src_doc.metadata
-        nodes.append(node)
+def generate_text_chunks(pdf_doc_path: str):
+    loader = PyMuPDFLoader(file_path=pdf_doc_path)
+    documents = loader.load()
 
-    for node in nodes:
-        node_embedding = embed_model.get_text_embedding(node.get_content(metadata_mode="all"))
-        node.embedding = node_embedding
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=2048, chunk_overlap=512)
+    text_chunks = text_splitter.split_documents(documents)
 
-    print(f"Embedded {len(nodes)} nodes from {pdf_doc_path}")
-    return nodes
+    logger.info(f"Parsed {len(text_chunks)} chunks from {pdf_doc_path}")
+    return text_chunks
 
 class RAGInterface:
     def __init__(
         self,
+        docs_folder: str,
         embedding_model_name: str,
-        docs_folder: str = "./docs",
-        stream: bool = False,
-        use_flash_attention: bool = False,
-        use_vllm: bool = True,
-        vllm_kwargs: Optional[Dict[str, Any]] = {},
+        llm_api_endpoint: str,
+        llm_api_key: Optional[str],
+        llm_model_name: str,
+        chroma_server_host: Optional[str] = None,
+        chroma_server_http_port: Optional[int] = None,
+        chroma_collection_name: str = "rag-chatbot",
     ):
-        self.device = "cuda" if torch.cuda.is_available() else "cpu"
-        self.embed_model = HuggingFaceEmbedding(model_name=embedding_model_name, device=self.device)
-
-        # FAISS vector store
-        self.faiss_index = faiss.IndexFlatL2(1024) # 1024 is dimension of the embeddings
-        self.vector_store = FaissVectorStore(faiss_index=self.faiss_index)
-
-        # LlamaIndex Storage context to store nodes mapped to vector store
-        self.storage_context = StorageContext.from_defaults(vector_store=self.vector_store)
-        self.vector_store_index = VectorStoreIndex(nodes=[], embed_model=self.embed_model, storage_context=self.storage_context)
-
         self.docs_folder = docs_folder
-        self.stream = stream
-        self.use_flash_attention = use_flash_attention
-        self.use_vllm = use_vllm
-        self.vllm_kwargs = vllm_kwargs if use_vllm else {}
-        print(f"Using accelerator: {self.device}")
+        self.embeddings = HuggingFaceBgeEmbeddings(
+            model_name=embedding_model_name,
+            model_kwargs={"device": "cuda" if torch.cuda.is_available() else "cpu"})
+        self.llm_endpoint = llm_api_endpoint
+        self.llm_api_key = llm_api_key
+        self.llm_model_name = llm_model_name
 
-    def initialize_chat_engine(self, initial_docs: List[str], model_name: str = "mistralai/Mistral-7B-Instruct-v0.2"):
+        chroma_client_settings = None
+        if chroma_server_host:
+            chroma_client_settings=ChromaDBSettings(
+                chroma_server_host=chroma_server_host,
+                chroma_server_http_port=chroma_server_http_port)
+        self.vector_store = Chroma(
+            chroma_collection_name,
+            embedding_function=self.embeddings,
+            client_settings=chroma_client_settings)
+
+    def initialize_chat_engine(self, initial_docs: List[str]):
         """
         Initialize a vector database from a list of PDF documents.
 
@@ -108,46 +72,23 @@ class RAGInterface:
 
         """
 
-        print(f"Initializing vector database from {len(initial_docs)} Documents...")
+        logger.info(f"Initializing vector database from {len(initial_docs)} Documents...")
         for pdf_file_path in initial_docs:
-            nodes = generate_vector_store_nodes(pdf_file_path, self.embed_model)
-            self.vector_store_index.insert_nodes(nodes)
-            # self.vector_store.add(nodes)
+            chunks = generate_text_chunks(pdf_file_path)
+            self.vector_store.add_documents(chunks)
 
-        if self.use_vllm:
-            # Note: vLLM does not support streaming interface yet
-            # ref: https://github.com/run-llama/llama_index/issues/9477
-            print(f"Loading LLM from {model_name} using vLLM...")
-            from llama_index.llms.vllm import Vllm # lazy loading
-
-            llm = Vllm(
-                model=model_name,
-                trust_remote_code=True,  # mandatory for hf models
-                max_new_tokens=4096,
-                vllm_kwargs=self.vllm_kwargs if self.vllm_kwargs else {},
-                top_k=10,
-                top_p=0.95,
-                temperature=0.8,
-            )
-        else:
-            print(f"Loading LLM from {model_name} using transformers.AutoModelForCausalLM...")
-            from llama_index.llms.huggingface import HuggingFaceLLM # lazy loading
-
-            model_kwargs = {"temperature": 0.8, "do_sample": True, "top_k": 10, "top_p": 0.95}
-            if self.use_flash_attention:
-                model_kwargs["attn_implementation"] = "flash_attention_2"
-            llm = HuggingFaceLLM(
-                model_name=model_name,
-                tokenizer_name=model_name,
-                max_new_tokens=4096,
-                is_chat_model=True,
-                model_kwargs=model_kwargs,
-            )
-            # Overwrite chat_template to support system prompt
-            llm._tokenizer.chat_template = CHAT_TEMPLATE
-
-        self.retriever = self.vector_store_index.as_retriever(query_mode="default", similarity_top_k=2)
-        self.chat_engine = ContextChatEngine.from_defaults(retriever=self.retriever, llm=llm)
+        logger.info("Initializing conversation chain...")
+        llm = OpenAIChat(
+            base_url=self.llm_endpoint,
+            api_key=self.llm_api_key,
+            model_name=self.llm_model_name,
+            streaming=True,
+            model_kwargs={"temperature": 0.5, "max_length": 4096}
+        )
+        memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
+        self.chat_engine = ConversationalRetrievalChain.from_llm(
+            llm=llm, retriever=self.vector_store.as_retriever(), memory=memory
+        )
 
     def add_document(self, list_file_obj: List, progress=gr.Progress()):
         if self.vector_store is None:
@@ -162,28 +103,25 @@ class RAGInterface:
         for pdf in pdf_docs:
             shutil.copy(pdf, self.docs_folder)
 
-        gr.Info("Adding documents into vector database...")
-        for pdf_file_path in pdf_docs:
-            nodes = generate_vector_store_nodes(pdf_file_path, self.embed_model)
-            self.vector_store_index.insert_nodes(nodes)
-            progress(1, desc=f"Adding {pdf_file_path} to vector database")
+        try:
+            gr.Info("Adding documents into vector database...")
+            for pdf_file_path in pdf_docs:
+                nodes = generate_text_chunks(pdf_file_path)
+                self.vector_store.add_documents(nodes)
+                progress(1, desc=f"Adding {pdf_file_path} to vector database")
 
-        gr.Info("Upload Completed!")
+            gr.Info("Upload Completed!")
+        except Exception as e:
+            gr.Warning(f"Upload failed: {e}")
         return gr.update(value="Upload PDF documents", interactive=True)
 
     def handle_chat(self, message, history):
-        if self.stream:
-            streaming_response = self.chat_engine.stream_chat(message)
-            full_response = ""
-            for token in streaming_response.response_gen:
-                full_response += token
-                yield full_response
-
-            return full_response
-        else:
-            chat_response = self.chat_engine.chat(message)
-            return chat_response.response
-
+        streaming_response = self.chat_engine.stream(message)
+        full_response = ""
+        for token in streaming_response:
+            print(token)
+            yield full_response
+        return full_response
 
 def close_app():
     gr.Info("Terminated the app!")
@@ -204,17 +142,13 @@ def main(args: argparse.Namespace):
                 initial_docs.append(os.path.join(root, file))
 
     ragger = RAGInterface(
+        docs_folder="./docs",
         embedding_model_name=args.embedding_model_name,
-        stream=True if args.stream else False,
-        use_flash_attention=True if args.use_flash_attention else False,
-        use_vllm=True if args.use_vllm else False,
-        vllm_kwargs={
-            "max_model_len": int(args.vllm_max_model_len),
-            "enforce_eager": args.vllm_enforce_eager,
-        } if args.use_vllm else {},
-
+        llm_api_endpoint="https://run-execution-l96uwyig3uzm-run-execution-8080.oregon.google-cluster.vessl.ai/v1",
+        llm_api_key=None,
+        llm_model_name=args.model_name,
     )
-    ragger.initialize_chat_engine(initial_docs, model_name=args.model_name)
+    ragger.initialize_chat_engine(initial_docs)
 
     with gr.Blocks(css=css, title="RAG Chatbot with LlamaIndex🦙 and Open-source LLMs") as demo:
         with gr.Row():
@@ -251,25 +185,12 @@ def main(args: argparse.Namespace):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         prog="RAG Chatbot",
-        description="Question Answering with Retrieval QA and LangChain Language Models featuring FAISS vector stores.")
+        description="Question Answering with Langchain and Chroma vector stores.")
 
     parser.add_argument("--docs-folder", default="./docs", help="Path to the folder containing the PDF documents.")
     parser.add_argument("--embedding-model-name", default="BAAI/bge-m3", help="HuggingFace model name for text embeddings.")
     parser.add_argument("--model-name", default="TheBloke/Mistral-7B-Instruct-v0.2-AWQ", help="HuggingFace model name for LLM.")
-    parser.add_argument("--use-vllm", action="store_true", help="Use vLLM for generation.")
-    parser.add_argument("--stream", action="store_true", help="Use streaming interface for vLLM generation.")
-    parser.add_argument("--use-flash-attention", action="store_true", help="Use Flash Attention for vLLM generation.")
-    parser.add_argument("--vllm-max-model-len", default=4096, help="Max model length - Only active if using vLLM")
-    parser.add_argument("--vllm-enforce-eager", action="store_true", help="Enforce eager mode - Only active if using vLLM")
 
     args = parser.parse_args()
-
-    # Validate arguments
-    if args.use_vllm:
-        print("[WARN] Using vLLM for text generation. You might want to install vLLM with `pip install -U vllm llama-index-llms-vllm` before running the app.")
-        if args.stream:
-            raise ValueError("vLLM on LlamaIndex does not streaming interface yet. Please remove --stream flag.")
-    if args.use_flash_attention:
-        print("[WARN] Using Flash Attention for vLLM. You might want to install Flash Attention with `pip install -U flash-attn` before running the app.")
 
     main(args)

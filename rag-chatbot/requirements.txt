@@ -1,7 +1,14 @@
-faiss-cpu==1.7.4
-gradio==4.27.0
-llama-index==0.10.19
-llama-index-embeddings-huggingface==0.1.4
-llama-index-llms-huggingface==0.1.4
-llama-index-vector-stores-faiss==0.1.2
+gradio==4.28.3
+langchain-chroma>=0.1.0
+openai>=1.25.0
+pymupdf==1.24.2
+sentence_transformers>=2.7.0
 transformers>=4.40.0
+torch>=2.1.0
+
+
+
+# llama-index==0.10.19
+# llama-index-embeddings-huggingface==0.1.4
+# llama-index-llms-huggingface==0.1.4
+# llama-index-vector-stores-faiss==0.1.2
