@@ -1,6 +1,7 @@
 # Simple RAG Chatbot with LangChain and Open-source LLMs
 
 This repository contains code for a RAG chatbot powered by LangChain and Open-source LLMs on HuggingFace🤗.
+
 The app uses RAG(Retrieval Generated Augmentation) Using vector database. It initializes a vector database from a list of PDF documents, allowing the chatbot to retrieve relevant information. Users can add more documents to the vector database and interact with the chatbot through Gradio's user interface.
 
 ![screenshot](asset/screenshot.png)
@@ -23,10 +24,10 @@ The app uses RAG(Retrieval Generated Augmentation) Using vector database. It ini
 1. Run the application:
 
    ```bash
-   python app.py --docs-folder=/path/to/your/docs/folder --stream
+   python app.py --llm-host $LLM_HOST
    ```
 
-   Replace `/path/to/your/docs/folder` with the path to the folder containing your PDF documents.
+   Replace `$LLM_HOST` with the URL of OpenAI-compatible LLM server. You can run your own LLM server using vLLM template on VESSL Hub: https://vessl.ai/hub/vllm-run
 
 1. Access the Gradio interface by opening [http://localhost:7860](http://localhost:7860) in your web browser.
 
@@ -54,6 +55,6 @@ Feel free to explore and interact with the PDF chatbot on VESSL!
 
 You can change the model used by the chatbot by modifying the `--model-name` flag in the python script. On the VESSL RUN template, it is set using the `$MODEL_NAME` environment variable. The default model is [`TheBloke/Mistral-7B-Instruct-v0.2-AWQ`](https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.2-AWQ) which is the quantized version of [mistralai/Mistral-7B-Instruct-v0.2](https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.2) from Mistral AI.
 
-You can replace it with any other model available on HuggingFace's model hub, such as `upstage/SOLAR-10.7B-v1.0`, `microsoft/phi-2` or `google/gemma-7b-it`.
+You can replace it with any other model available on HuggingFace's model hub, such as `upstage/SOLAR-10.7B-v1.0`, `microsoft/phi-3`, `meta-llama/Meta-Llama-3-8B`, etc.
 
 For additional information and support, refer to the [VESSL documentation](https://docs.vessl.ai/).

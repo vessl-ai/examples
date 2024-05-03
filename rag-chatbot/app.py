@@ -69,6 +69,13 @@ class RetrievalChain:
         return f"{len(self.document_files)} docs ({self.vector_store._collection.count()} chunks)"
 
     def _conform_chain(self):
+        # Try LLM connection
+        try:
+            message = self.llm.invoke("Hello, checking you're up and running.")
+            logger.info(f"Connected to LLM: {message}")
+        except Exception as e:
+            gr.Warning(f"Failed to connect to LLM endpoint {self.llm_host}: {e}, please check the connection.")
+
         # Conform chain
         rag_chain_from_docs = (
             RunnablePassthrough.assign(context=(lambda x: "\n\n".join(doc.page_content for doc in x["context"])))
@@ -81,10 +88,6 @@ class RetrievalChain:
         self.chain = RunnableParallel(
             {"context": self.vector_store.as_retriever(), "question": RunnablePassthrough()}
         ).assign(answer=rag_chain_from_docs)
-
-    def _test_llm_endpoint(self):
-        message = self.llm.invoke("Hello, checking you're up and running.")
-        logger.info(f"Connected to LLM: {message}")
 
     def initialize_chain(self, initial_docs: List[str]):
         """
@@ -124,11 +127,6 @@ class RetrievalChain:
             temperature=0.5,
             max_tokens=4096,
         )
-        try:
-            self._test_llm_endpoint()
-        except Exception as e:
-            raise ValueError(f"Failed to connect to LLM endpoint {self.llm_host}: {e}, please check the connection.")
-
         self._conform_chain()
 
     def update_chain_config(self, llm_host: str, llm_api_key: str):
@@ -142,12 +140,8 @@ class RetrievalChain:
             temperature=0.5,
             max_tokens=4096,
         )
-        try:
-            message = self.llm.invoke("Hello, checking you're up and running.")
-            gr.Info(f"Connected to LLM: {message}")
-            self._conform_chain()
-        except Exception as e:
-            gr.Warning(f"Failed to connect to LLM: {e}")
+        self._conform_chain()
+        gr.Info("LLM settings updated!")
         return gr.update(value="Apply", interactive=True)
 
     def add_document(self, list_file_obj: List, progress=gr.Progress()):
