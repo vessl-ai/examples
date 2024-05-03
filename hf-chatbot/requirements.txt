@@ -1,4 +1,4 @@
 accelerate>=0.29.3
 gradio==4.27.0
 transformers>=4.40.0
-vllm==0.4.0.post1
+vllm==0.4.1
