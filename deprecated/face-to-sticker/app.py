@@ -69,6 +69,18 @@ def crop_and_resize(image: Image.Image, target_length: int = 1024):
 
     return new_image
 
+def add_logo_image(image):
+    with Image.open("logo-blue.png") as logo:
+        logo_aspect = logo.width / logo.height
+        lw = int(image.width // 4)
+        lh = int(lw // logo_aspect)
+        pad = Image.new("RGBA", (image.width, lh + 20), (0, 0, 0, 200))
+        image.paste(pad, (0, image.height - lh - 20), pad)
+        resized_logo = logo.resize((lw, lh), Image.LANCZOS).convert("RGBA")
+        image.paste(resized_logo, ((image.width - lw)//2, image.height - lh - 10),resized_logo)
+
+        return image
+
 
 with st.sidebar:
     prompt = st.text_input(
@@ -154,7 +166,8 @@ if st.session_state.stage >= 1:
         stream = BytesIO()
         idx = int(option) - 1
         email_image = images[idx].resize((512, 512), Image.Resampling.LANCZOS)
-        email_image.save(stream, format="png")
+        image_with_logo = add_logo_image(email_image)
+        image_with_logo.save(stream, format="png")
         stream.seek(0)
         imgObj = stream.read()
         b64img = base64.b64encode(imgObj)
@@ -169,3 +182,5 @@ if st.session_state.stage >= 1:
         st.toast("Email sent!")
         st.session_state.stage = 0
         st.session_state.images = None
+
+        st.image(image_with_logo)
