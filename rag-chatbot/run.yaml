@@ -19,7 +19,7 @@ run:
       pip install flash-attn==2.5.8
     workdir: /code
   - command: |
-      python -m vllm.entrypoints.openai.api_server --model $MODEL_NAME --dtype auto --gpu_memory_utilization 0.8 &
+      python -m vllm.entrypoints.openai.api_server --model $MODEL_NAME --dtype auto --gpu-memory-utilization 0.8 &
     workdir: /code
   - command: |
       pip install -r requirements.txt
