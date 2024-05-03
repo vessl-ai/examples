@@ -27,7 +27,7 @@ def generate_text_chunks(pdf_doc_path: str):
     loader = PyMuPDFLoader(file_path=pdf_doc_path)
     documents = loader.load()
 
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=2048, chunk_overlap=512)
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1024, chunk_overlap=256)
     text_chunks = text_splitter.split_documents(documents)
 
     logger.info(f"Parsed {len(text_chunks)} chunks from {pdf_doc_path}")
@@ -39,29 +39,49 @@ class RetrievalChain:
         docs_folder: str,
         embedding_model_name: str,
         llm_model_name: str,
-        llm_api_endpoint: str,
+        llm_host: str,
         llm_api_key: Optional[str],
-        chroma_server_host: Optional[str] = None,
-        chroma_server_http_port: Optional[int] = None,
+        chroma_host: Optional[str] = None,
+        chroma_port: Optional[int] = None,
         chroma_collection_name: str = "rag-chatbot",
     ):
         self.docs_folder = docs_folder
+        self.document_files = []
+        self.document_chunk_count = 0
         self.embeddings = HuggingFaceBgeEmbeddings(
             model_name=embedding_model_name,
             model_kwargs={"device": "cuda" if torch.cuda.is_available() else "cpu"})
-        self.llm_endpoint = llm_api_endpoint
+        self.llm_host = llm_host
         self.llm_api_key = llm_api_key
         self.llm_model_name = llm_model_name
 
         chroma_client_settings = None
-        if chroma_server_host:
+        if chroma_host:
             chroma_client_settings=ChromaDBSettings(
-                chroma_server_host=chroma_server_host,
-                chroma_server_http_port=chroma_server_http_port)
+                chroma_host=chroma_host,
+                chroma_port=chroma_port)
         self.vector_store = Chroma(
             chroma_collection_name,
             embedding_function=self.embeddings,
             client_settings=chroma_client_settings)
+
+    def _docs_stat(self):
+        return f"{len(self.document_files)} docs ({self.vector_store._collection.count()} chunks)"
+
+    def _conform_chain(self):
+        # Conform chain
+        rag_chain_from_docs = (
+            RunnablePassthrough.assign(context=(lambda x: "\n\n".join(doc.page_content for doc in x["context"])))
+            | self.prompt
+            | self.llm
+            | StrOutputParser()
+        )
+
+        # Connect chain with retriever
+        self.chain = RunnableParallel(
+            {"context": self.vector_store.as_retriever(), "question": RunnablePassthrough()}
+        ).assign(answer=rag_chain_from_docs)
+
 
     def initialize_chain(self, initial_docs: List[str]):
         """
@@ -75,6 +95,7 @@ class RetrievalChain:
         """
 
         logger.info(f"Initializing vector database from {len(initial_docs)} Documents...")
+        self.document_files = initial_docs
         for pdf_file_path in initial_docs:
             chunks = generate_text_chunks(pdf_file_path)
             self.vector_store.add_documents(chunks)
@@ -83,15 +104,17 @@ class RetrievalChain:
         os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
         # Prompt
-        prompt = ChatPromptTemplate.from_template(
-            "You are an assistant for question-answering tasks. Use the following pieces of retrieved context to answer the question. Keep the answer concise. If you don't know the answer, Explain there is not enough information to answer the question.\n"
+        self.prompt_str = """
+        """
+        self.prompt = ChatPromptTemplate.from_template(
+            "You are an assistant for question-answering tasks. Use the following pieces of retrieved context to answer the question. If you don't know the answer, Explain there is not enough information to answer the question. Answer the questions in Korean language only if the language of retrieved contexts is in Korean language.\n"
             "Question: {question}\n"
             "Context: {context}]\n"
             "Answer:")
 
         # LLM
-        llm = ChatOpenAI(
-            base_url=self.llm_endpoint,
+        self.llm = ChatOpenAI(
+            base_url=self.llm_host,
             model=self.llm_model_name,
             openai_api_key=self.llm_api_key or "na",
             streaming=True,
@@ -99,18 +122,26 @@ class RetrievalChain:
             max_tokens=4096,
         )
 
-        # Conform chain
-        rag_chain_from_docs = (
-            RunnablePassthrough.assign(context=(lambda x: "\n\n".join(doc.page_content for doc in x["context"])))
-            | prompt
-            | llm
-            | StrOutputParser()
-        )
+        self._conform_chain()
 
-        # Connect chain with retriever
-        self.chain = RunnableParallel(
-            {"context": self.vector_store.as_retriever(), "question": RunnablePassthrough()}
-        ).assign(answer=rag_chain_from_docs)
+    def update_chain_config(self, llm_host: str, llm_api_key: str):
+        self.llm_host = llm_host.strip()
+        self.llm_api_key = llm_api_key.strip()
+        self.llm = ChatOpenAI(
+            base_url=self.llm_host,
+            model=self.llm_model_name,
+            openai_api_key=self.llm_api_key or "na",
+            streaming=True,
+            temperature=0.5,
+            max_tokens=4096,
+        )
+        try:
+            message = self.llm.invoke("Hello, checking you're up and running.")
+            gr.Info(f"Connected to LLM: {message}")
+            self._conform_chain()
+        except Exception as e:
+            gr.Warning(f"Failed to connect to LLM: {e}")
+        return gr.update(value="Apply", interactive=True)
 
     def add_document(self, list_file_obj: List, progress=gr.Progress()):
         if self.vector_store is None:
@@ -119,23 +150,33 @@ class RetrievalChain:
         if list_file_obj is None:
             return gr.update(value="Upload PDF documents", interactive=True)
 
-        gr.Info(f"Adding {len(list_file_obj)} documents to vector database...")
-        progress(0, desc="Copying documents to ")
         pdf_docs = [x.name for x in list_file_obj if x is not None]
-        for pdf in pdf_docs:
+        for i, pdf in enumerate(pdf_docs):
+            progress((i, len(pdf_docs)), desc=f"\nCopying {pdf.split('/')[-1]} to the docs folder\n")
             shutil.copy(pdf, self.docs_folder)
 
         try:
-            gr.Info("Adding documents into vector database...")
+            current_progress = len(pdf_docs)
+            total_progress = len(pdf_docs)
             for pdf_file_path in pdf_docs:
+                self.document_files.append(pdf_file_path)
                 nodes = generate_text_chunks(pdf_file_path)
-                self.vector_store.add_documents(nodes)
-                progress(1, desc=f"Adding {pdf_file_path} to vector database")
+                total_progress += len(nodes)
+                for node in nodes:
+                    # Add nodes one by one to the vector store to show progress
+                    current_progress += 1
+                    progress((current_progress, total_progress), desc=f"\nGenerating vector chunks from {pdf_file_path.split('/')[-1]}\n")
+                    self.vector_store.add_documents([node])
 
             gr.Info("Upload Completed!")
         except Exception as e:
             gr.Warning(f"Upload failed: {e}")
-        return gr.update(value="Upload PDF documents", interactive=True)
+
+        return [
+            gr.update(label=self._docs_stat(), value=self.document_files), # documents_filebox
+            gr.update(value=None),                                         # uploader
+            gr.update(value="Upload PDF documents", interactive=True)      # upload_pdf_btn
+        ]
 
     def handle_chat(self, message, history):
         full_response = ""
@@ -158,6 +199,13 @@ def main(args: argparse.Namespace):
     css = """
     footer {visibility: hidden}
     .toast-body.error {visibility: hidden}
+    .contain { display: flex; flex-direction: column; }
+    .gradio-container { height: 100vh !important; }
+    #component-0, .tabs { height: 100%; }
+    #chatbot-container { flex-grow: 1; overflow: auto; }
+
+    .tabs, .tabitem .gap { height: 100%; }
+    .tabitem { height: 95%; }
     """
 
     initial_docs = []
@@ -170,42 +218,53 @@ def main(args: argparse.Namespace):
         docs_folder="./docs",
         embedding_model_name=args.embedding_model_name,
         llm_model_name=args.llm_model_name,
-        llm_api_endpoint=args.llm_api_endpoint,
+        llm_host=args.llm_host,
         llm_api_key=args.llm_api_key,
-        chroma_server_host=args.chroma_server_host,
-        chroma_server_http_port=args.chroma_server_http_port,
+        chroma_host=args.chroma_host,
+        chroma_port=args.chroma_port,
     )
     chain.initialize_chain(initial_docs)
 
     with gr.Blocks(css=css, title="🦜🔗 RAG Chatbot with LangChain and Open-source LLMs") as demo:
         with gr.Row():
             gr.Markdown(
-            f"""<h2>RAG Chatbot with PDF documents</h2>
-            <h3>Ask any questions about your PDF documents, along with follow-ups</h3>
-            <b>Note:</b> This AI assistant performs retrieval-augmented generation from your PDF documents.<br>
-            Initial documents are loaded from the `{args.docs_folder}` folder. You can add more documents by clicking the button below.<br>
+            """<h2>RAG Chatbot with PDF documents</h2>
+            <h3>Ask any questions about your PDF documents, along with follow-ups<br>PDF 문서를 업로드하고, 문서에 대한 질문을 해보세요!</h3>
+            This AI assistant performs retrieval-augmented generation from your PDF documents. You can add more documents by uploading PDF files one the left sidebar.<br>
+            이 AI 어시스턴트는 PDF 문서에서 정보를 검색하여 답변을 생성합니다. 왼쪽 사이드바에서 PDF 파일을 업로드하여 더 많은 문서를 추가할 수 있습니다.<br>
             """)
+        with gr.Tab("Chatbot"):
+            with gr.Row(elem_id="chatbot-container"):
+                with gr.Column(scale=1):
+                    with gr.Row():
+                        documents_filebox = gr.Files(label=chain._docs_stat(), value=initial_docs, interactive=False)
+                    with gr.Row():
+                        uploader = gr.Files(
+                            file_count="multiple",
+                            file_types=["pdf"],
+                            interactive=True,
+                            label="Upload your PDF documents here")
+                    with gr.Row():
+                        upload_pdf_btn = gr.Button("Upload PDF documents")
+                        upload_pdf_btn.click(
+                            fn=lambda: gr.update(value="Uploading...", interactive=False), outputs=[upload_pdf_btn]
+                        ).then(
+                            fn=chain.add_document, inputs=[uploader], outputs=[documents_filebox, uploader, upload_pdf_btn])
+                with gr.Column(scale=3):
+                    gr.ChatInterface(chain.handle_chat)
+        with gr.Tab("Settings"):
+            with gr.Group():
+                llm_host_textbox = gr.Textbox(args.llm_host, label="LLM Host")
+                llm_api_key_textbox = gr.Textbox(args.llm_api_key, label="LLM API Key")
+            with gr.Group():
+                update_llm_btn = gr.Button("Apply")
+                update_llm_btn.click(
+                    fn=lambda: gr.update(value="Connecting...", interactive=False), outputs=[update_llm_btn]
+                ).then(
+                    fn=chain.update_chain_config, inputs=[llm_host_textbox, llm_api_key_textbox], outputs=[update_llm_btn])
         with gr.Row():
-            with gr.Column(scale=1):
-                with gr.Row():
-                    gr.Files(label="Initial documents", value=initial_docs, interactive=False)
-                with gr.Row():
-                    document = gr.Files(
-                        file_count="multiple",
-                        file_types=["pdf"],
-                        interactive=True,
-                        label="Add your PDF documents (single or multiple)")
-                with gr.Row():
-                    generate_vectordb_btn = gr.Button("Upload PDF documents")
-                    generate_vectordb_btn.click(
-                        fn=lambda: gr.update(value="Uploading...", interactive=False), outputs=[generate_vectordb_btn]
-                    ).then(
-                        fn=chain.add_document, inputs=[document], outputs=[generate_vectordb_btn])
-            with gr.Column(scale=2):
-                gr.ChatInterface(chain.handle_chat)
-        with gr.Row():
-            close_button = gr.Button("Close the app", variant="stop")
-            close_button.click(fn=lambda: gr.update(interactive=False), outputs=[close_button]).then(fn=close_app)
+                close_button = gr.Button("Close the app", variant="stop")
+                close_button.click(fn=lambda: gr.update(interactive=False), outputs=[close_button]).then(fn=close_app)
 
     demo.queue().launch(server_name="0.0.0.0", server_port=args.port)
 
@@ -218,10 +277,10 @@ if __name__ == "__main__":
     parser.add_argument("--docs-folder", default="./docs", help="Path to the folder containing the PDF documents.")
     parser.add_argument("--embedding-model-name", default="BAAI/bge-m3", help="HuggingFace model name for text embeddings.")
     parser.add_argument("--llm-model-name", default="casperhansen/llama-3-8b-instruct-awq", help="HuggingFace model name for LLM.")
-    parser.add_argument("--llm-api-endpoint", default=None, help="OpenAI or compatible API endpoint.")
+    parser.add_argument("--llm-host", default=None, help="OpenAI or compatible API endpoint.")
     parser.add_argument("--llm-api-key", default=None, help="API key for OpenAI-compatible LLM API.")
-    parser.add_argument("--chroma-server-host", default=None, help="Chroma server host. If not provided, Chroma will run as in-memory ephemeral client.")
-    parser.add_argument("--chroma-server-http-port", default=None, type=int, help="Chroma server HTTP port.")
+    parser.add_argument("--chroma-host", default=None, help="Chroma server host. If not provided, Chroma will run as in-memory ephemeral client.")
+    parser.add_argument("--chroma-port", default=8000, type=int, help="Chroma server HTTP port.")
 
     args = parser.parse_args()
 
