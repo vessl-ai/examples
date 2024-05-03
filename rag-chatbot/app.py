@@ -113,10 +113,10 @@ class RetrievalChain:
         self.prompt_str = """
         """
         self.prompt = ChatPromptTemplate.from_template(
-            "You are an assistant for question-answering tasks. Use the following pieces of retrieved context to answer the question. If you don't know the answer, Explain there is not enough information to answer the question. Answer the questions in Korean language only if the language of retrieved contexts is in Korean language.\n"
-            "Question: {question}\n"
-            "Context: {context}]\n"
-            "Answer:")
+            "As an AI assistant, you are assigned to perform question-answering tasks. Utilize the provided retrieved context to formulate your answer to the asked question. If the context doesn't contain sufficient information for a direct or comprehensive response, try to infer as much as possible from the provided details and draft a plausible answer. However, make sure to clarify that the given context didn't offer enough information to provide a fully accurate response.\n"
+            "Presented Question: {question}\n"
+            "Provided Context: {context}\n"
+            "Your Response:")
 
         # LLM
         self.llm = ChatOpenAI(
