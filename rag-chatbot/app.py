@@ -82,6 +82,9 @@ class RetrievalChain:
             {"context": self.vector_store.as_retriever(), "question": RunnablePassthrough()}
         ).assign(answer=rag_chain_from_docs)
 
+    def _test_llm_endpoint(self):
+        message = self.llm.invoke("Hello, checking you're up and running.")
+        logger.info(f"Connected to LLM: {message}")
 
     def initialize_chain(self, initial_docs: List[str]):
         """
@@ -121,6 +124,10 @@ class RetrievalChain:
             temperature=0.5,
             max_tokens=4096,
         )
+        try:
+            self._test_llm_endpoint()
+        except Exception as e:
+            raise ValueError(f"Failed to connect to LLM endpoint {self.llm_host}: {e}, please check the connection.")
 
         self._conform_chain()
 
@@ -277,7 +284,7 @@ if __name__ == "__main__":
     parser.add_argument("--docs-folder", default="./docs", help="Path to the folder containing the PDF documents.")
     parser.add_argument("--embedding-model-name", default="BAAI/bge-m3", help="HuggingFace model name for text embeddings.")
     parser.add_argument("--llm-model-name", default="casperhansen/llama-3-8b-instruct-awq", help="HuggingFace model name for LLM.")
-    parser.add_argument("--llm-host", default=None, help="OpenAI or compatible API endpoint.")
+    parser.add_argument("--llm-host", default="http://localhost:8000/v1", help="OpenAI or compatible API endpoint.")
     parser.add_argument("--llm-api-key", default=None, help="API key for OpenAI-compatible LLM API.")
     parser.add_argument("--chroma-host", default=None, help="Chroma server host. If not provided, Chroma will run as in-memory ephemeral client.")
     parser.add_argument("--chroma-port", default=8000, type=int, help="Chroma server HTTP port.")

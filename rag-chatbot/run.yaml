@@ -35,4 +35,4 @@ ports:
     type: http
     port: 8000
 env:
-  MODEL_NAME: casperhansen/llama-3-8b-instruct-awq
+  MODEL_NAME: TheBloke/Mistral-7B-Instruct-v0.2-AWQ
