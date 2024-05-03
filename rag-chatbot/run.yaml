@@ -1,5 +1,5 @@
 name: rag-chatbot
-description: RAG chatbot with LLamaIndex
+description: RAG chatbot
 tags:
   - RAG
   - LLM
@@ -12,18 +12,27 @@ import:
     git:
       url: github.com/vessl-ai/examples.git
 run:
-  - command: |
-      pip install autoawq==0.2.4  # Install AutoAWQ separately to avoid conflicts
-      pip install -r requirements.txt
+  - command: |  # Install some dependencies for LLM acceleration those have conflicts with common libraries
+      pip install autoawq==0.2.4
+      pip install vllm==0.4.1
       pip uninstall -y transformer-engine flash-attn
       pip install flash-attn==2.5.8
+    workdir: /code
+  - command: |
+      python -m vllm.entrypoints.openai.api_server --model $MODLE_NAME --dtype auto &
+    workdir: /code
+  - command: |
+      pip install -r requirements.txt
     workdir: /code/rag-chatbot
   - command: |
-      python app.py --stream --use-flash-attention --model-name=$MODEL_NAME
+      python app.py --llm-host http://localhost:8000/v1
     workdir: /code/rag-chatbot
 ports:
   - name: gradio
     type: http
     port: 7860
+  - name: vllm
+    type: http
+    port: 8000
 env:
   MODEL_NAME: casperhansen/llama-3-8b-instruct-awq
