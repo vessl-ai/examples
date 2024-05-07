@@ -28,7 +28,8 @@ def load_model() -> StableDiffusionXLInstantIDPipeline:
         controlnet=controlnet,
         torch_dtype=torch.float16,
         use_safetensors=False,
-    ).cuda()
+    )
+    pipe.cuda()
     pipe.enable_model_cpu_offload()
 
     # load adapter
