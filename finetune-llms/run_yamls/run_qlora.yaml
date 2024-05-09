@@ -1,0 +1,55 @@
+name: finetune-template
+description: ""
+resources:
+  cluster: vessl-gcp-oregon
+  preset: gpu-l4-medium
+image: quay.io/vessl-ai/torch:2.3.0-cuda12.4-r4
+import:
+  /root/code:
+    git:
+      url: https://github.com/vessl-ai/examples.git
+      ref: main
+run:
+  - command: |-
+      pip install -r requirements.txt
+      pip uninstall -y transformer-engine
+      pip install packaging ninja einops wheel xformers
+      pip install flash-attn==2.5.8 --no-build-isolation
+    workdir: /root
+  - command: |-
+      python main.py \
+      --model_name_or_path $MODEL_NAME \
+      --dataset_name $DATASET_NAME \
+      --output_dir outputs \
+      --max_seq_length 2048 \
+      --num_train_epochs 1 \
+      --logging_steps 5 \
+      --bf16 True \
+      --packing True \
+      --learning_rate 2e-4 \
+      --lr_scheduler_type "cosine" \
+      --weight_decay 1e-4 \
+      --warmup_ratio 0.0 \
+      --max_grad_norm 1.0 \
+      --per_device_train_batch_size 2 \
+      --per_device_eval_batch_size 2 \
+      --gradient_accumulation_steps 4 \
+      --gradient_checkpointing True \
+      --use_flash_attn True \
+      --upload_model True \
+      --repository_name finetune-test \
+      --peft_type LORA \
+      --task_type CAUSAL_LM \
+      --lora_r 8 \
+      --lora_alpha 16 \
+      --load_in_4bit True \
+      --bnb_4bit_quant_type nf4 \
+      --bnb_4bit_use_double_quant True \
+      --bnb_4bit_compute_dtype float16
+    workdir: /root/code
+env:
+  HF_TOKEN:
+    secret: HF_TOKEN
+  MODEL_NAME: meta-llama/Meta-Llama-3-8B-Instruct
+  DATASET_NAME: kyujinpy/OpenOrca-KO
+
