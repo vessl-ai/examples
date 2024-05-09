@@ -1,5 +1,5 @@
-name: mistral-chatbot
-message: Quickstart to serve mistral chatbot!
+name: llama-3-textgen
+message: deploy
 image: quay.io/vessl-ai/torch:2.1.0-cuda12.2-r3
 resources:
   cluster: vessl-gcp-oregon
@@ -8,14 +8,13 @@ import:
   /code/:
     git:
       url: github.com/vessl-ai/examples.git
-      ref: vssl-8476
 run:
 - command: |
     pip install -r requirements.txt
     python -m api --model $MODEL_NAME --max-model-len 4096 --disable-log-requests
-  workdir: /code/serve-quickstart
+  workdir: /code/llama-3-deployment
 env:
-  MODEL_NAME: mistralai/Mistral-7B-Instruct-v0.2
+  MODEL_NAME: casperhansen/llama-3-8b-instruct-awq
 ports:
 - port: 8000
 service:
