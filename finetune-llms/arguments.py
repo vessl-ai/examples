@@ -25,6 +25,9 @@ class ModelArguments:
         default="float16",
         metadata={"help": "Compute dtype for 4bit base models"},
     )
+    bnb_4bit_quant_storage: Optional[str] = field(
+        default="uint8", metadata={"help": "Store dtype for 4bit base models"}
+    )
 
     # use flash attention
     use_flash_attn: Optional[bool] = field(

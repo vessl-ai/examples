@@ -14,11 +14,13 @@ def load_model_and_tokenizer(model_args: ModelArguments, data_args: DatasetArgum
 
     if model_args.load_in_4bit:
         compute_dtype = getattr(torch, model_args.bnb_4bit_compute_dtype)
+        store_dtype = getattr(torch, model_args.bnb_4bit_quant_storage)
         quantization_config = BitsAndBytesConfig(
             load_in_4bit=model_args.load_in_4bit,
             bnb_4bit_quant_type=model_args.bnb_4bit_quant_type,
             bnb_4bit_compute_dtype=compute_dtype,
             bnb_4bit_use_double_quant=model_args.bnb_4bit_use_double_quant,
+            bnb_4bit_quant_storage=store_dtype,
         )
     elif model_args.load_in_8bit:
         quantization_config = BitsAndBytesConfig(load_in_8bit=model_args.load_in_8bit)
