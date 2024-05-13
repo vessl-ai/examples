@@ -1,5 +1,8 @@
-name: finetune-template
-description: ""
+name: finetune-llama-3
+description: Finetune llama 3
+tags:
+  - finetune
+  - llama-3
 resources:
   cluster: vessl-gcp-oregon
   preset: gpu-l4-small

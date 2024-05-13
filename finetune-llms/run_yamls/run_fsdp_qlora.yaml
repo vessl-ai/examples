@@ -1,5 +1,10 @@
-name: finetune-template
-description: ""
+name: finetune-llama-3-fsdp-qlora
+description: Finetune llama 3 with FSDP using QLoRA
+tags:
+  - finetune
+  - llama-3
+  - qlora
+  - fsdp
 resources:
   cluster: vessl-gcp-oregon
   preset: gpu-l4-small

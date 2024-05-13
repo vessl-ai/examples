@@ -1,5 +1,9 @@
-name: finetune-template
-description: ""
+name: finetune-llama-3-fsdp-full
+description: Finetune llama 3 with FSDP
+tags:
+  - finetune
+  - llama-3
+  - fsdp
 resources:
   cluster: vessl-gcp-oregon
   preset: gpu-l4-small
