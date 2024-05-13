@@ -36,7 +36,7 @@ def main(
         eval_dataset=eval_dataset,
         peft_config=peft_config,
         packing=data_args.packing,
-        # dataset_text_field=data_args.dataset_text_field,
+        dataset_text_field=data_args.dataset_text_field,
         max_seq_length=data_args.max_seq_length,
         callbacks=[
             VesslCallback(
@@ -53,11 +53,6 @@ def main(
     if training_args.resume_from_checkpoint is not None:
         checkpoint = training_args.resume_from_checkpoint
     trainer.train(resume_from_checkpoint=checkpoint)
-
-    # saving final model
-    # if trainer.is_fsdp_enabled:
-    #     trainer.accelerator.state.fsdp_plugin.set_state_dict_type("FULL_STATE_DICT")
-    # trainer.save_model()
 
 
 if __name__ == "__main__":
