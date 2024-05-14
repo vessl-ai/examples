@@ -116,8 +116,8 @@ $ vessl serve create -f service.yaml -a
 ```
 This will deploy the Llama 3 model using the specified configuration in the YAML file.
 
-### 8. Retrieve the Endpoint Address
-You can retrieve the address of the service endpoint with `vessl serve gateway show` command.
+### 8. Retrieve the Endpoint URL
+You can retrieve the URL of the service endpoint with `vessl serve gateway show` command.
 ```sh
 $ vessl serve gateway show --service llama-3-textgen --format text
 
@@ -131,6 +131,7 @@ $ vessl serve gateway show --service llama-3-textgen --format text
 ```
 
 ### 9. Test the model deployed
+Finally, let's check if the model is deployed correctly with a simple curl command. Replace `${ENDPOINT_URL}` and `${API_KEY}` with the service endpoint URL and API key configured above.
 ```sh
 $ curl -X POST ${ENDPOINT_URL} \
     -H "Content-Type: application/json" \
