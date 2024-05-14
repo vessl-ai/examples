@@ -114,3 +114,6 @@ Finally, create a service revision and deploy it with the YAML file you created 
 ```sh
 $ vessl serve create -f service.yaml -a
 ```
+This will deploy the Llama 3 model using the specified configuration in the YAML file.
+
+For more detailed information and troubleshooting, refer to the [VESSL documentation](https://docs.vessl.ai/) or contact [VESSL support](mailto:support@vessl.ai).
