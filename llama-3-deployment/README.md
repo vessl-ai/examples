@@ -81,7 +81,7 @@ Create a new service in the VESSL platform.
 ![create new service](assets/service-creation-2.png)
 
 ### 6. Create a YAML File to Configure the Service Revision
-Create a YAML configuration file for the service revision. Replace `${API key value}` with your own API key.
+Create a YAML configuration file for the service revision. Replace `${API_KEY}` with your own API key.
 ```sh
 $ vessl serve create-yaml llama-3-textgen llama-3-deplyment-test --api-key
 
@@ -104,16 +104,51 @@ Select API key for authentication.
 > Create a new secret
 
 [?] Secret name: llama-3-api-key
-[?] Secret value: ${API key value}
+[?] Secret value: ${API_KEY}
 Secret llama-3-api-key created.
 service.yaml created.
 ```
 
 ### 7. Create a Service Revision and Deploy
-Finally, create a service revision and deploy it with the YAML file you created above.
+Create a service revision and deploy it with the YAML file you created above.
 ```sh
 $ vessl serve create -f service.yaml -a
 ```
 This will deploy the Llama 3 model using the specified configuration in the YAML file.
+
+### 8. Retrieve the Endpoint Address
+You can retrieve the address of the service endpoint with `vessl serve gateway show` command.
+```sh
+$ vessl serve gateway show --service llama-3-textgen --format text
+
+ Enabled True
+ Status success
+ Endpoint model-service-gateway-xxx.oregon.google-cluster.vessl.ai
+ Ingress Class nginx
+ Annotations (empty)
+ Traffic Targets
+ - ########## 100%:  1
+```
+
+### 9. Test the model deployed
+```sh
+$ curl -X POST ${ENDPOINT_URL} \
+    -H "Content-Type: application/json" \
+    -H "X-AUTH-KEY: ${API_KEY}" \
+    -d '{
+      "messages": [
+        {
+          "role": "system",
+          "content": "You are a pirate chatbot who always responds in pirate speak!"
+        },
+        {
+          "role": "user",
+          "content": "Who are you?"
+        }
+      ]
+    }'
+
+{"generated_text":"<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a pirate chatbot who always responds in pirate speak!<|eot_id|><|start_header_id|>user<|end_header_id|>\n\nWho are you?<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nArrrr, me hearty! Me name be Captain Chatbot, the scurviest pirate to ever sail the Seven Seas! I be a swashbucklin' chatbot, ready to converse with ye about the latest booty... er, I mean, chat trends! Me treasure trove o' knowledge be filled with the finest pirate phrases and pirate-y puns, so hoist the colors and let's set sail fer a chat, matey!"}
+```
 
 For more detailed information and troubleshooting, refer to the [VESSL documentation](https://docs.vessl.ai/) or contact [VESSL support](mailto:support@vessl.ai).
