@@ -10,7 +10,7 @@ This is a 1-minute quickstart for deploying Llama 3 with VESSL Serve. Here, you 
 
 Deploy your service with VESSL Serve with a single command. This will create a first revision of your production Llama 3.
 ```
-vessl serve revision create -f quickstart.yaml
+vessl serve create -f quickstart.yaml
 ```
 
 Behind the scenes, VESSL Serve facilitates the common logics of model deployment:
