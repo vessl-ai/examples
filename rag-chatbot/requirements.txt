@@ -1,6 +1,7 @@
 chromadb>=0.4.24
 gradio==4.28.3
 langchain>=0.1.17
+langchain-community>=0.1.17
 langchain-chroma>=0.1.0
 langchain-openai>=0.1.5
 openai>=1.25.0
