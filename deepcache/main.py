@@ -25,14 +25,17 @@ with col1:
     st.header("Prompt")
     with st.form("prompt", clear_on_submit=False):
         prompt = st.text_area("Enter your prompt here")
+        deepcache = st.toggle("Enable DeepCache", value=True)
         submit_button = st.form_submit_button(label="Generate")
 
 with col2:
     st.header("Image")
     if submit_button:
-        helper.enable()
+        if deepcache:
+            helper.enable()
         image = pipe(prompt).images[0]
-        helper.disable()
+        if deepcache
+            helper.disable()
     if submit_button:
         st.image(image)
 
