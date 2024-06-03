@@ -34,7 +34,7 @@ with col2:
         if deepcache:
             helper.enable()
         image = pipe(prompt).images[0]
-        if deepcache
+        if deepcache:
             helper.disable()
     if submit_button:
         st.image(image)
