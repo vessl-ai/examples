@@ -2,7 +2,7 @@
 
 This repository contains code to run Streamlit app for [Stable Diffusion XL base model](https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0) using [DeepCache](https://github.com/horseee/DeepCache), a novel training-free and almost lossless paradigm that accelerates diffusion models from the perspective of model architecture.
 
-Utilizing the property of the U-Net, DeepCache reuse the high-level features while updating the low-level features in a very cheap way. DeepCache accelerates Stable Diffusion v1.5 by 2.3x with only a 0.05 decline in CLIP Score, and LDM-4-G(ImageNet) by 4.1x with a 0.22 decrease in FID.
+DeepCache capitalizes on the inherent temporal redundancy observed in the sequential denoising steps of diffusion models, which caches and retrieves features across adjacent denoising stages, thereby curtailing redundant computations. DeepCache accelerates Stable Diffusion v1.5 by 2.3x with only a 0.05 decline in CLIP Score, and LDM-4-G(ImageNet) by 4.1x with a 0.22 decrease in FID.
 
 ## Running Locally
 1. Clone the repository:
