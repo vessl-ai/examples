@@ -1,0 +1,5 @@
+DeepCache==0.1.1
+accelerate==0.30.1
+diffusers==0.28.0
+streamlit==1.35.0
+transformers==4.41.2
