@@ -7,7 +7,6 @@ import:
   /code/: 
     git:
       url: github.com/vessl-ai/examples.git
-      ref: vssl-9078
 run:
   - workdir: /code/deepcache
     command: |
