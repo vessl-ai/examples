@@ -45,7 +45,7 @@ nvidia-nvjitlink-cu12==12.4.127
 nvidia-nvtx-cu12==12.1.105
 oauthlib==3.2.2
 omegaconf==2.3.0
-opencv-python==4.9.0.80
+opencv-python==4.8.0.74
 packaging==24.0
 pandas==2.0.3
 pillow==10.3.0

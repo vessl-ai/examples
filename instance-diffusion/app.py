@@ -1,30 +1,30 @@
-import os
-import json
-import torch 
 import argparse
-import numpy as np
-
+import json
+import os
+import time
+import uuid
 from functools import partial
-from omegaconf import OmegaConf
-from PIL import Image, ImageDraw
 from tkinter.messagebox import NO
-from diffusers.utils import load_image
-from diffusers import StableDiffusionXLImg2ImgPipeline
 
-from ldm.util import instantiate_from_config
+import numpy as np
+import streamlit as st
+import torch
+from dataset.decode_item import (decodeToBinaryMask, reorder_scribbles,
+                                 sample_random_points_from_mask,
+                                 sample_sparse_points_from_mask)
+from diffusers import StableDiffusionXLImg2ImgPipeline
+from diffusers.utils import load_image
+from inference import draw_boxes, infer_by_streamlit, rescale_box
 from ldm.models.diffusion.plms import PLMSSampler
 from ldm.models.diffusion.plms_instance import PLMSSamplerInst
-from dataset.decode_item import sample_random_points_from_mask, sample_sparse_points_from_mask, decodeToBinaryMask, reorder_scribbles
-
+from ldm.util import instantiate_from_config
+from omegaconf import OmegaConf
+from PIL import Image, ImageDraw
 from skimage.transform import resize
 from utils.checkpoint import load_model_ckpt
 from utils.input import convert_points, prepare_batch, prepare_instance_meta
-from utils.model import create_clip_pretrain_model, set_alpha_scale, alpha_generator
-
-import streamlit as st
-from inference import infer_by_streamlit, draw_boxes, rescale_box
-import time
-import uuid
+from utils.model import (alpha_generator, create_clip_pretrain_model,
+                         set_alpha_scale)
 
 # --num_images 8   --output OUTPUT/   --input_json demos/demo_cat_dog_robin.json   --ckpt pretrained/instancediffusion_sd15.pth   --test_config configs/test_box.yaml   --guidance_scale 7.5   --alpha 0.8   --seed 0   --mis 0.36   --cascade_strength 0.4
 
@@ -69,7 +69,7 @@ with st.container(border=True):
         "a close up of a small waterfall in the woods"
     ]
     annos = []
-    num_annos = st.number_input("# of annotations", value=4)
+    num_annos = st.number_input("number of annotations", value=4)
     for i in range(num_annos):
         with st.container(border=True):
             st.write("annotation config #"+str(i+1))
@@ -81,7 +81,7 @@ with st.container(border=True):
             scribble = [int(e) for e in scribble_input.replace(" ", "").split(",")] if len(scribble_input) > 0 else []
             anno_caption = st.text_input("caption for #{}".format(i), value=sample_anno_caption[i])
             category_name = st.text_input("category_name for #{}".format(i), value="")
-            num_masks = st.number_input("# of masks for #{}".format(i), value=0)
+            num_masks = st.number_input("number of masks for #{}".format(i), value=0)
             masks = []
             for j in range(num_masks):
                 with st.container(border=True):
