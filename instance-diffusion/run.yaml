@@ -1,0 +1,37 @@
+name: inst-diff-reproduce
+description: ""
+service_account_name: ""
+termination_protection: false
+import:
+  /root/source/:
+    git:
+      url: github.com/vessl-ai/examples.git
+      ref: main
+      credential_name: vessl-ai
+resources:
+  cluster: vessl-gcp-oregon
+  preset: gpu-l4-large
+image: quay.io/vessl-ai/torch:2.3.0-cuda12.3-r2
+run:
+  - wget https://huggingface.co/xudongw/InstanceDiffusion/resolve/main/instancediffusion_sd15.pth -P /root/source/instance-diffusion/pretrained
+  - curl -s https://gist.githubusercontent.com/cooco119/542d0dd988520413fe8532090b53532a/raw/9773b9034d61b73ebf69503af43f1735b99cecf3/install_pyenv_ubuntu.sh | bash
+  - echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.bashrc
+  - echo 'command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.bashrc
+  - echo 'eval "$(pyenv init -)"' >> ~/.bashrc
+  - source ~/.bashrc
+  - pyenv install 3.10
+  - pyenv virtualenv 3.10 inst-diff
+  - pyenv activate inst-diff
+  - pip install -r /root/source/instance-diffusion/requirements.txt
+  - streamlit run /root/source/instance-diffusion/app.py
+interactive:
+  max_runtime: 24h
+  jupyter:
+    idle_timeout: 120m
+ports:
+  - name: streamlit
+    type: http
+    port: 8501
+env:
+  DEBIAN_FRONTEND: noninteractive
+  TZ: Etc/UTC
