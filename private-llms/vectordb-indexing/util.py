@@ -22,8 +22,8 @@ def get_chroma_vector_store(
     chroma_client_settings = None
     if chroma_endpoint:
         chroma_client_settings=ChromaDBSettings(
-            chroma_host=chroma_endpoint,
-            chroma_port=chroma_port)
+            chroma_server_host=chroma_endpoint,
+            chroma_server_http_port=chroma_port)
     vector_store = Chroma(
         chroma_collection,
         embedding_function=embedding_model,
