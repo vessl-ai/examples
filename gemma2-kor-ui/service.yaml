@@ -14,11 +14,11 @@ run:
 env:
   OPENAI_API_KEY: helloworld
 ports:
-  - port: 3000
+  - port: 7860
 service:
   autoscaling:
     max: 2
     metric: cpu
     min: 1
     target: 50
-  expose: 3000
+  expose: 7860
