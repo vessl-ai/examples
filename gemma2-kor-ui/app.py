@@ -5,7 +5,7 @@ import gradio as gr
 from langchain_core.messages import AIMessage, HumanMessage
 from langchain_openai import ChatOpenAI
 
-os.environ["OPENAI_API_KEY"] = getpass.getpass()
+# os.environ["OPENAI_API_KEY"] = getpass.getpass()
 model = ChatOpenAI(base_url="http://gemma2-ko.vessl.ai/v1", model="/root/model/merged", temperature=0, max_tokens=500)
 
 
