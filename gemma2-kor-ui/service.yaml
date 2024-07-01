@@ -5,8 +5,7 @@ resources:
   cluster: vessl-aws-seoul
   preset: cpu-medium
 import:
-  /app:
-    git: https://github.com/vessl-ai/examples
+  /app/: git://github.com/vessl-ai/examples.git
 run:
   - command: |
       pip install -r requirements.txt
