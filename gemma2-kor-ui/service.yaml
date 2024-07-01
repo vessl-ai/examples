@@ -1,0 +1,25 @@
+name: gemma2-kor-ui
+message: gemma2-kor-ui
+image: quay.io/vessl-ai/torch:2.1.0-cuda12.2-r3
+resources:
+  cluster: vessl-aws-seoul
+  preset: cpu-medium
+import:
+  /app:
+    git: https://github.com/vessl-ai/examples
+run:
+  - command: |
+      pip install -r requirements.txt
+      python app.py
+    workdir: /app/gemma2-kor-ui
+env:
+  OPENAI_API_KEY: helloworld
+ports:
+  - port: 3000
+service:
+  autoscaling:
+    max: 2
+    metric: cpu
+    min: 1
+    target: 50
+  expose: 3000
