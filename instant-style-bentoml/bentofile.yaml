@@ -1,0 +1,7 @@
+service: "service:InstantStyle"
+labels:
+  owner: sanghyuk
+include:
+  - "*.py"
+python:
+  requirements_txt: "./requirements.txt"

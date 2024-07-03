@@ -1,0 +1,7 @@
+diffusers>=0.29.2
+torch>=2.3.1
+torchvision>=0.18.1
+pillow>=10.4.0
+accelerate>=0.31.0
+transformers>=4.42.3
+bentoml>=1.2.18
