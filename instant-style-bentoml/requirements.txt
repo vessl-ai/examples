@@ -5,3 +5,4 @@ pillow>=10.4.0
 accelerate>=0.31.0
 transformers>=4.42.3
 bentoml>=1.2.18
+peft>=0.11.1
