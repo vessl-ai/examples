@@ -58,6 +58,7 @@ prompt = PromptTemplate.from_template(
 
 retriever = vector_store.as_retriever()
 
+print("LLM endpoint:", llm_endpoint)
 base_url = os.path.join(llm_endpoint, "v1")
 llm = ChatOpenAI(
     base_url=base_url,

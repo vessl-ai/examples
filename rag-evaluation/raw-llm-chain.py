@@ -1,10 +1,7 @@
 import os
 import pickle
 
-import chromadb
 from datasets import Dataset
-from langchain_chroma import Chroma
-from langchain_huggingface.embeddings.huggingface import HuggingFaceEmbeddings
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.prompts import PromptTemplate

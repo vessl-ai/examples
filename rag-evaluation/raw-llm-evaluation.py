@@ -11,7 +11,6 @@ evaluation_endpoint = os.environ.get("EVALUATION_ENDPOINT", "https://api.openai.
 evaluation_model = os.environ.get("EVALUATION_MODEL", "gpt-4o")
 embedding_model = os.environ.get("EMBEDDING_MODEL", "BAAI/bge-m3")
 data_path = os.environ.get("DATA_PATH", "/data")
-output_path = os.environ.get("OUTPUT_PATH", "/output")
 
 
 # load LLM results

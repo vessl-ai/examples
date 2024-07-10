@@ -16,10 +16,8 @@ from ragas import evaluate
 evaluation_endpoint = os.environ.get("EVALUATION_ENDPOINT", "https://api.openai.com")
 evaluation_model = os.environ.get("EVALUATION_MODEL", "gpt-4o")
 embedding_model = os.environ.get("EMBEDDING_MODEL", "BAAI/bge-m3")
-batch_size = os.environ.get("BATCH_SIZE", 500)
 rag_pattern = os.environ.get("RAG_PATTERN", "naive")
 data_path = os.environ.get("DATA_PATH", "/data")
-output_path = os.environ.get("OUTPUT_PATH", "/output")
 
 
 # load RAG results
@@ -28,6 +26,7 @@ print(f"Loading RAG results from {dataset_path}...")
 dataset = load_from_disk(dataset_path)
 
 # initialize evaluation models
+print("evaluation endpoint:", evaluation_endpoint)
 base_url = os.path.join(evaluation_endpoint, "v1")
 evaluation_model = ChatOpenAI(
     base_url=base_url,
@@ -42,6 +41,7 @@ evaluation_embeddings = HuggingFaceEmbeddings(
 )
 
 # evaluate RAG results
+print("Evaluating RAG results...")
 results = evaluate(
     dataset, 
     metrics=[
@@ -54,4 +54,4 @@ results = evaluate(
     llm=evaluation_model,
     embeddings=evaluation_embeddings,
 )
-print(results)
+print(f"{rag_pattern} RAG evaluation results:", results)
