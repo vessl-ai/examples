@@ -1,0 +1,9 @@
+chromadb==0.4.24
+gradio==4.36.1
+langchain-community>=0.1.17
+langchain-chroma>=0.1.0
+pymupdf==1.24.2
+sentence_transformers>=2.7.0
+transformers>=4.40.0
+torch>=2.1.0
+tqdm>=4.66.4
