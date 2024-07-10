@@ -1,0 +1,24 @@
+name: raw-llm-evaluation
+import:
+  /code/: 
+    git:
+      url: github.com/vessl-ai/examples.git
+      ref: main
+  /data/: vessl-dataset://{organization}/{rag-results-dataset-name}
+resources:
+  cluster: vessl-gcp-oregon
+  preset: gpu-l4-small
+image: quay.io/vessl-ai/torch:2.3.0-cuda12.3-r2
+run:
+  - command: |
+      pip install -r requirements.txt
+      pip install --upgrade anyio
+    workdir: /code/rag-evaluation
+  - command: python 3.1-raw-llm-evaluation.py
+    workdir: /code/rag-evaluation
+env:
+  EVALUATION_ENDPOINT: https://api.openai.com  # any OpenAI-compatible LLM endpoint
+  EVALUATION_MODEL: gpt-4o
+  EMBEDDING_MODEL: BAAI/bge-m3
+  OPENAI_API_KEY: na  # update this if you are using OpenAI API
+  DATA_PATH: /data
