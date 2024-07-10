@@ -53,6 +53,7 @@ def main(args):
     # Ingest the chunks into the vector store using tqdm
     # TODO: consider idempotence (Do not re-ingest the same documents)
     total_document_size = len(document_paths)
+    print("Current collections:", vector_store._client.get_collection(args.chroma_collection_name).count())
     with tqdm(total = total_document_size) as pbar:
         for doc in document_paths:
             documents = generate_text_chunks(
@@ -70,11 +71,12 @@ def main(args):
 
     logger.info("Ingested all documents into the vector store")
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--chroma-endpoint", type=str)
     parser.add_argument("--chroma-port", type=int, default=0)
-    parser.add_argument("--chroma-collection-name", type=str, default="rag")
+    parser.add_argument("--chroma-collection-name", type=str, default="langflow")
     parser.add_argument("--chunk-size", type=int, default=1024)
     parser.add_argument("--chunk-overlap", type=int, default=256)
     parser.add_argument("--dataset-path", type=str, default="./test")

@@ -22,10 +22,12 @@ def get_chroma_vector_store(
     chroma_client_settings = None
     if chroma_endpoint:
         chroma_client_settings=ChromaDBSettings(
+            chroma_api_impl="chromadb.api.fastapi.FastAPI",
             chroma_server_host=chroma_endpoint,
-            chroma_server_http_port=chroma_port)
+            chroma_server_http_port=str(chroma_port))
     vector_store = Chroma(
-        chroma_collection,
+        collection_name=chroma_collection,
         embedding_function=embedding_model,
         client_settings=chroma_client_settings)
+
     return vector_store
