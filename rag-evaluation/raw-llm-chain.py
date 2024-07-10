@@ -27,6 +27,7 @@ prompt = PromptTemplate.from_template(
     "Presented Claim: {question}"
 )
 
+print("LLM endpoint:", llm_endpoint)
 base_url = os.path.join(llm_endpoint, "v1")
 llm = ChatOpenAI(
     base_url=base_url,
@@ -47,7 +48,7 @@ rag_chain = RunnablePassthrough.assign(
 )
 
 # get LLM results
-print("Getting LLM results...")
+print("Getting raw LLM results...")
 inputs = [{"question": c["claim"]} for c in claims]
 
 results = rag_chain.batch(inputs)
@@ -62,4 +63,4 @@ dataset = Dataset.from_dict({
 dataset_path = os.path.join(output_path, f"dataset-raw")
 os.makedirs(output_path, exist_ok=True)
 dataset.save_to_disk(dataset_path)
-print(f"Saved RAG results to {dataset_path}.")
+print(f"Saved raw LLM results to {dataset_path}.")

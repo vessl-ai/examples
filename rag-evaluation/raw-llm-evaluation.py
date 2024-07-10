@@ -15,10 +15,11 @@ data_path = os.environ.get("DATA_PATH", "/data")
 
 # load LLM results
 dataset_path = os.path.join(data_path, "dataset-raw")
-print(f"Loading dataset from {dataset_path}...")
+print(f"Loading raw LLM results from {dataset_path}...")
 dataset = load_from_disk(dataset_path)
 
 # initialize evaluation models
+print("evaluation endpoint:", evaluation_endpoint)
 base_url = os.path.join(evaluation_endpoint, "v1")
 evaluation_model = ChatOpenAI(
     base_url=base_url,
@@ -33,10 +34,11 @@ evaluation_embeddings = HuggingFaceEmbeddings(
 )
 
 # evaluate LLM results
+print("Evaluating raw LLM results...")
 results = evaluate(
     dataset, 
     metrics=[answer_correctness],
     llm=evaluation_model,
     embeddings=evaluation_embeddings,
 )
-print(results)
+print("raw LLM evaluation results:", results)
