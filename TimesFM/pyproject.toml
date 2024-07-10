@@ -12,7 +12,7 @@ dependencies = [
     "numpy>=1.26.4,<2.0.0",
     "pandas>=2.1.4",
     "scikit-learn>=1.5.1",
-    "utilsforcast>=0.1.12"
+    "utilsforecast>=0.1.12"
 ]
 authors = [
     {name = "Rajat Sen", email = "senrajat@google.com"},
