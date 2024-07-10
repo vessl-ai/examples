@@ -288,7 +288,9 @@ def train(
             )
             train_losses.append(step_fun_out.loss[0])
             if step_count % eval_steps == 0:
-                vessl.log(payload={"eval_loss": np.mean(train_losses)}, step=step_count)
+                vessl.log(
+                    payload={"train_loss": np.mean(train_losses)}, step=step_count
+                )
                 print(
                     f"Train loss at step {step_count}: {np.mean(train_losses)}",
                     flush=True,
