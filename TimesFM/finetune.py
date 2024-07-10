@@ -10,6 +10,7 @@ import jax
 import numpy as np
 import pandas as pd
 import timesfm
+import vessl
 from jax import numpy as jnp
 from paxml import checkpoint_types, checkpoints, learners, tasks_lib, trainer_lib
 from praxis import optimizers, pax_fiddle, py_utils, schedules
@@ -200,6 +201,18 @@ def reshape_batch_for_pmap(batch, num_devices):
     return jax.tree.map(_reshape, batch)
 
 
+def compute_mean_mae(timesfm_model, batches):
+    mae_losses = []
+    for batch in tqdm(batches.as_numpy_iterator()):
+        past = batch[0]
+        actuals = batch[3]
+        _, forecasts = timesfm_model.forecast(list(past), [0] * past.shape[0])
+        forecasts = forecasts[:, 0 : actuals.shape[1], 5]
+        mae_losses.append(np.abs(forecasts - actuals).mean())
+
+    return np.mean(mae_losses)
+
+
 def train(
     context_length: int = 512,
     pred_length: int = 96,
@@ -237,6 +250,9 @@ def train(
     val_batches = dataset.tf_dataset(mode="val", shift=pred_length)
     test_batches = dataset.tf_dataset(mode="test", shift=pred_length)
     num_ts = dataset.batch_size
+
+    mean_mae_before_ft = compute_mean_mae(timesfm_model, test_batches)
+    print(f"Mean MAE before finetuning: {mean_mae_before_ft}")
 
     # initialize model
     initial_key = jax.random.PRNGKey(seed=1234)
@@ -314,6 +330,9 @@ def train(
         "core_layer"
     ]
     timesfm_model.jit_decode()
+
+    mean_mae_after_ft = compute_mean_mae(timesfm_model, test_batches)
+    print(f"Mean MAE after finetuning: {mean_mae_after_ft}")
 
 
 if __name__ == "__main__":
