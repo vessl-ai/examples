@@ -13,9 +13,7 @@ resources:
   preset: gpu-l4-small  # you MUST use gpu-l4-medium or higher if RAG pattern includes reranking
 image: quay.io/vessl-ai/torch:2.3.0-cuda12.3-r2
 run:
-  - command: |
-      pip install -r requirements.txt
-      pip install --upgrade anyio
+  - command: pip install -r requirements.txt
     workdir: /code/rag-evaluation
   - command: python 2-rag-chain.py
     workdir: /code/rag-evaluation

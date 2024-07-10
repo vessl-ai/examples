@@ -12,9 +12,7 @@ resources:
   preset: cpu-small-spot
 image: quay.io/vessl-ai/python:3.10-r10
 run:
-  - command: |
-      pip install -r requirements.txt
-      pip install --upgrade anyio
+  - command: pip install -r requirements.txt
     workdir: /code/rag-evaluation
   - command: python 2.1-raw-llm-chain.py
     workdir: /code/rag-evaluation
