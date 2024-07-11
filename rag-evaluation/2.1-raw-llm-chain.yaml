@@ -14,11 +14,12 @@ image: quay.io/vessl-ai/python:3.10-r10
 run:
   - command: pip install -r requirements.txt
     workdir: /code/rag-evaluation
-  - command: python 2.1-raw-llm-chain.py
+  - command: |-
+      python 2.1-raw-llm-chain.py \
+        --llm-endpoint ${LLM_ENDPOINT} \
+        --llm-model ${LLM_MODEL}
     workdir: /code/rag-evaluation
 env:
-  DATA_PATH: /data
   LLM_ENDPOINT: https://api.openai.com  # any OpenAI-compatible LLM endpoint
   LLM_MODEL: gpt-4o
   OPENAI_API_KEY: na  # update this if you are using OpenAI API
-  OUTPUT_PATH: /output

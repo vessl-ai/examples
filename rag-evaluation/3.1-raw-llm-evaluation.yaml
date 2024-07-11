@@ -12,11 +12,14 @@ image: quay.io/vessl-ai/torch:2.3.0-cuda12.3-r2
 run:
   - command: pip install -r requirements.txt
     workdir: /code/rag-evaluation
-  - command: python 3.1-raw-llm-evaluation.py
+  - command: |-
+      python 3.1-raw-llm-evaluation.py \
+        --evaluation-endpoint ${EVALUATION_ENDPOINT} \
+        --evaluation-model ${EVALUATION_MODEL} \
+        --embedding-model ${EMBEDDING_MODEL}
     workdir: /code/rag-evaluation
 env:
   EVALUATION_ENDPOINT: https://api.openai.com  # any OpenAI-compatible LLM endpoint
   EVALUATION_MODEL: gpt-4o
   EMBEDDING_MODEL: BAAI/bge-m3
   OPENAI_API_KEY: na  # update this if you are using OpenAI API
-  DATA_PATH: /data

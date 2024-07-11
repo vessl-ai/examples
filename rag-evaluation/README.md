@@ -21,34 +21,58 @@ For further details, please refer to our blog post.
     $ pip install -r requirements.txt
     ```
 
-3. Set environment variables. You can replace each value with the value you want:
+3. Set environment variables. You MUST set `OPENAI_API_KEY` if you plan to use OpenAI API:
+
+    ***NOTE:** Evaluation pipeline could cost you a lot of credits if you use OpenAI API.*
     ```sh
-    $ export CHROMA_PATH="/chroma"
-    $ export CHROMA_COLLECTION="fever-wiki-pages"
-    $ export EMBEDDING_MODEL="BAAI/bge-m3"
-    $ export DATA_PATH="/data"
-    $ export LLM_ENDPOINT="https://api.openai.com"
-    $ export LLM_MODEL="gpt-4o"
     $ export OPENAI_API_KEY="sk-1234567890"
-    $ export RAG_PATTERN="naive"  # [naive, hyde, reranking, hyde-reranking]
-    $ export RERANKER_MODEL="BAAI/bge-reranker-v2-m3"
-    $ export OUTPUT_PATH="/output"
-    $ export EVALUATION_ENDPOINT="https://api.openai.com"
-    $ export EVALUATION_MODEL="gpt-4o"
     ```
 
 4. Run the scripts consecutively:
     ```sh
-    $ python 1-data-ingestion.py
-    $ python 2-rag-chain.py
-    $ python 3-rag-evaluation.py
+    $ python 1-data-ingestion.py \
+        --data-path ${path to save claims} \
+        --chroma-path ${Chroma persistent client path} \
+        --collection-name ${Chroma collection name} \
+        --embedding-model ${embedding model for vectorization}
+
+    $ python 2-rag-chain.py \
+        --rag-pattern ${one of [naive, hyde, reranking, hyde-reranking]} \
+        --data-path ${path where you saved claims} \
+        --chroma-path ${Chroma persistent client path} \
+        --collection-name ${Chroma collection name} \
+        --embedding-model ${embedding model for vectorization} \
+        --llm-endpoint ${any OpenAI-compatible endpoint} \
+        --llm-model ${LLM model to use in the endpoint above} \
+        --reranker-model ${reranker model, if the RAG pattern includes reranking} \
+        --output-path ${path to save the RAG chain results}
+
+    $ python 3-rag-evaluation.py \
+        --rag-pattern ${one of [naive, hyde, reranking, hyde-reranking]} \
+        --data-path ${path where you saved the RAG chain results} \
+        --evaluation-endpoint ${any OpenAI-compatible endpoint} \
+        --embedding-model ${embedding model for vectorization}
     ```
 
 5. (Optional) You can also evaluate LLMs without RAG:
     ```sh
-    $ python 1-data-ingestion.py
-    $ python 2.1-raw-llm-chain.py
-    $ python 3.1-raw-llm-evaluation.py
+    # No need to run the data ingestion script if you already have above
+    $ python 1-data-ingestion.py \
+        --data-path ${path to save claims} \
+        --chroma-path ${Chroma persistent client path} \
+        --collection-name ${Chroma collection name} \
+        --embedding-model ${embedding model for vectorization}
+
+    $ python 2.1-raw-llm-chain.py \
+        --data-path ${path where you saved claims} \
+        --llm-endpoint ${any OpenAI-compatible endpoint} \
+        --llm-model ${LLM model to use in the endpoint above} \
+        --output-path ${path to save the LLM chain results}
+
+    $ python 3.1-raw-llm-evaluation.py \
+        --data-path ${path where you saved the RAG chain results} \
+        --evaluation-endpoint ${any OpenAI-compatible endpoint} \
+        --embedding-model ${embedding model for vectorization}
     ```
 
 ## Running with VESSL Run
@@ -69,7 +93,9 @@ To run the RAG evaluation pipeline with VESSL Run, follow the steps below:
 
 3. (Optional) If you plan to use OpenAI API, create a secret with your OpenAI API key. Please refer to the [documentation](https://docs.vessl.ai/guides/organization/secrets) for instructions.
 
-4. Create VESSL Datasets for persistent Chroma client, questions based on FEVER dataset, and RAG results respectively:
+    ***NOTE:** Evaluation pipeline could cost you a lot of credits if you use OpenAI API.*
+
+4. Create VESSL Datasets for persistent Chroma client, claims based on FEVER dataset, and RAG results respectively:
     ```sh
     $ vessl dataset create ${CHROMA_DATASET_NAME}
     $ vessl dataset create ${FEVER_DATASET_NAME}
@@ -82,15 +108,23 @@ To run the RAG evaluation pipeline with VESSL Run, follow the steps below:
     $ cd examples/rag-evaluation
     ```
 
-6. You can change the environent variables in the YAML files, such as LLM endpoint, LLM model, embedding model and reranker model.
-
-    1. You can choose from the following RAG types: `naive`, `hyde`, `reranking`, and `hyde-reranking`.
+6. Change values in the YAML files.
+    1. Replace the VESSL Dataset paths with ones you created above, e.g.:
+        ```yaml
+        export:
+            /chroma/: vessl-dataset://{organization}/{chroma-dataset-name}
+            /data/: vessl-dataset://{organization}/{claims-dataset-name}
+        ```
+    2. Choose from the following RAG types: `naive`, `hyde`, `reranking`, and `hyde-reranking`.
         ```yaml
         env:
             RAG_PATTERN: naive
         ```
+    3. You can change models and endpoints, such as `LLM_ENDPOINT`, `LLM_MODEL`, `EMBEDDING_MODEL` and `RERANKER_MODEL`, in the environent variables section.
 
-    2. If you plan to use OpenAI API, you MUST make `OPENAI_API_KEY` refer to the secret you created above:
+    4. If you plan to use OpenAI API, you MUST make `OPENAI_API_KEY` refer to the secret you created above:
+
+        ***NOTE:** Evaluation pipeline could cost you a lot of credits if you use OpenAI API.*
         ``` yaml
         env:
             OPENAI_API_KEY:
@@ -120,5 +154,27 @@ For additional information and support, please refer to the [VESSL documentation
     title = {{FEVER}: a Large-scale Dataset for Fact Extraction and {VERification}},
     booktitle = {NAACL-HLT},
     year = {2018}
+}
+```
+```bibtex
+@misc{es2023ragasautomatedevaluationretrieval,
+      title={RAGAS: Automated Evaluation of Retrieval Augmented Generation}, 
+      author={Shahul Es and Jithin James and Luis Espinosa-Anke and Steven Schockaert},
+      year={2023},
+      eprint={2309.15217},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL},
+      url={https://arxiv.org/abs/2309.15217}, 
+}
+```
+```bibtex
+@misc{gao2022precisezeroshotdenseretrieval,
+      title={Precise Zero-Shot Dense Retrieval without Relevance Labels}, 
+      author={Luyu Gao and Xueguang Ma and Jimmy Lin and Jamie Callan},
+      year={2022},
+      eprint={2212.10496},
+      archivePrefix={arXiv},
+      primaryClass={cs.IR},
+      url={https://arxiv.org/abs/2212.10496}, 
 }
 ```

@@ -15,16 +15,18 @@ image: quay.io/vessl-ai/torch:2.3.0-cuda12.3-r2
 run:
   - command: pip install -r requirements.txt
     workdir: /code/rag-evaluation
-  - command: python 2-rag-chain.py
+  - command: |-
+      python 2-rag-chain.py \
+        --embedding-model ${EMBEDDING_MODEL} \
+        --llm-endpoint ${LLM_ENDPOINT} \
+        --llm-model ${LLM_MODEL} \
+        --reranker-model ${RERANKER_MODEL} \
+        --rag-pattern ${RAG_PATTERN}
     workdir: /code/rag-evaluation
 env:
-  CHROMA_PATH: /chroma
-  CHROMA_COLLECTION: fever-wiki-pages
+  RAG_PATTERN: naive  # one of [naive, hyde, reranking, hyde-reranking]
   EMBEDDING_MODEL: BAAI/bge-m3
-  DATA_PATH: /data
   LLM_ENDPOINT: https://api.openai.com  # any OpenAI-compatible LLM endpoint
   LLM_MODEL: gpt-4o
   OPENAI_API_KEY: na  # update this if you are using OpenAI API
-  RAG_PATTERN: naive  # [naive, hyde, reranking, hyde-reranking]
-  RERANKER_MODEL: BAAI/bge-reranker-v2-m3
-  OUTPUT_PATH: /output
+  RERANKER_MODEL: BAAI/bge-reranker-v2-m3  # only required if RAG pattern includes reranking
