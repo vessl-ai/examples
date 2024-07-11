@@ -6,6 +6,10 @@ This repository contains the codes and VESSL Run templates needed to load the [F
 
 **Ragas** is a framework that helps you evaluate your RAG pipelines. Ragas provides you with the tools based on the latest research for evaluating LLM-generated text to give you insights about your RAG pipeline.
 
+### Expedted Results
+![expected results 1](assets/rag-results-1.png)
+![expected results 2](assets/rag-results-2.png)
+
 For further details, please refer to our blog post.
 
 ## Running Locally
