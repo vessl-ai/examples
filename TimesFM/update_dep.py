@@ -10,7 +10,7 @@ def main():
         "paxml>=1.4.0",
         "praxis>=1.4.0",
         "jax[cuda12]>=0.4.26",
-        "numpy>=1.26.4<2.0.0",
+        "numpy>=1.26.4,<2.0.0",
         "pandas>=2.1.4",
         "scikit-learn>=1.5.1",
         "utilsforecast>=0.1.12",
