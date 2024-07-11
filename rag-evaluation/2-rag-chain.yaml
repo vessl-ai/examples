@@ -1,0 +1,32 @@
+name: fever-rag-chain
+import:
+  /code/: 
+    git:
+      url: github.com/vessl-ai/examples.git
+      ref: main
+  /chroma/: vessl-dataset://{organization}/{chroma-dataset-name}
+  /data/: vessl-dataset://{organization}/{claims-dataset-name}
+export:
+  /output/: vessl-dataset://{organization}/{rag-results-dataset-name}
+resources:
+  cluster: vessl-gcp-oregon
+  preset: gpu-l4-small  # you MUST use gpu-l4-medium or higher if RAG pattern includes reranking
+image: quay.io/vessl-ai/torch:2.3.0-cuda12.3-r2
+run:
+  - command: pip install -r requirements.txt
+    workdir: /code/rag-evaluation
+  - command: |-
+      python 2-rag-chain.py \
+        --embedding-model ${EMBEDDING_MODEL} \
+        --llm-endpoint ${LLM_ENDPOINT} \
+        --llm-model ${LLM_MODEL} \
+        --reranker-model ${RERANKER_MODEL} \
+        --rag-pattern ${RAG_PATTERN}
+    workdir: /code/rag-evaluation
+env:
+  RAG_PATTERN: naive  # one of [naive, hyde, reranking, hyde-reranking]
+  EMBEDDING_MODEL: BAAI/bge-m3
+  LLM_ENDPOINT: https://api.openai.com  # any OpenAI-compatible LLM endpoint
+  LLM_MODEL: gpt-4o
+  OPENAI_API_KEY: na  # update this if you are using OpenAI API
+  RERANKER_MODEL: BAAI/bge-reranker-v2-m3  # only required if RAG pattern includes reranking

@@ -1,0 +1,10 @@
+anyio==4.4.0
+datasets==2.20.0
+langchain==0.2.6
+langchain-chroma==0.1.2
+langchain-community==0.2.6
+langchain-huggingface==0.0.3
+langchain-openai==0.1.14
+ragas==0.1.9
+sentence_transformers==3.0.1
+transformers==4.42.3
