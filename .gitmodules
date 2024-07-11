@@ -1,0 +1,3 @@
+[submodule "TimesFM/timesfm"]
+	path = TimesFM/timesfm
+	url = https://github.com/google-research/timesfm.git
