@@ -1,19 +1,22 @@
-name: llama-3-chatbot
+name: llama-3-70b-gpu-large-server
 message: Quickstart to serve Llama 3 chatbot
 image: quay.io/vessl-ai/torch:2.1.0-cuda12.2-r3
 resources:
   cluster: vessl-gcp-oregon
-  preset: gpu-l4-small-spot
+  preset: gpu-l4-large
 run:
 - command: |
+    pip install ray
     pip install autoawq==0.2.4
     pip install vllm==v0.4.1 fastapi==0.109.2
     pip uninstall -y transformer-engine
     pip install flash-attn==2.5.7
-    python -m vllm.entrypoints.openai.api_server --model $MODEL_NAME
+    python -m vllm.entrypoints.openai.api_server --model $MODEL_NAME --tensor-parallel-size $TENSOR_PARALLEL_SIZE --gpu-memory-utilization $GPU_MEMORY_UTILIZATION --enforce-eager
   workdir: /root
 env:
-  MODEL_NAME: casperhansen/llama-3-8b-instruct-awq
+  MODEL_NAME: casperhansen/llama-3-70b-instruct-awq
+  TENSOR_PARALLEL_SIZE: 4
+  GPU_MEMORY_UTILIZATION: 0.9
 ports:
 - port: 8000
 service:
