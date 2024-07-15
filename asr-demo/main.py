@@ -23,4 +23,4 @@ demo = gr.Interface(
     live=True,
 )
 
-demo.launch()
+demo.launch(server_name="0.0.0.0")
