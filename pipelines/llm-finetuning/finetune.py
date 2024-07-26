@@ -9,13 +9,13 @@ from unsloth import FastLanguageModel
 def main():
     # Parsing command line arguments
     parser = argparse.ArgumentParser(description="Fine-tune a language model with specified parameters.")
-    parser.add_argument('--max_steps', type=int, default=300, help="Maximum number of training steps.")
+    parser.add_argument('--max-steps', type=int, default=300, help="Maximum number of training steps.")
     parser.add_argument('--dataset', type=str, default="vessl/insurance-policies", help="Dataset to load.")
-    parser.add_argument('--base_model_name', type=str, default="meta-llama/Meta-Llama-3.1-8B-Instruct", help="Base model name.")
-    parser.add_argument('--output_model_name', type=str, default="./output/finetuned_model", help="Output directory for the trained model.")
-    parser.add_argument('--max_seq_length', type=int, default=4096, help="Maximum sequence length.")
-    parser.add_argument('--batch_size', type=int, default=3, help="Number of samples per batch per device during training.")
-    parser.add_argument('--train_epochs', type=int, default=5, help="Total number of training epochs to perform.")
+    parser.add_argument('--base-model-name', type=str, default="meta-llama/Meta-Llama-3.1-8B-Instruct", help="Base model name.")
+    parser.add_argument('--output-model-name', type=str, default="./output/finetuned_model", help="Output directory for the trained model.")
+    parser.add_argument('--max-seq-length', type=int, default=4096, help="Maximum sequence length.")
+    parser.add_argument('--batch-size', type=int, default=3, help="Number of samples per batch per device during training.")
+    parser.add_argument('--train-epochs', type=int, default=5, help="Total number of training epochs to perform.")
     args = parser.parse_args()
 
     # Loading the dataset
