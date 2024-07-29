@@ -1,0 +1,21 @@
+name: hpt-mnist-lr-{{lr}}-batch-size-{{batch_size}}
+description: MNIST with hyperparameter tuning
+resources:
+  cluster: vessl-gcp-oregon
+  preset: cpu-medium-spot
+image: quay.io/vessl-ai/python:3.10-r15
+import:
+  /code/:
+    git:
+      url: https://github.com/vessl-ai/examples
+      ref: main
+export:
+  /output/: vessl-artifact://
+run:
+  - workdir: /code/deprecated/mnist/pytorch
+    command: |-
+      python main.py --save-model
+env:
+  epochs: 5
+  learning_rate: {{lr}}
+  batch_size: {{batch_size}}
