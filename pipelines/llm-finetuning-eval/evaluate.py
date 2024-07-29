@@ -2,10 +2,10 @@ import argparse
 from transformers import AutoModelForCausalLM, AutoTokenizer
 import torch
 
-def load_model_and_tokenizer(model_path):
+def load_model_and_tokenizer(model_name):
     """Load the model and tokenizer from the specified path."""
-    tokenizer = AutoTokenizer.from_pretrained(model_path, trust_remote_code=True)
-    model = AutoModelForCausalLM.from_pretrained(model_path, torch_dtype=torch.bfloat16, device_map="auto", trust_remote_code=True)
+    tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
+    model = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype=torch.bfloat16, device_map="auto", trust_remote_code=True)
     return model, tokenizer
 
 def evaluate_model(model, tokenizer, prompts, max_length=2048):
@@ -24,7 +24,7 @@ def main():
     args = parser.parse_args()
 
     # Load the model and tokenizer
-    model, tokenizer = load_model_and_tokenizer(args.model_path)
+    model, tokenizer = load_model_and_tokenizer(args.model_name)
 
     # Evaluate the model with the provided prompts
     evaluate_model(model, tokenizer, args.prompts)
