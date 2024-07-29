@@ -19,7 +19,7 @@ def evaluate_model(model, tokenizer, prompts, max_length=2048):
 def main():
     # Parse command line arguments
     parser = argparse.ArgumentParser(description="Load and evaluate a language model.")
-    parser.add_argument('--model_path', type=str, required=True, help="Path to the pre-trained model directory.")
+    parser.add_argument('--model-name', type=str, required=True, help="Name of the model to load from Hub")
     parser.add_argument('--prompts', type=str, nargs='+', required=True, help="Prompts to evaluate the model with.")
     args = parser.parse_args()
 
