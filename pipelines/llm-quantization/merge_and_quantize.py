@@ -21,7 +21,7 @@ def main():
     base_model = AutoModelForCausalLM.from_pretrained(
         args.base_model_name,
         return_dict=True,
-        device_map="cuda:0",
+        device_map="auto",
         trust_remote_code=True,
         attn_implementation="flash_attention_2" if args.use_flash_attn else None,
         torch_dtype=torch.bfloat16,
