@@ -1,4 +1,5 @@
 import argparse
+import os
 
 import torch
 from datasets import load_dataset
@@ -12,6 +13,7 @@ def main():
     parser.add_argument('--max-steps', type=int, default=300, help="Maximum number of training steps.")
     parser.add_argument('--dataset', type=str, default="vessl/insurance-policies", help="Dataset to load.")
     parser.add_argument('--base-model-name', type=str, default="meta-llama/Meta-Llama-3.1-8B-Instruct", help="Base model name.")
+    parser.add_argument('--checkpoint-path', type=str, default="./output/checkpoints", help="Path to the checkpoint to save.")
     parser.add_argument('--output-model-name', type=str, default="./output/finetuned_model", help="Output directory for the trained model.")
     parser.add_argument('--max-seq-length', type=int, default=4096, help="Maximum sequence length.")
     parser.add_argument('--batch-size', type=int, default=3, help="Number of samples per batch per device during training.")
@@ -40,7 +42,7 @@ def main():
 
     # Hyperparameters
     training_arguments = TrainingArguments(
-        output_dir=args.output_model_name,                 # Directory for storing output files
+        output_dir=args.checkpoint_path,                   # Directory for saving checkpoints
         logging_dir="./logs",                              # Directory for storing logs
         per_device_train_batch_size=args.batch_size,       # Number of samples per batch per device during training
         num_train_epochs=args.train_epochs,                # Total number of training epochs to perform
@@ -71,7 +73,8 @@ def main():
     trainer.train()
 
     # Save the model
-    trainer.model.save_pretrained(args.output_model_name)
+    model.save_pretrained(args.output_model_name)
+    tokenizer.save_pretrained(args.output_model_name)
     model.config.use_cache = True
 
 if __name__ == "__main__":
