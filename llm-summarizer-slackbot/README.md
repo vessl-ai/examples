@@ -31,7 +31,7 @@ To serve the app, create a `<New Service>` through the VESSL's Services tab. The
 1. Upload the `run-app.yaml` from the cloned repository. You will see the exact file on the right. You can now directly edit the YAML file or with the UI.
 2. Make sure that your secrets are properly configured.
 ![](assets/run-yaml.png)
-3. Paste in the endpoint produced by the Llama server in `LLAMA3_BASE_URL`. and press `Create`.
+3. Paste in the endpoint produced by the Llama server in `LLAMA3_BASE_URL` and press `Create`.
 
 Once the revision is running, the app server will produce an endpoint that you can enter into the Slack Request URL under Event Subscriptions.
 
