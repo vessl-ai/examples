@@ -24,7 +24,7 @@ We will now deploy a Llama3 server with VESSL Serve by following these steps.
 ``` 
 
 Once the service is running, you can access the model through the endpoint.
-![](assets/endpoint.png)
+![](assets/llama-endpoint.png)
 
 ## Serving the App 
 To serve the app, create a `<New Service>` through the VESSL's Services tab. Then, create a `<New Revision>` and follow these steps:
