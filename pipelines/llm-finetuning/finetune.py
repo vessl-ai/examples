@@ -1,5 +1,4 @@
 import argparse
-import os
 
 import torch
 from datasets import load_dataset
@@ -17,7 +16,8 @@ def main():
     parser.add_argument('--output-model-name', type=str, default="./output/finetuned_model", help="Output directory for the trained model.")
     parser.add_argument('--max-seq-length', type=int, default=4096, help="Maximum sequence length.")
     parser.add_argument('--batch-size', type=int, default=3, help="Number of samples per batch per device during training.")
-    parser.add_argument('--train-epochs', type=int, default=5, help="Total number of training epochs to perform.")
+    parser.add_argument('--train-epochs', type=int, default=3, help="Total number of training epochs to perform.")
+    parser.add_argument('--lora-rank', type=int, default=16, help="Inner dimension of the low-rank matrices to train; a higher rank means more trainable parameters.")
     args = parser.parse_args()
 
     # Loading the dataset
@@ -32,9 +32,9 @@ def main():
 
     model = FastLanguageModel.get_peft_model(
         base_model,
-        r=32,
+        r=args.lora_rank,
+        lora_alpha=args.lora_rank,
         target_modules=["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"],
-        lora_alpha=16,
         lora_dropout=0,  # Supports any, but = 0 is optimized
         bias="none",     # Supports any, but = "none" is optimized
         use_gradient_checkpointing=True,
