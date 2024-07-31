@@ -29,11 +29,12 @@ Once the service is running, you can access the model through the endpoint.
 ## Serving the App 
 To serve the app, create a `<New Service>` through the VESSL's Services tab. Then, create a `<New Revision>` and follow these steps:
 1. Upload the `run-app.yaml` from the cloned repository. You will see the exact file on the right. You can now directly edit the YAML file or with the UI.
-2. Make sure that your secrets are properly configured
+2. Make sure that your secrets are properly configured.
 ![](assets/run-yaml.png)
-3. Paste in the endpoint produced by the Llama server in LLAMA3_BASE_URL
-Once the revision is running, the app server will produce an endpoint that you can enter into the Slack Request URL under Event Subscriptions
+3. Paste in the endpoint produced by the Llama server in `LLAMA3_BASE_URL`. and press `Create`.
+
+Once the revision is running, the app server will produce an endpoint that you can enter into the Slack Request URL under Event Subscriptions.
 
 **Remember to add '/slack/events' at the end of the endpoint when entering the Request URL for the app to properly respond to Slack events**
 
-4. Subscribe to bot events (such as `app_mention`, `message.channels `, `message.im`) and save the changes. The app is now good to go. Mention the bot in a thread and ask it a question or to summarize the thread.
+4. Subscribe to bot events (such as `app_mention`, `message.channels`, `message.im`) and save the changes. The app is now good to go. Mention the bot in a thread and ask it a question or to summarize the thread.
