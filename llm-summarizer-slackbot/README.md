@@ -4,7 +4,7 @@ This is an interactive example on how to build a Summarizer Slackbot using the o
 ## Create the App
 On api.slack.com, create a new app called 'Summarizer' in your designated workspace. Configure the necessary scopes (such as `app_mentions:read`,`channels:history`, `channels:join`, `chat:write`, `im:history`, `remote_files:read`, `users:read`) under OAuth & Permissions and install the app. 
 
-Take the Signing Secret and Bot User OAuth Token and save them somehwere secure, like the designated VESSL interface (Setting > Secrets)
+Take the Signing Secret and Bot User OAuth Token and save them somehwere secure, like the designated VESSL interface (Settings > Secrets)
 
 ## Serve Llama3 Using VESSL Serve
 We will now deploy a Llama3 server with VESSL Serve by following these steps.
