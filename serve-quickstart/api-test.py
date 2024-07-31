@@ -5,7 +5,7 @@ from openai import OpenAI
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--base-url", default="https://api.openai.com")
-parser.add_argument("--api-key", default="token-abc123")
+parser.add_argument("--api-key", default="sk-proj-kdxwYhqccpedXafPvMueT3BlbkFJmoSnnSbhIV1kdaPb9yWM")
 parser.add_argument("--model-name", default="casperhansen/llama-3-8b-instruct-awq")
 parser.add_argument("--prompt", default="Who are you?")
 args = parser.parse_args()
