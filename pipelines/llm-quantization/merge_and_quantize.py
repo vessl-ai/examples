@@ -1,12 +1,12 @@
-import torch
 import argparse
-from awq import AutoAWQForCausalLM
-from transformers import AutoTokenizer
-from peft import PeftModel
-from transformers import AutoModelForCausalLM
 
-def main():
-    # Parsing command line arguments
+from awq import AutoAWQForCausalLM
+import torch
+from transformers import AutoTokenizer, AutoModelForCausalLM
+from peft import PeftModel
+
+def parse_arguments():
+    """Parse command line arguments."""
     parser = argparse.ArgumentParser(description="Merge and quantize a fine-tuned language model.")
     parser.add_argument('--base-model-name', type=str, default="meta-llama/Meta-Llama-3.1-8B-Instruct", help="Base model name.")
     parser.add_argument('--adapter-name', type=str, default="JoPmt/llama-3.1-adapter", help="Adapter model name or path.")
@@ -15,9 +15,10 @@ def main():
     parser.add_argument('--use-flash-attn', dest='use_flash_attn', action='store_true', help="Use flash attention if available.")
     parser.add_argument('--no-use-flash-attn', dest='use_flash_attn', action='store_false', help="Do not use flash attention.")
     parser.set_defaults(use_flash_attn=True)
-    args = parser.parse_args()
+    return parser.parse_args()
 
-    # Load the fine-tuned model and merge it
+def load_and_merge_models(args):
+    """Load the base and adapter models, merge them, and save the merged model."""
     base_model = AutoModelForCausalLM.from_pretrained(
         args.base_model_name,
         return_dict=True,
@@ -30,20 +31,34 @@ def main():
     merged_model = model.merge_and_unload()
     merged_model.save_pretrained(args.merged_model_name)
 
-    # Load merged model for quantization
+def quantize_and_save_model(args):
+    """Load the merged model, quantize it, and save the quantized model and tokenizer."""
     model = AutoAWQForCausalLM.from_pretrained(
-        args.merged_model_name, device_map="cuda", **{"low_cpu_mem_usage": True, "use_cache": False}
+        args.merged_model_name, device_map="cuda:0", low_cpu_mem_usage=True, use_cache=False
     )
     tokenizer = AutoTokenizer.from_pretrained(args.base_model_name, trust_remote_code=True)
 
-    # Quantize the merged model
+    # Quantization configuration
     quant_config = {"zero_point": False, "q_group_size": 128, "w_bit": 4, "version": "Marlin"}
     model.quantize(tokenizer, quant_config=quant_config)
 
-    # Save quantized model
+    # Save the quantized model and tokenizer
     model.save_quantized(args.quantized_model_name)
     tokenizer.save_pretrained(args.quantized_model_name)
 
+def main():
+    args = parse_arguments()
+
+    print("Loading and merging the base and adapter models...")
+    load_and_merge_models(args)
+    print(f'Merged model is saved at "{args.merged_model_name}"')
+
+    print("Unloading the model to free up memory...")
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+    print("Model is unloaded")
+
+    quantize_and_save_model(args)
     print(f'Model is quantized and saved at "{args.quantized_model_name}"')
 
 if __name__ == "__main__":
