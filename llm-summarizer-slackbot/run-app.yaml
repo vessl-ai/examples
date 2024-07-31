@@ -5,11 +5,11 @@ resources:
   cluster: vessl-gcp-oregon
   preset: gpu-l4-small
 import:
-  /app: git://github.com/heidiseo16/slackbot-py-test.git
+  /app: git://github.com/vessl-ai/examples/llm-summarizer-slackbot.git
 run:
   - command: |
       pip install -r requirements.txt
-      python app-llama.py
+      python app.py
     workdir: /app
 env:
   SLACK_BOT_TOKEN:
@@ -22,6 +22,7 @@ env:
   ACCESS_TOKEN:
     secret: access-token
     source: secret
+  MODEL_NAME: casperhansen/llama-3-8b-instruct-awq
 ports:
   - port: 3000
 service:

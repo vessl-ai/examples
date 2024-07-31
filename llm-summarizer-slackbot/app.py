@@ -11,9 +11,9 @@ for path in dotenv_paths:
 
 slack_token = os.getenv("SLACK_BOT_TOKEN")
 slack_signing_secret = os.getenv("SLACK_SIGNING_SECRET")
-
 llama3_base_url = os.getenv("LLAMA3_BASE_URL")
 access_token = os.getenv("ACCESS_TOKEN")
+model_name = os.getenv("MODEL_NAME")
 port = int(os.getenv('PORT', 3000))
 
 if os.getenv("NODE_ENV") == "development":
@@ -67,7 +67,7 @@ async def get_user_map(users):
     for user in users:
         user_info = await app.client.users_info(user=user)
         profile = user_info.get('user', {}).get('profile', {})
-        display_name = profile.get('display_name', '') or profile.get('real_name', 'Unknown')
+        display_name = profile.get('display_name', 'Unknown')
         user_map[user] = display_name
     return user_map
 
@@ -82,7 +82,7 @@ async def summarize_text(chats, bot_user_id, question=None):
             if f"<@{bot_user_id}>" in chat.text:
                 continue
             speaker = user_map.get(chat.user, "Unknown")
-            if speaker == "Personal-Summarizer":
+            if speaker == "Summarizer":
                 continue
             if chat.text.startswith("<@U07AF4DJWRH>"):
                 continue
@@ -101,7 +101,7 @@ async def summarize_text(chats, bot_user_id, question=None):
             f"{llama3_base_url}/v1/chat/completions",
             json={
                 "messages": [system_prmpt, *messages],
-                "model": "casperhansen/llama-3-8b-instruct-awq",
+                "model": model_name,
                 "temperature" : 0.5
             },
             headers={"Authorization": f"Bearer {access_token}"}
