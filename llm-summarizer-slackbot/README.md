@@ -21,7 +21,7 @@ We will now deploy a Llama3 server with VESSL Serve by following these steps.
 ```bash
    cd examples/llm-summarizer-slackbot
    vessl serve create -f serve-llama.yaml --set-current-active
-```
+``` 
 
 Once the service is running, you can access the model through the endpoint.
 ![](assets/endpoint.png)
@@ -33,8 +33,8 @@ To serve the app, create a `<New Service>` through the VESSL's Services tab. The
 ![](assets/run-yaml.png)
 3. Paste in the endpoint produced by the Llama server in `LLAMA3_BASE_URL` and press `Create`.
 
-Once the revision is running, the app server will produce an endpoint that you can enter into the Slack Request URL under Event Subscriptions.
+    Once the revision is running, the app server will produce an endpoint that you can enter into the Slack Request URL under Event Subscriptions.
 
-**Remember to add '/slack/events' at the end of the endpoint when entering the Request URL for the app to properly respond to Slack events**
+    **Remember to add '/slack/events' at the end of the endpoint when entering the Request URL for the app to properly respond to Slack events**
 
 4. Subscribe to bot events (such as `app_mention`, `message.channels`, `message.im`) and save the changes. The app is now good to go. Mention the bot in a thread and ask it a question or to summarize the thread.
