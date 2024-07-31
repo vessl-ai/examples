@@ -37,4 +37,6 @@ To serve the app, create a `<New Service>` through the VESSL's Services tab. The
 
     **Remember to add '/slack/events' at the end of the endpoint when entering the Request URL for the app to properly respond to Slack events**
 
-4. Subscribe to bot events (such as `app_mention`, `message.channels`, `message.im`) and save the changes. The app is now good to go. Mention the bot in a thread and ask it a question or to summarize the thread.
+4. Subscribe to bot events (such as `app_mention`, `message.channels`, `message.im`) and save the changes. 
+
+The app is now good to go. Mention the bot in a thread and ask it a question or to summarize the thread.
