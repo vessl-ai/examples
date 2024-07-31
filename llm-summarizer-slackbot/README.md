@@ -39,4 +39,4 @@ To serve the app, create a **New Service** through the VESSL's Services tab. The
 
 4. Subscribe to bot events (such as **app_mention**, **message.channels**, **message.im**) and save the changes. 
 
-The app is now good to go. Mention the bot in a thread and ask it a question or use the **summarize** command for a summary, **--limit** to specify the number of messages (default: 10), **--help** for instructions, and **--version** to check the app version.
+The app is now good to go. Mention the bot in a thread and ask it a question or use the `summarize` command for a summary, `--limit` to specify the number of messages (default: 10), `--help` for instructions, and `--version` to check the app version.
