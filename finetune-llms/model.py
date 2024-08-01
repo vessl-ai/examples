@@ -9,6 +9,16 @@ from transformers import (
 from arguments import DatasetArguments, ModelArguments, PeftArguments
 
 
+def set_attn():
+    try:
+        import flash_attn
+
+        print("Using flash attention...")
+        return "flash_attention_2"
+    except Exception:
+        return "eager"
+
+
 def load_model_and_tokenizer(model_args: ModelArguments, data_args: DatasetArguments):
     quantization_config = None
 
@@ -39,9 +49,7 @@ def load_model_and_tokenizer(model_args: ModelArguments, data_args: DatasetArgum
             model_args.model_name_or_path,
             quantization_config=quantization_config,
             trust_remote_code=True,
-            attn_implementation="flash_attention_2"
-            if model_args.use_flash_attn
-            else "eager",
+            attn_implementation=set_attn(),
             device_map="auto",
             torch_dtype="auto",
         )

@@ -28,6 +28,8 @@ def main(
         else:
             peft_config = get_peft_config(peft_args)
 
+    training_args.gradient_checkpointing_kwargs = {"use_reentrant": False}
+
     trainer = SFTTrainer(
         model=model,
         tokenizer=tokenizer,

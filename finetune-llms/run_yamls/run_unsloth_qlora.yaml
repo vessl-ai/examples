@@ -1,14 +1,14 @@
-name: finetune-llama-3-unsloth-qlora
-description: Finetune llama 3 with Unsloth using QLoRA
+name: finetune-llama-3.1-unsloth-qlora
+description: Finetune llama 3.1 with Unsloth using QLoRA
 tags:
   - finetune
-  - llama-3
+  - llama-3.1
   - qlora
   - unsloth
 resources:
   cluster: vessl-gcp-oregon
   preset: gpu-l4-small
-image: quay.io/vessl-ai/torch:2.3.0-cuda12.4-r4
+image: quay.io/vessl-ai/torch:2.3.1-cuda12.1-r3
 import:
   /root/code:
     git:
@@ -16,10 +16,8 @@ import:
       ref: main
 run:
   - command: |-
-      pip uninstall -y transformer-engine flash-attn torch
       pip install -r requirements.txt
-      pip install packaging ninja einops wheel xformers
-      pip install flash-attn==2.5.8 --no-build-isolation
+      pip install flash-attn==2.6.3 --no-build-isolation
       pip install "unsloth[colab-new] @ git+https://github.com/unslothai/unsloth.git"
       python main.py \
       --model_name_or_path $MODEL_NAME \
@@ -29,32 +27,22 @@ run:
       --num_train_epochs 1 \
       --logging_steps 5 \
       --bf16 True \
-      --packing True \
-      --learning_rate 2e-4 \
-      --lr_scheduler_type "cosine" \
-      --weight_decay 1e-4 \
-      --warmup_ratio 0.0 \
-      --max_grad_norm 1.0 \
-      --per_device_train_batch_size 2 \
-      --per_device_eval_batch_size 2 \
-      --gradient_accumulation_steps 4 \
+      --learning_rate 1e-5 \
+      --weight_decay 1e-2 \
+      --per_device_train_batch_size 4 \
+      --per_device_eval_batch_size 4 \
+      --gradient_accumulation_steps 2 \
       --gradient_checkpointing True \
-      --use_flash_attn True \
+      --peft_type LORA \
+      --load_in_4bit True \
+      --bnb_4bit_use_double_quant True \
       --upload_model True \
       --repository_name $REPOSITORY_NAME \
-      --peft_type LORA \
-      --task_type CAUSAL_LM \
-      --lora_r 8 \
-      --lora_alpha 16 \
-      --load_in_4bit True \
-      --bnb_4bit_quant_type nf4 \
-      --bnb_4bit_use_double_quant True \
-      --bnb_4bit_compute_dtype float16 \
       --use_unsloth True
     workdir: /root/code/finetune-llms
 env:
   HF_TOKEN:
     secret: HF_TOKEN
-  MODEL_NAME: meta-llama/Meta-Llama-3-8B-Instruct
-  DATASET_NAME: kyujinpy/OpenOrca-KO
-  REPOSITORY_NAME: Llama-3-ko-finetuned
+  MODEL_NAME: meta-llama/Meta-Llama-3.1-8B-Instruct
+  DATASET_NAME: Amod/mental_health_counseling_conversations
+  REPOSITORY_NAME: Llama-3.1-8B-counselor

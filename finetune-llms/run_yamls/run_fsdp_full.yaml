@@ -1,13 +1,13 @@
-name: finetune-llama-3-fsdp-full
-description: Finetune llama 3 with FSDP
+name: finetune-llama-3.1-fsdp-full
+description: Finetune llama 3.1 with FSDP
 tags:
   - finetune
-  - llama-3
+  - llama-3.1
   - fsdp
 resources:
   cluster: vessl-gcp-oregon
   preset: gpu-l4-small
-image: quay.io/vessl-ai/torch:2.3.0-cuda12.4-r4
+image: quay.io/vessl-ai/torch:2.3.1-cuda12.1-r3
 import:
   /root/code:
     git:
@@ -15,10 +15,8 @@ import:
       ref: main
 run:
   - command: |-
-      pip uninstall -y transformer-engine flash-attn torch
       pip install -r requirements.txt
-      pip install packaging ninja einops wheel xformers
-      pip install flash-attn==2.5.8 --no-build-isolation
+      pip install flash-attn==2.6.3 --no-build-isolation
       python update_fsdp_config.py --layer-cls-name LlamaDecoderLayer
       accelerate launch --config_file configs/fsdp_config.yaml main.py \
       --model_name_or_path $MODEL_NAME \
@@ -28,23 +26,18 @@ run:
       --num_train_epochs 1 \
       --logging_steps 5 \
       --bf16 True \
-      --packing True \
-      --learning_rate 2e-4 \
-      --lr_scheduler_type "cosine" \
-      --weight_decay 1e-4 \
-      --warmup_ratio 0.0 \
-      --max_grad_norm 1.0 \
+      --learning_rate 1e-5 \
+      --weight_decay 1e-2 \
       --per_device_train_batch_size 8 \
       --per_device_eval_batch_size 8 \
       --gradient_accumulation_steps 1 \
       --gradient_checkpointing True \
-      --use_flash_attn True \
       --upload_model True \
-      --repository_name finetune-test
+      --repository_name $REPOSITORY_NAME
     workdir: /root/code/finetune-llms
 env:
   HF_TOKEN:
     secret: HF_TOKEN
-  MODEL_NAME: meta-llama/Meta-Llama-3-8B-Instruct
-  DATASET_NAME: kyujinpy/OpenOrca-KO
-  REPOSITORY_NAME: Llama-3-ko-finetuned
+  MODEL_NAME: meta-llama/Meta-Llama-3.1-8B-Instruct
+  DATASET_NAME: Amod/mental_health_counseling_conversations
+  REPOSITORY_NAME: Llama-3.1-8B-counselor

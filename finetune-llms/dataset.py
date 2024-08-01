@@ -14,14 +14,30 @@ def alpaca_to_chatml(sample):
     }
 
 
+def meltal_health_to_chatml(sample):
+    return {
+        "messages": [
+            {
+                "role": "system",
+                "content": "You are a mental health support assistant. Respond empathetically to users, offer gentle encouragement, and suggest positive coping strategies. Do not diagnose or replace professional care. If a user expresses severe distress or danger, advise them to seek immediate professional help. Maintain a warm, supportive tone in all interactions.",
+            },
+            {"role": "user", "content": sample["Context"]},
+            {"role": "assistant", "content": sample["Response"]},
+        ]
+    }
+
+
 def create_dataset(data_args: DatasetArguments):
     try:
         dataset = load_dataset(data_args.dataset_name)
     except DatasetGenerationError:
         dataset = load_from_disk(data_args.dataset_name)
 
+    # inappropriately hardcoded
     if set(dataset.column_names["train"]) >= {"input", "instruction", "output"}:
         dataset = dataset.map(alpaca_to_chatml)
+    elif set(dataset.column_names["train"]) >= {"Context", "Response"}:
+        dataset = dataset.map(meltal_health_to_chatml)
 
     train_dataset = dataset["train"]
     if "val" in dataset.keys():
