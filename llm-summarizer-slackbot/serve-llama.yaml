@@ -1,0 +1,24 @@
+name: vllm-llama-3-server
+message: Serve Llama3 model with vllm
+image: quay.io/vessl-ai/torch:2.1.0-cuda12.2-r3
+resources:
+  cluster: vessl-gcp-oregon
+  preset: gpu-l4-small-spot
+run:
+- command: |
+    pip install vllm
+    python -m vllm.entrypoints.openai.api_server --model $MODEL_NAME
+env:
+  MODEL_NAME: casperhansen/llama-3-8b-instruct-awq
+ports:
+- port: 8000
+service:
+  autoscaling:
+    max: 2
+    metric: cpu
+    min: 1
+    target: 50
+  monitoring:
+    - port: 8000
+      path: /metrics
+  expose: 8000
