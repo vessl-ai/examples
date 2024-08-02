@@ -29,9 +29,33 @@ This is a sample hyperparameter tuning script for MNIST training.
     # hpt.py
     ...
     parameters = {
-        "lr": [0.1, 0.01],
-        "batch_size": [64, 128],
+        "lr": lr,
+        "batch_size": batch_size,
     }
+    ...
+    ```
+
+    You can refer to the grid and random search algorithm implemented below.
+
+    ```python
+    # hpt.py
+    ...
+    # grid search
+    batch_size_min = 64
+    batch_size_max = 128
+    batch_size_step = 64
+    
+    batch_size = range(batch_size_min, batch_size_max + 1, batch_size_step)
+
+    #random_search
+    seed = 42
+    random.seed(seed)
+
+    lr_min = 0.01
+    lr_max = 0.1
+    lr_count = 2
+
+    lr = [random.uniform(lr_min, lr_max) for _ in range(lr_count)]
     ...
     ```
 
@@ -41,12 +65,12 @@ This is a sample hyperparameter tuning script for MNIST training.
 
     ```yaml
     # run_template.yaml
-    name: hpt-mnist-lr-{{lr}}-batch-size-{{batch_size}}
+    name: hpt-mnist-lr-{{ lr | round(4) }}-batch-size-{{ batch_size }}
     ...
     env:
       epochs: 5
-      learning_rate: {{lr}}
-      batch_size: {{batch_size}}
+      learning_rate: {{ lr }}
+      batch_size: {{ batch_size }}
     ```
 
 3. Run the hyperparameter tuning script.

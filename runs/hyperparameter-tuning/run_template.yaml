@@ -1,4 +1,4 @@
-name: hpt-mnist-lr-{{lr}}-batch-size-{{batch_size}}
+name: hpt-mnist-lr-{{ lr | round(4) }}-batch-size-{{ batch_size }}
 description: MNIST with hyperparameter tuning
 resources:
   cluster: vessl-gcp-oregon
@@ -17,5 +17,5 @@ run:
       python main.py --save-model
 env:
   epochs: 5
-  learning_rate: {{lr}}
-  batch_size: {{batch_size}}
+  learning_rate: {{ lr }}
+  batch_size: {{ batch_size }}
