@@ -44,18 +44,33 @@ This is a sample hyperparameter tuning script for MNIST training.
     batch_size_min = 64
     batch_size_max = 128
     batch_size_step = 64
-    
-    batch_size = range(batch_size_min, batch_size_max + 1, batch_size_step)
+
+    batch_size = range(batch_size_min, batch_size_max + batch_size_step, batch_size_step)
+
+    lr = [0.01, 0.0001]
+
+    parameters = {
+        "lr": lr,
+        "batch_size": batch_size,
+    }
+
+    keys = parameters.keys()
+    combinations = itertools.product(*[parameters[key] for key in keys])
 
     #random_search
     seed = 42
     random.seed(seed)
 
-    lr_min = 0.01
-    lr_max = 0.1
-    lr_count = 2
+    batch_size_values = [64, 128, 256]
 
-    lr = [random.uniform(lr_min, lr_max) for _ in range(lr_count)]
+    lr_min = 0.1
+    lr_max = 0.2
+
+    combinations_count = 4
+
+    combinations = [
+        (random.choice(batch_size_values), random.uniform(lr_min, lr_max)) for _ in range(combinations_count)
+    ]
     ...
     ```
 

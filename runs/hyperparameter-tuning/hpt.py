@@ -18,27 +18,32 @@ batch_size_min = 64
 batch_size_max = 128
 batch_size_step = 64
 
-batch_size = range(batch_size_min, batch_size_max + 1, batch_size_step)
+batch_size = range(batch_size_min, batch_size_max + batch_size_step, batch_size_step)
 
-#random_search
-seed = 42
-random.seed(seed)
-
-lr_min = 0.01
-lr_max = 0.1
-lr_count = 2
-
-lr = [random.uniform(lr_min, lr_max) for _ in range(lr_count)]
+lr = [0.01, 0.0001]
 
 parameters = {
     "lr": lr,
     "batch_size": batch_size,
 }
 
-print(parameters)
-
 keys = parameters.keys()
 combinations = itertools.product(*[parameters[key] for key in keys])
+
+#random_search
+seed = 42
+random.seed(seed)
+
+batch_size_values = [64, 128, 256]
+
+lr_min = 0.1
+lr_max = 0.2
+
+combinations_count = 4
+
+combinations = [
+    (random.choice(batch_size_values), random.uniform(lr_min, lr_max)) for _ in range(combinations_count)
+]
 
 for c in combinations:
     data = dict()
@@ -46,11 +51,8 @@ for c in combinations:
         data[key] = c[i]
     run = template.render(data)
 
-    print("-------------------")
-    print(run)
-    print("\n\n")
-    # vessl.create_run(
-    #     yaml_file="",
-    #     yaml_body=run,
-    #     yaml_file_name="hpt.yaml"
-    # )
+    vessl.create_run(
+        yaml_file="",
+        yaml_body=run,
+        yaml_file_name="hpt.yaml"
+    )
