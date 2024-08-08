@@ -1,5 +1,5 @@
-# Deploy Llama 3 model with VESSL Serve
-This document provides step-by-step instructions for deploying the Llama 3 model using VESSL Serve.
+# Deploy Llama 3 model with VESSL Service
+This document provides step-by-step instructions for deploying the Llama 3 model using VESSL Service.
 
 ## Prerequisites
 Before you begin, ensure that you have the following:
@@ -83,7 +83,7 @@ Create a new service in the VESSL platform.
 ### 6. Create a YAML File to Configure the Service Revision
 Create a YAML configuration file for the service revision. Replace `${API_KEY}` with your own API key.
 ```sh
-$ vessl serve create-yaml llama-3-textgen llama-3-deplyment-test --api-key
+$ vessl service create-yaml llama-3-textgen llama-3-deplyment-test --api-key
 
 Service name of llama-3-textgen found.
 Using vessl-gcp-oregon cluster configured by the service.
@@ -112,14 +112,14 @@ service.yaml created.
 ### 7. Create a Service Revision and Deploy
 Create a service revision and deploy it with the YAML file you created above.
 ```sh
-$ vessl serve create -f service.yaml -a
+$ vessl service create -f service.yaml -a
 ```
 This will deploy the Llama 3 model using the specified configuration in the YAML file.
 
 ### 8. Retrieve the Endpoint URL
-You can retrieve the URL of the service endpoint with `vessl serve gateway show` command.
+You can retrieve the URL of the service endpoint with `vessl service read` command.
 ```sh
-$ vessl serve gateway show --service llama-3-textgen --format text
+$ vessl service read --service llama-3-textgen --format text --detail
 
  Enabled True
  Status success

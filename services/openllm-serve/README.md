@@ -1,14 +1,14 @@
-# LLM Service with OpenLLM and VESSL Serve
+# LLM Service with OpenLLM and VESSL Service
 
 [![English](https://img.shields.io/badge/language-EN-green)](README.md) [![Korean](https://img.shields.io/badge/language-한글-green)](README-ko.md)
 
-This document explains how to easily deploy and monitor LLM models using VESSL Serve and OpenLLM.
-* [VESSL Serve](https://docs.vessl.ai/) is a platform that allows for easy and fast deployment and monitoring of AI models.
+This document explains how to easily deploy and monitor LLM models using VESSL Service and OpenLLM.
+* [VESSL Service](https://docs.vessl.ai/) is a platform that allows for easy and fast deployment and monitoring of AI models.
 * [OpenLLM](https://vllm.ai/) is a serving framework designed for operating large language models (LLM) in production environments.
 
 ## Table of Contents
 0. [Before You Start](#before-you-start)
-1. [Deploying OpenLLM Service with VESSL Serve](#1-deploying-openllm-service-with-vessl-serve)
+1. [Deploying OpenLLM Service with VESSL Service](#1-deploying-openllm-service-with-vessl-service)
 2. [Setting Up and Testing Endpoints](#2-setting-up-and-testing-endpoints)
 3. [Deploying New Revisions and Distributing Traffic](#3-deploying-new-revisions-and-distributing-traffic)
 4. [Cleanup](#4-cleanup)
@@ -34,9 +34,9 @@ $ vessl configure
 
 If you're new to VESSL, it's recommended to familiarize yourself with the basic usage through the [Quickstart](https://docs.vessl.ai/docs/en/get-started/quickstart) guide.
 
-## 1. Deploying OpenLLM Service with VESSL Serve
+## 1. Deploying OpenLLM Service with VESSL Service
 
-In VESSL Serve, a Service is composed of Revisions and an Endpoint(Gateway).
+In VESSL Service, a Service is composed of Revisions and an Endpoint(Gateway).
 - A Revision refers to a version of the service containing information such as the model to deploy, the port to service, and autoscaling settings.
 - An Endpoint routes one or more Revisions and distributes traffic.
 
@@ -53,13 +53,18 @@ All workloads in VESSL, including Serve's Revisions and Gateways, can be deploye
 message: OpenLLM mistralai/Mistral-7B-Instruct-v0.2 on vLLM
 image: quay.io/vessl-ai/torch:2.2.0-cuda12.3-r3
 resources:
-  name: gpu-a10g-small
-run: pip install --upgrade openllm[vllm]; openllm start mistralai/Mistral-7B-Instruct-v0.2 --backend vllm --port 3000 --max-model-len 4096
-autoscaling:
-  min: 1
-  max: 3
-  metric: gpu
-  target: 60
+  cluster: vessl-gcp-oregon
+  preset: gpu-l4-small-spot
+run: |-
+  pip install --upgrade openllm[vllm]
+  openllm start mistralai/Mistral-7B-Instruct-v0.2 --backend vllm --port 3000 --max-model-len 4096
+service:
+  expose: "3000"
+  autoscaling:
+    min: 1
+    max: 3
+    metric: nvidia.com/gpu
+    target: 60
 ports:
   - port: 3000
     name: openllm
@@ -69,7 +74,7 @@ ports:
 Use the [revision-v1.yaml](revision-v1.yaml) file included in the example folder to create a Revision.
 
 ```sh
-vessl serve revision create --serving openllm -f revision-v1.yaml
+vessl service create --service-name openllm -f revision-v1.yaml
 ```
 
 The status of the created Revision can be checked in the Web Dashboard's 'Revisions' tab or through the CLI.
@@ -77,9 +82,14 @@ The status of the created Revision can be checked in the Web Dashboard's 'Revisi
 ```sh
 $ vessl serve revision list --serving openllm
 
-  Number 8
+  Name openllm
+  Description (none)
+  Created By sanghyuk@vessl.ai
+  Created At 2024-08-05 01:29:36.747608+00:00
+  Cluster vessl-gcp-oregon
   Status running
-  Message OpenLLM mistralai/Mistral-7B-Instruct-v0.2 on vLLM
+  Type provisioned
+  Endpoint model-service-gateway-fud12qixn5y5.oregon.google-cluster.vessl.ai
 ```
 
 ![](asset/serve-revision.png)
@@ -90,8 +100,8 @@ After deploying a Revision, you need to ensure the endpoint is connected to the 
 
 Checking the status of the endpoint with the command below, you will see that currently, the endpoint is not connected to any revision.
 
-```
-$ vessl serve gateway show --serving openllm
+```sh
+$ vessl service read --service openllm --detail
 
   Enabled False
   Status success
@@ -126,7 +136,7 @@ $ vessl serve gateway update --serving openllm -f gateway-v1.yaml
 Once again, checking the status of the endpoint in the CLI or web dashboard will show that the revision is connected to the endpoint and an endpoint address has been generated.
 
 ```sh
-$ vessl serve gateway show --serving openllm
+$ vessl service read --serving openllm
 
   Enabled True
   Status success
@@ -185,7 +195,7 @@ $ python load_test.py
 
 ## 3. Deploying New Revisions and Distributing Traffic
 
-To deploy a new version of a model or settings safely, you need a zero-downtime deployment strategy that maintains the existing version while deploying a new one and then distributes traffic to the new version. VESSL Serve allows for easy implementation of such zero-downtime deployments.
+To deploy a new version of a model or settings safely, you need a zero-downtime deployment strategy that maintains the existing version while deploying a new one and then distributes traffic to the new version. VESSL Service allows for easy implementation of such zero-downtime deployments.
 
 The [revision-v2.yaml](revision-v2.yaml) file is an example of creating a new version of a Revision with some changes in settings for the same model. Let's create the Revision first.
 

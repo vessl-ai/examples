@@ -92,7 +92,7 @@ Revision을 배포한 다음에는, 실제로 endpoint가 revision에 연결되�
 아래의 커맨드로 endpoint의 상태를 확인하면, 현재는 endpoint가 revision에 연결되어 있지 않은 상태임을 확인할 수 있습니다.
 
 ```
-$ vessl serve gateway show --serving openllm
+$ vessl service read --serving openllm
 
   Enabled False
   Status success
@@ -125,7 +125,7 @@ $ vessl serve gateway update --serving openllm -f gateway-v1.yaml
 다시 endpoint의 상태를 CLI 혹은 web dashboard에서 확인하면, revision이 endpoint에 연결되어 있고 endpoint 주소가 생성되어 있음을 확인할 수 있습니다.
 
 ```sh
-$ vessl serve gateway show --serving openllm
+$ vessl service read --serving openllm
 
   Enabled True
   Status success

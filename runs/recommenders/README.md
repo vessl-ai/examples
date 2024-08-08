@@ -7,7 +7,7 @@ VESSL Guide for SasRec Model Serving
 ## Table of Contents
 0. [Before You Start](#before-you-start)
 1. [Training Recommender System with VESSL Run](#training-recommender-system-with-vessl-run)
-2. [Building an Online Recommender System with VESSL Serve](#building-an-online-recommender-system-with-vessl-serve)
+2. [Building an Online Recommender System with VESSL Service](#building-an-online-recommender-system-with-vessl-service)
 ---
 
 ## Before You Start
@@ -130,11 +130,11 @@ You can monitor the training process in real-time on the wandb dashboard by find
 
 ---
 
-## Building an Online Recommender System with VESSL Serve
+## Building an Online Recommender System with VESSL Service
 
 ### Overview
 
-This example introduces the process of serving the trained recommender model online using [VESSL Serve](https://docs.vessl.ai/user-guide/serve). The trained model is deployed in a real-time service environment to provide immediate recommendation results in response to user requests, guided step-by-step.
+This example introduces the process of serving the trained recommender model online using [VESSL Service](https://docs.vessl.ai/guides/serve/overview). The trained model is deployed in a real-time service environment to provide immediate recommendation results in response to user requests, guided step-by-step.
 
 ![](asset/recsys-2.png)
 
@@ -158,79 +158,60 @@ $ vessl model list recommender
 $ vessl model list-files recommender 3
 ```
 
-### Creating a New Serving from the Web Dashboard
+### Creating a New Service from the Web Dashboard
 
-Select the Servings tab in VESSL's web dashboard and click the `+ New serving` button to create a Serving.
+Select the Services tab in VESSL's web dashboard and click the `+ New service` button to create a Service.
 
-The created Serving can be verified using the following CLI command:
+The created Services can be verified using the following CLI command:
 
 ```sh
 # List created servings
-$ vessl serve list
+$ vessl service list
 ```
 
 ### Creating a New Revision with YAML
 
-VESSL Serve includes all necessary information such as code, commands, AI models, packages, environment variables, autoscaling, ports, etc. The Serve definition is provided in a YAML file. Below is an example YAML file for serving the SasRec model.
+VESSL Service includes all necessary information such as code, commands, AI models, packages, environment variables, autoscaling, ports, etc. The Serve definition is provided in a YAML file. Below is an example YAML file for serving the SasRec model.
 
 ```yaml
-# sasrec-serve.yaml
-message: SasRec serving from YAML
+# sasrec-service.yaml
+message: SasRec service from YAML
 image: quay.io/vessl-ai/python:3.9-r2
 resources:
-  cluster: vessl-aws-seoul
-  name: cpu-medium
-volumes:
-  /model:
-    model:
-      repo: recommender
-      version: 1
+  cluster: vessl-gcp-oregon
+  preset: cpu-medium-spot
+import:
+  /model: vessl-model://vessl-ai/recommender/3
   /examples: git://github.com/vessl-ai/examples
 run:
-  cd /examples/recommenders/sasrec && pip install -r requirements.serve.txt && python serve.py --model-path $model_path
+  - command: |-
+      pip install -r requirements.serve.txt
+      python serve.py --model-path $MODEL_PATH
+    workdir: /examples/runs/recommenders/sasrec
 env:
-  - key: model_path
-    value: /model
-autoscaling:
-  min: 1
-  max: 3
-  metric: cpu
-  target: 60
+  MODEL_PATH: /model
 ports:
   - port: 5000
     name: service
     type: http
-launch_immediately: true
+service:
+  expose: "5000"
+  autoscaling:
+    min: 1
+    max: 3
+    metric: cpu
+    target: 60
+
 ```
 
-Use the [sasrec-serve.yaml](sasrec-serve.yaml) file included in the example folder to create a new Serve Revision.
+Use the [sasrec-service.yaml](sasrec-service.yaml) file included in the example folder to create a new Service Revision.
 
 ```sh
-# Create a new revision for 'recommenders-serving' serving
-$ vessl serve revision create --serving recommenders-serving -f sasrec-serve.yaml
-```
+# Create a new revision for 'recommenders-services' service
+$ vessl service create --service-name recommenders-service -f sasrec-service.yaml
 
-### Updating the Gateway for the Created Revision
-
-After creating the Revision, update the Gateway to activate the endpoint.
-
-```yaml
-# sasrec-serve-gateway.yaml
-enabled: true
-targets:
-  - number: 1
-    port: 5000
-    weight: 100
-```
-
-Use the [sasrec-serve-gateway.yaml](sasrec-serve-gateway.yaml) file to update the Gateway.
-
-```sh
-# Update the gateway for 'recommenders-serving' serving
-$ vessl serve gateway update --serving recommenders-serving -f sasrec-serve-gateway.yaml
-
-# Show the updated gateway for 'recommenders-serving' serving
-$ vessl serve gateway show --serving recommenders-serving
+# Show the information of 'recommenders-serving' service
+$ vessl service read --service recommenders-service --detail
 ```
 
 To check if the API server is functioning properly, navigate to `http://{API_ENDPOINT_URL}/docs`.

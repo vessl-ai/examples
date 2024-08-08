@@ -1,13 +1,13 @@
-# Deploying a Summarizer Slackbot Using Llama3 and VESSL Serve
-This is an interactive example on how to build a Summarizer Slackbot using the open-source Llama3 model with VESSL Serve. We will guide you step-by-step through the process of creating a server for Llama3 and launching the bot app itself.
+# Deploying a Summarizer Slackbot Using Llama3 and VESSL Service
+This is an interactive example on how to build a Summarizer Slackbot using the open-source Llama3 model with VESSL Service. We will guide you step-by-step through the process of creating a server for Llama3 and launching the bot app itself.
 
 ## Create the App
 On [api.slack.com](https://api.slack.com/), create a new app called 'Summarizer' in your designated workspace. Configure the necessary scopes (such as **app_mentions:read**,**channels:history**, **channels:join**, **chat:write**, **im:history**, **remote_files:read**, **users:read**) under OAuth & Permissions and install the app. 
 
 Take the Signing Secret and Bot User OAuth Token and save them somehwere secure, like the designated VESSL interface (Settings > Secrets)
 
-## Serve Llama3 Using VESSL Serve
-We will now deploy a Llama3 server with VESSL Serve by following these steps.
+## Serve Llama3 Using VESSL Service
+We will now deploy a Llama3 server with VESSL Service by following these steps.
 1. Clone the repository
 ```bash
    git clone https://github.com/vessl-ai/examples.git
@@ -20,7 +20,7 @@ We will now deploy a Llama3 server with VESSL Serve by following these steps.
 3. Deploy the server using the provided `serve-llama.yaml` configuration and VESSL CLI using the following command
 ```bash
    cd examples/llm-summarizer-slackbot
-   vessl serve create -f serve-llama.yaml --set-current-active
+   vessl service create -f serve-llama.yaml --set-current-active
 ``` 
 
 Once the service is running, you can access the model through the endpoint.

@@ -1,0 +1,26 @@
+message: SasRec service from YAML
+image: quay.io/vessl-ai/python:3.9-r2
+resources:
+  cluster: vessl-gcp-oregon
+  preset: cpu-medium-spot
+import:
+  /model: vessl-model://vessl-ai/recommender/1
+  /examples: git://github.com/vessl-ai/examples
+run:
+  - command: |-
+      pip install -r requirements.serve.txt
+      python serve.py --model-path $MODEL_PATH
+    workdir: /examples/runs/recommenders/sasrec
+env:
+  MODEL_PATH: /model
+ports:
+  - port: 5000
+    name: service
+    type: http
+service:
+  expose: "5000"
+  autoscaling:
+    min: 1
+    max: 3
+    metric: cpu
+    target: 60

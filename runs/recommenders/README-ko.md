@@ -6,7 +6,7 @@ SasRec 모델 서빙을 위한 VESSL 활용 가이드
 ## 목차
 0. [시작하기 전에](#시작하기-전에)
 1. [VESSL Run을 이용한 추천 시스템 학습](#vessl-run을-이용한-추천-시스템-학습)
-2. [VESSL Serve를 이용한 온라인 추천 시스템 구축](#vessl-serve를-이용한-온라인-추천-시스템-구축)
+2. [VESSL Service를 이용한 온라인 추천 시스템 구축](#vessl-service를-이용한-온라인-추천-시스템-구축)
 ---
 
 ## 시작하기 전에
@@ -128,11 +128,11 @@ VESSL Run 로그에서 wandb 링크를 찾아 해당 링크를 통해 wandb 대�
 ![](asset/wandb-web.png)
 ---
 
-## VESSL Serve를 이용한 온라인 추천 시스템 구축
+## VESSL Service를 이용한 온라인 추천 시스템 구축
 
 ### 개요 
 
-이 예제에서는 [VESSL Serve](https://docs.vessl.ai/user-guide/serve)를 활용해 온라인으로 추천 모델을 서빙하는 과정을 소개합니다. 학습된 모델을 실시간 서비스 환경에 배포하여, 사용자 요청에 즉각적으로 추천 결과를 제공하는 방법을 단계별로 안내합니다.
+이 예제에서는 [VESSL Service](https://docs.vessl.ai/guides/serve/overview)를 활용해 온라인으로 추천 모델을 서빙하는 과정을 소개합니다. 학습된 모델을 실시간 서비스 환경에 배포하여, 사용자 요청에 즉각적으로 추천 결과를 제공하는 방법을 단계별로 안내합니다.
 
 ![](asset/recsys-2.png)
 
@@ -155,80 +155,61 @@ $ vessl model list recommender
 $ vessl model list-files recommender 3
 ```
 
-### 웹 대시보드를 에서 새로운 Serving 생성하기
+### 웹 대시보드에서 새로운 Service 생성하기
 
-VESSL의 웹 대시보드의 Servings 탭을 선택해 `+ New serving` 버튼을 클릭하여 Serving을 생성합니다.
+VESSL의 웹 대시보드의 Services 탭을 선택해 `+ New service` 버튼을 클릭하여 Service를 생성합니다.
 
 ![](asset/new-serving.png)
 
-생성된 Serving은 CLI 명령어를 사용하여 확인할 수 있습니다.
+생성된 Service는 CLI 명령어를 사용하여 확인할 수 있습니다.
 ```sh
-# 생성된 serve 리스트를 조회
-$ vessl serve list
+# 생성된 service 리스트를 조회
+$ vessl service list
 ```
 
 ### YAML을 이용해 새로운 Revision 생성하기
 
-VESSL의 Serve 기능은 코드, 커맨드, AI 모델, 패키지, 환경 변수, 오토스케일링, 포트 등 필요한 모든 정보를 포함합니다. Serve의 정의는 YAML 파일로 정의됩니다. 아래는 SasRec 모델 서빙을 위한 예제 YAML 파일입니다.
+VESSL의 Service 기능은 코드, 커맨드, AI 모델, 패키지, 환경 변수, 오토스케일링, 포트 등 필요한 모든 정보를 포함합니다. Service의 정의는 YAML 파일로 정의됩니다. 아래는 SasRec 모델 서빙을 위한 예제 YAML 파일입니다.
 
 ```yaml
-# sasrec-serve.ya l
-message: SasRec serving from YAML
+# sasrec-service.yaml
+message: SasRec service from YAML
 image: quay.io/vessl-ai/python:3.9-r2
 resources:
-  cluster: vessl-aws-seoul
-  name: cpu-medium
-volumes:
-  /model:
-    model:
-      repo: recommender
-      version: 1
+  cluster: vessl-gcp-oregon
+  preset: cpu-medium-spot
+import:
+  /model: vessl-model://vessl-ai/recommender/3
   /examples: git://github.com/vessl-ai/examples
 run:
-  cd /examples/recommenders/sasrec && pip install -r requirements.serve.txt && python serve.py --model-path $model_path
+  - command: |-
+      pip install -r requirements.serve.txt
+      python serve.py --model-path $MODEL_PATH
+    workdir: /examples/runs/recommenders/sasrec
 env:
-  - key: model_path
-    value: /model
-autoscaling:
-  min: 1
-  max: 3
-  metric: cpu
-  target: 60
+  MODEL_PATH: /model
 ports:
   - port: 5000
     name: service
     type: http
-launch_immediately: true
+service:
+  expose: "5000"
+  autoscaling:
+    min: 1
+    max: 3
+    metric: cpu
+    target: 60
+
 ```
 
-예제 폴더에 포함된 [sasrec-serve.yaml](sasrec-serve.yaml) 파일을 사용하여 새로운 Serve Revision을 생성하세요.
+예제 폴더에 포함된 [sasrec-service.yaml](sasrec-service.yaml) 파일을 사용하여 새로운 Service Revision을 생성하세요.
 
 ```sh
-# 'recommenders-serving' 이라는 serving에 새로운 revision 생성
-$ vessl serve revision create --serving recommenders-serving -f sasrec-serve.yaml
-```
+# 'recommenders-service' 이라는 service 생성
+$ vessl service create --service-name recommenders-service -f sasrec-service.yaml
 
-### 생성된 Revision에 Gateway 업데이트하기
-
-Revision 생성 후, Gateway를 업데이트하여 endpoint를 활성화 합니다.
-
-```yaml
-# sasrec-serve-gateway.yaml
-enabled: true
-targets:
-  - number: 1
-    port: 5000
-    weight: 100
-```
-
-[sasrec-serve-gateway.yaml](sasrec-serve-gateway.yaml) 파일을 사용하여 Gateway를 업데이트하세요.
-
-```sh
-# 'recommenders-serving' 이라는 serving에 gateway를 업데이트
-$ vessl serve gateway update --serving recommenders-serving -f sasrec-serve-gateway.yaml
-
-# 'recommenders-serving' 이라는 serving에 업데이트된 gateway를 조회
-$ vessl serve gateway show --serving recommenders-serving
+# 'recommenders-service' 이라는 service 조회
+$ vessl service read --service recommenders-service --detail
 ```
 
 API 서버가 정상적으로 작동하는지 확인하기 위해 `http://{API_ENDPOINT_URL}/docs` 로 이동하세요.
@@ -248,6 +229,6 @@ $ curl -X 'POST' \
   -H 'accept: application/json' \
   -H 'Content-Type: multipart/form-data' \
   -F 'file=@test_amazon_beauty.csv;type=text/csv'
-  
+
 "item 2000"
 ```

@@ -7,7 +7,7 @@ $ cd examples/serve-llama-3
 ```
 ### Create Service Revision
 ```sh
-$ vessl serve create -f serve.yaml
+$ vessl service create -f serve.yaml
 ```
 ### Activate Revision (if it is not running)
 ```sh

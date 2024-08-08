@@ -1,6 +1,6 @@
-# 1-minute guide to VESSL Serve
+# 1-minute guide to VESSL Service
 
-This is a 1-minute quickstart for deploying Llama 3 with VESSL Serve. Here, you will set up a text generation API using vLLM acceleration.
+This is a 1-minute quickstart for deploying Llama 3 with VESSL Service. Here, you will set up a text generation API using vLLM acceleration.
 
 ## What's included
 * `quickstart.yaml` - A YAML configuration that specifies the service details such as computing resources, autoscaling options, and port settings for your API server.
@@ -8,12 +8,12 @@ This is a 1-minute quickstart for deploying Llama 3 with VESSL Serve. Here, you 
 
 ## Launch the app
 
-Deploy your service with VESSL Serve with a single command. This will create a first revision of your production Llama 3.
+Deploy your service with VESSL Service with a single command. This will create a first revision of your production Llama 3.
 ```
-vessl serve create -f quickstart.yaml
+vessl service create -f quickstart.yaml
 ```
 
-Behind the scenes, VESSL Serve facilitates the common logics of model deployment:
+Behind the scenes, VESSL Service facilitates the common logics of model deployment:
 
 * Spin up a GPU-accelerated workload and set up a service environment
 * Deploys your model and associated API scripts to the cloud infrastructure.
@@ -43,7 +43,7 @@ python api-test.py \
 
 ![](assets/result.png)
 
-VESSL Serve offloads the complex challenges of deploying custom models while ensuring availability, scalability, and reliability.
+VESSL Service offloads the complex challenges of deploying custom models while ensuring availability, scalability, and reliability.
 * Autoscale the model to handle peak loads and scale to zero when it's not being used
 * Routes traffic efficiently across different model versions.
 * Provides a real-time monitoring of predictions and performance metrics through comprehensive dashboards and logs.
