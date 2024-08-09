@@ -1,0 +1,31 @@
+name: segment-anything-2
+description: "a sample SAM2 app with gradio"
+tags:
+  - vision
+  - segmentation
+import:
+  /sam2-repo/:
+    git:
+      url: github.com/facebookresearch/segment-anything-2.git
+      ref: main
+  /code/:
+    git:
+      url: github.com/vessl-ai/examples.git
+      ref: main
+resources:
+  cluster: vessl-gcp-oregon
+  preset: gpu-l4-small-spot
+image: quay.io/vessl-ai/torch:2.3.1-cuda12.1-r4
+run:
+  - command: pip install gradio
+    workdir: /
+  - command: pip install -e .
+    workdir: /sam2-repo
+  - command: ./download_ckpts.sh
+    workdir: /sam2-repo/checkpoints
+  - command: python app.py
+    workdir: /code/runs/segment-anything-2
+ports:
+  - name: gradio
+    type: http
+    port: 7860
