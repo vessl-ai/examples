@@ -4,6 +4,8 @@ This repository contains code to run a sample Gradio app for [Segment Anything M
 
 SAM 2 is a simple transformer architecture with streaming memory for real-time video processing. SAM 2 trained on [SA-V Dataset](https://ai.meta.com/datasets/segment-anything-video/) provides strong performance across a wide range of tasks. In video segmentation, it shows better accuracy, using 3x fewer interactions than prior approaches. In image segmentation, SAM 2 is more accurate and 6x faster than the Segment Anything Model (SAM).
 
+![inference examples](assets/sa_v_dataset.jpg)
+
 ## Running Locally
 ***Note:** You have to use a GPU machine with CUDA to install SAM 2.*
 
