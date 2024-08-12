@@ -7,7 +7,7 @@ SAM 2 is a simple transformer architecture with streaming memory for real-time v
 ## Running Locally
 ***Note:** You have to use a GPU machine with CUDA to install SAM 2.*
 
-1. Clone the [SAM 2 repository](https://github.com/facebookresearch/segment-anything-2) and follow the installation instructions.
+1. Clone the [SAM 2 repository](https://github.com/facebookresearch/segment-anything-2) and follow the **installation** and **download checkpoints** instructions.
 
 2. Clone this repository:
     ```sh
