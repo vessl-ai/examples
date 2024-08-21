@@ -28,7 +28,7 @@ run:
       pip install vllm==0.5.4
       pip uninstall -y transformer-engine
       pip install flash-attn==2.6.3
-      vllm serve $MODEL_NAME --max-model-len 65536
+      vllm serve $MODEL_NAME --max-model-len 65536 --disable-frontend-multiprocessing
     workdir: /code/vllm-run
 ports:
   - name: vllm
@@ -38,4 +38,5 @@ ports:
     type: http
     port: 9090
 env:
-  MODEL_NAME: dahara1/llama3.1-8b-Instruct-awq
+  MODEL_NAME: hugging-quants/Meta-Llama-3.1-8B-Instruct-AWQ-INT4
+  HF_TOKEN: HF_TOKEN  # Your Huggingface API token
