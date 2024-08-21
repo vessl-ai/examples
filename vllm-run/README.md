@@ -24,8 +24,8 @@ This document outlines how to deploy a fast and efficient LLM API using VESSL Ru
 
 The definition of a Run is written in a YAML file. For instance, here is a snippet of the YAML file for this example:
 
-> If you want to use a gated model such as `meta-llama/Meta-Llama-3-8B-Instruct`, you have to replace `{HF_TOKEN}` with your own Huggingface API token. Please refer to the [Huggingface official document](https://huggingface.co/docs/api-inference/en/quicktour#get-your-api-token) if you don't know how to get an API token.
-> In this example, [`casperhansen/llama-3-8b-instruct-awq`](https://huggingface.co/casperhansen/llama-3-8b-instruct-awq), a quantized Llama 3 8B model is used for perfomance and accessibility.
+> If you want to use a gated model such as `meta-llama/Meta-Llama-3.1-8B-Instruct`, you have to replace `HF_TOKEN` with your own Huggingface API token. Please refer to the [Huggingface official document](https://huggingface.co/docs/api-inference/en/quicktour#get-your-api-token) if you don't know how to get an API token.
+> In this example, [`hugging-quants/Meta-Llama-3.1-8B-Instruct-AWQ-INT4`](https://huggingface.co/hugging-quants/Meta-Llama-3.1-8B-Instruct-AWQ-INT4), a quantized Llama 3.1 8B model is used for perfomance and accessibility.
 
 ```yaml
 # vllm-run.yaml
@@ -36,7 +36,7 @@ tags:
 resources: # Resource requirements
   cluster: vessl-gcp-oregon
   preset: gpu-l4-small-spot
-image: quay.io/vessl-ai/torch:2.1.0-cuda12.2-r3 # Container image
+image: quay.io/vessl-ai/torch:2.3.1-cuda12.1-r5 # Container image
 import: # Code, data, or model to import
   /code/:
     git:
@@ -54,8 +54,8 @@ ports: # Endpoint configuration
     type: http
     port: 9090
 env: # Environment variables
-  MODEL_NAME: casperhansen/llama-3-8b-instruct-awq
-  HF_TOKEN: {HF_TOKEN} # Your Huggingface API token
+  MODEL_NAME: hugging-quants/Meta-Llama-3.1-8B-Instruct-AWQ-INT4
+  HF_TOKEN: HF_TOKEN # Your Huggingface API token
 ```
 This [vllm-run.yaml](vllm-run.yaml) file defines the following:
 * The resources and container image to be used
@@ -75,7 +75,7 @@ Executing the above command will create a Run as shown in the screenshot below.
 ![](asset/run-demo.png)
 
 
-> **Note**: For detailed instructions on creating a Run, please refer to the [VESSL Run Quickstart](https://docs.vessl.ai/docs/en/get-started/quickstart)!
+> **Note**: For detailed instructions on creating a Run, please refer to the [VESSL Run Quickstart](https://docs.vessl.ai/guides/get-started/quickstart)!
 
 ## Accessing VESSL Run with Web Dashboard
 
@@ -97,10 +97,10 @@ Run a simple python script([`api-test.py`](api-test.py)) to test if the API serv
 
 ```sh
 $ python vllm-run/api-test.py \
-    --base-url {API_ENDPOINT_URL} \
-    --model-name casperhansen/llama-3-8b-instruct-awq
+    --base-url https://{API_ENDPOINT_URL} \
+    --model-name hugging-quants/Meta-Llama-3.1-8B-Instruct-AWQ-INT4
 
-ChatCompletionMessage(content='The capital of South Korea is Seoul ().', role='assistant', function_call=None, tool_calls=None)
+ChatCompletionMessage(content='The capital of South Korea is Seoul.', role='assistant', function_call=None, tool_calls=[])
 ```
 
 ## Advanced: Benchmarking the API Server
@@ -110,8 +110,6 @@ ChatCompletionMessage(content='The capital of South Korea is Seoul ().', role='a
 * Token throughput: The number of tokens processed/generated per second
 * Time per first token: The time taken from receiving a request to generating the first token
 * Cache utilization: The percentage of data stored in the GPU VRAM's KV cache that is utilized
-
-> **Note**: The Metric functionality for LLM services is included in the latest upstream version of vLLM and has not been released as a stable release as of February 2024. Please exercise caution when using it!
 
 You can run the benchmark script on your local environment to evaluate the performance of the API server as follows.
 
@@ -129,11 +127,10 @@ wget https://huggingface.co/datasets/anon8231489123/ShareGPT_Vicuna_unfiltered/r
 # Run the benchmark script
 python vllm/benchmarks/benchmark_serving.py \
   --backend vllm \
-  --protocol_http \
-  --host {API_SERVER_ENDPOINT} \
-  --port 8000 \
-  --tokenizer mistralai/Mistral-7B-Instruct-v0.2 \
-  --request-rate 3 --dataset ShareGPT_V3_unfiltered_cleaned_split.json 
+  --base-url https://{API_ENDPOINT_URL} \
+  --model hugging-quants/Meta-Llama-3.1-8B-Instruct-AWQ-INT4 \
+  --request-rate 3 \
+  --dataset-path ShareGPT_V3_unfiltered_cleaned_split.json 
 ```
 
 Prometheus is already running in the Run you initiated earlier. You can access Prometheus by selecting Connect -> `prometheus` in the Run Dashboard to view various metrics in the Prometheus UI and API server.
@@ -171,7 +168,7 @@ Project: llm-demo-20240124
 Terminated '#369367189168'.
 ```
 
-You can also terminate the Run by clicking Actions -> Terminate in the top right corner of the Web dashboard.
+You can also terminate the Run by clicking ellipsis(`...`) -> Terminate in the top right corner of the Web dashboard.
 
 ![](asset/run-terminate.png)
 
@@ -186,10 +183,10 @@ During the Run execution process, you can observe initialization tasks such as t
 Below is an example of building a Docker image that includes various dependencies.
 
 ```Dockerfile
-FROM quay.io/vessl-ai/torch:2.2.0-cuda12.3-r3
+FROM quay.io/vessl-ai/torch:2.3.1-cuda12.1-r5
 
 ENV PROMETHEUS_VERSION=2.49.1
-ENV MODEL_NAME=casperhansen/llama-3-8b-instruct-awq
+ENV MODEL_NAME=hugging-quants/Meta-Llama-3.1-8B-Instruct-AWQ-INT4
 
 WORKDIR /app
 
@@ -203,14 +200,14 @@ RUN rm prometheus-$PROMETHEUS_VERSION.linux-amd64.tar.gz
 COPY monitoring/prometheus.yml /app/prometheus/prometheus.yml
 
 # Install dependencies
-COPY requirements.txt /app/requirements.txt
-RUN pip install autoawq==0.2.4
-RUN pip install -r /app/requirements.txt
+RUN pip install autoawq==0.2.6
+RUN pip install vllm==0.5.4
 RUN pip uninstall -y transformer-engine
-RUN pip install flash-attn==2.5.7
+RUN pip install flash-attn==2.6.3
+RUN vllm serve $MODEL_NAME --max-model-len 65536 --disable-frontend-multiprocessing
 
 # Entrypoint
-ENTRYPOINT python -m vllm.entrypoints.openai.api_server --model $MODEL_NAME
+ENTRYPOINT vllm serve $MODEL_NAME --max-model-len 65536 --disable-frontend-multiprocessing
 ```
 
 ### Caching `~/.cache/huggingface` for Faster Model Loading

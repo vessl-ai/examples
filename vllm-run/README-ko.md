@@ -24,8 +24,8 @@ VESSL에서 Run은 태스크 실행의 기본 단위입니다. Run의 정의에�
 
 Run의 정의는 YAML 파일로 작성됩니다. 예를 들면, 이번 예제의 YAML 파일 중 일부를 아래와 같이 작성할 수 있습니다:
 
-> `meta-llama/Meta-Llama-3-8B` 등 사전 승인이 필요한 모델을 사용할 경우, Run 실행 전에 {HF_TOKEN}을 자신의 허깅페이스 API 토큰으로 변경해야 합니다. 허깅페이스 API 토큰을 발급받는 방법에 대해서는 [허깅페이스 공식 문서](https://huggingface.co/docs/api-inference/en/quicktour#get-your-api-token)를 참고해 주시기 바랍니다.
-> 본 예시에서는 성능과 접근성을 위해 Llama 3 8B를 AWQ 양자화한 모델인 [`casperhansen/llama-3-8b-instruct-awq`](https://huggingface.co/casperhansen/llama-3-8b-instruct-awq)을 사용하였습니다.
+> `meta-llama/Meta-Llama-3.1-8B-Instruct` 등 사전 승인이 필요한 모델을 사용할 경우, Run 실행 전에 `HF_TOKEN`을 자신의 허깅페이스 API 토큰으로 변경해야 합니다. 허깅페이스 API 토큰을 발급받는 방법에 대해서는 [허깅페이스 공식 문서](https://huggingface.co/docs/api-inference/en/quicktour#get-your-api-token)를 참고해 주시기 바랍니다.
+> 본 예시에서는 성능과 접근성을 위해 Llama 3.1 8B를 AWQ 양자화한 모델인 [`hugging-quants/Meta-Llama-3.1-8B-Instruct-AWQ-INT4`](https://huggingface.co/hugging-quants/Meta-Llama-3.1-8B-Instruct-AWQ-INT4)을 사용하였습니다.
 
 ```yaml
 # vllm-run.yaml
@@ -33,11 +33,10 @@ name: vllm-server
 description: LLM server with vLLM and Prometheus monitoring
 tags:
   - vllm
-  - model=mistral-7b-instruct-v0.2
 resources: # Resource requirements
   cluster: vessl-gcp-oregon
   preset: gpu-l4-small-spot
-image: quay.io/vessl-ai/torch:2.1.0-cuda12.2-r3 # Container image
+image: quay.io/vessl-ai/torch:2.3.1-cuda12.1-r5 # Container image
 import: # Code, data, or model to import
   /code/:
     git:
@@ -55,9 +54,16 @@ ports: # Endpoint configuration
     type: http
     port: 9090
 env: # Environment variables
-  MODEL_NAME: casperhansen/llama-3-8b-instruct-awq
-  HF_TOKEN: {HF_TOKEN} # Your Huggingface API token
+  MODEL_NAME: hugging-quants/Meta-Llama-3.1-8B-Instruct-AWQ-INT4
+  HF_TOKEN: HF_TOKEN # Your Huggingface API token
 ```
+
+[vllm-run.yaml](vllm-run.yaml) 파일에는 아래 내용들이 정의되어 있습니다:
+* 사용할 리소스 및 컨테이너 이미지
+* 코드를 가져오기 위한 git repository 정보
+* 모니터링 도구 Prometheus를 실행하기 위한 커맨드
+* vLLM 기반의 LLM API 서버를 실행하기 위한 커맨드
+* API 서버와 Prometheus의 endpoint를 연결하기 위한 설정
 
 예제 폴더에 포함된 [vllm-run.yaml](vllm-run.yaml) 파일을 사용하여 Run을 생성해봅니다.
 
@@ -69,14 +75,7 @@ vessl run create -f vllm-run.yaml
 
 ![](asset/run-demo.png)
 
-[vllm-run.yaml](vllm-run.yaml) 파일에는 아래 내용들이 정의되어 있습니다:
-* 사용할 리소스 및 컨테이너 이미지
-* 코드를 가져오기 위한 git repository 정보
-* 모니터링 도구 Prometheus를 실행하기 위한 커맨드
-* vLLM 기반의 LLM API 서버를 실행하기 위한 커맨드
-* API 서버와 Prometheus의 endpoint를 연결하기 위한 설정
-
-> **Note**: Run을 생성하는 방법에 대한 자세한 내용은 [VESSL Run Quickstart](https://docs.vessl.ai/docs/en/get-started/quickstart)를 참고해주세요!
+> **Note**: Run을 생성하는 방법에 대한 자세한 내용은 [VESSL Run Quickstart](https://docs.vessl.ai/guides/get-started/quickstart)를 참고해주세요!
 
 ## Accessing VESSL Run with Web Dashboard 
 
@@ -98,10 +97,10 @@ API 테스트를 위해 작성한 간단한 파이썬 스크립트([`api-test.py
 
 ```sh
 $ python vllm-run/api-test.py \
-    --base-url {API_ENDPOINT_URL} \
-    --model-name casperhansen/llama-3-8b-instruct-awq
+    --base-url https://{API_ENDPOINT_URL} \
+    --model-name hugging-quants/Meta-Llama-3.1-8B-Instruct-AWQ-INT4
 
-ChatCompletionMessage(content='The capital of South Korea is Seoul ().', role='assistant', function_call=None, tool_calls=None)
+ChatCompletionMessage(content='The capital of South Korea is Seoul.', role='assistant', function_call=None, tool_calls=[])
 ```
 
 ## Advanced: Benchmarking API server
@@ -111,8 +110,6 @@ ChatCompletionMessage(content='The capital of South Korea is Seoul ().', role='a
 * Token throughput: 초당 처리/생성하는 토큰의 수
 * Time per first token: 요청을 받아 첫 번째 토큰을 생성하는데 걸리는 시간
 * Cache utilization: GPU VRAM 내의 KV cache에 저장된 데이터를 사용하는 비율
-
-> **Note**: LLM 서비스를 위한 Metric 기능은 vLLM의 최신 upstream 버전에 포함되어 있으며, 2024년 2월 현재 Stable release로 아직 배포되지 않았습니다. 사용시 주의해주세요!
 
 로컬 환경에서 아래와 같이 vLLM을 설치하고, benchmark 스크립트를 실행하여 API 서버의 성능을 확인할 수 있습니다.
 
@@ -130,11 +127,10 @@ wget https://huggingface.co/datasets/anon8231489123/ShareGPT_Vicuna_unfiltered/r
 # Run the benchmark script
 python vllm/benchmarks/benchmark_serving.py \
   --backend vllm \
-  --protocol http \
-  --host {API_SERVER_ENDPOINT} \
-  --port 8000 \
-  --tokenizer mistralai/Mistral-7B-Instruct-v0.2 \
-  --request-rate 3 --dataset ShareGPT_V3_unfiltered_cleaned_split.json 
+  --base-url https://{API_ENDPOINT_URL} \
+  --model hugging-quants/Meta-Llama-3.1-8B-Instruct-AWQ-INT4 \
+  --request-rate 3 \
+  --dataset-path ShareGPT_V3_unfiltered_cleaned_split.json 
 ```
 
 위에서 실행한 Run에는 Prometheus가 이미 실행되고 있습니다. Run Dashboard에서 Connect -> `prometheus` 을 선택해서 접속하여 Prometheus UI와 API 서버의 각종 지표를 확인하실 수 있습니다.
@@ -172,7 +168,7 @@ Project: llm-demo-20240124
 Terminated '#369367189168'.
 ```
 
-Web dashboard에서 오른쪽 상단 Actions -> Terminate을 클릭하여도 Run을 종료할 수 있습니다.
+Web dashboard에서 오른쪽 상단 줄임표(`...`) -> Terminate을 클릭하여도 Run을 종료할 수 있습니다.
 
 ![](asset/run-terminate.png)
 
@@ -204,14 +200,14 @@ RUN rm prometheus-$PROMETHEUS_VERSION.linux-amd64.tar.gz
 COPY monitoring/prometheus.yml /app/prometheus/prometheus.yml
 
 # Install dependencies
-COPY requirements.txt /app/requirements.txt
-RUN pip install autoawq==0.2.4
-RUN pip install -r /app/requirements.txt
+RUN pip install autoawq==0.2.6
+RUN pip install vllm==0.5.4
 RUN pip uninstall -y transformer-engine
-RUN pip install flash-attn==2.5.7
+RUN pip install flash-attn==2.6.3
+RUN vllm serve $MODEL_NAME --max-model-len 65536 --disable-frontend-multiprocessing
 
 # Entrypoint
-ENTRYPOINT python -m vllm.entrypoints.openai.api_server --model $MODEL_NAME
+ENTRYPOINT vllm serve $MODEL_NAME --max-model-len 65536 --disable-frontend-multiprocessing
 ```
 
 ### Caching `~/.cache/huggingface` for faster model loading
