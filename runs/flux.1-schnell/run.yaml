@@ -1,0 +1,23 @@
+name: flux-1-schnell
+description: "a sample FLUX.1 schnell app with gradio"
+tags:
+  - text-to-image
+  - diffusion
+import:
+  /code/:
+    git:
+      url: github.com/vessl-ai/examples.git
+      ref: main
+resources:
+  cluster: vessl-gcp-oregon
+  preset: gpu-l4-small-spot
+image: quay.io/vessl-ai/torch:2.3.1-cuda12.1-r5
+run:
+  - command: |-
+      pip install -r requirements.txt
+      python app.py --offload
+    workdir: /code/runs/flux.1-schnell
+ports:
+  - name: gradio
+    type: http
+    port: 7860
