@@ -45,8 +45,14 @@ def main():
     parser.add_argument(
         "--batch-size",
         type=int,
-        default=3,
+        default=2,
         help="Number of samples per batch per device during training.",
+    )
+    parser.add_argument(
+        "--acc-steps",
+        type=int,
+        default=4,
+        help="Number of steps to accumulate gradient",
     )
     parser.add_argument(
         "--train-epochs",
