@@ -1,4 +1,4 @@
-autoawq @ https://github.com/casper-hansen/AutoAWQ.git
+autoawq @ git+https://github.com/casper-hansen/AutoAWQ.git
 ninja>=1.11.1.1
 packaging>=24.1
 peft>=0.12.0
