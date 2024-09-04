@@ -1,11 +1,13 @@
 import streamlit as st
 import torch
-from diffusers import DPMSolverMultistepScheduler, StableDiffusionXLPipeline
 from DeepCache import DeepCacheSDHelper
+from diffusers import DPMSolverMultistepScheduler, StableDiffusionXLPipeline
 
 model_id = "stabilityai/stable-diffusion-xl-base-1.0"
 
-pipe = StableDiffusionXLPipeline.from_pretrained(model_id, torch_dtype=torch.float16, variant="fp16", use_safetensors=True)
+pipe = StableDiffusionXLPipeline.from_pretrained(
+    model_id, torch_dtype=torch.float16, variant="fp16", use_safetensors=True
+)
 pipe.scheduler = DPMSolverMultistepScheduler.from_config(pipe.scheduler.config)
 pipe = pipe.to("cuda")
 
@@ -39,5 +41,5 @@ with col2:
     if submit_button:
         st.image(image)
 
-st.markdown("Explore more models at [vessl.ai/hub](https://vessl.ai/hub).")
+st.markdown("Explore more models at [vessl.ai/hub](https://app.vessl.ai/hub).")
 st.image("https://i.imgur.com/xkJwAxL.png", width=180)

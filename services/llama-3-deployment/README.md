@@ -29,7 +29,7 @@ $ vessl model-repository create llama-3-deployment
 
 Organization: demo
 Created 'llama-3-deployment'.
-For more info: https://vessl.ai/demo/models/llama-3-deployment
+For more info: https://app.vessl.ai/demo/models/llama-3-deployment
 ```
 
 ### 4. Register the Model

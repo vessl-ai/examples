@@ -52,5 +52,5 @@ with col2:
     if submit_button:
         st.image(image)
 
-st.markdown("Explore more models at [vessl.ai/hub](https://vessl.ai/hub).")
+st.markdown("Explore more models at [vessl.ai/hub](https://app.vessl.ai/hub).")
 st.image("https://i.imgur.com/xkJwAxL.png", width=180)

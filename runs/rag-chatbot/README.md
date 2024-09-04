@@ -27,7 +27,7 @@ The app uses RAG(Retrieval Generated Augmentation) Using vector database. It ini
    python app.py --llm-host $LLM_HOST
    ```
 
-   Replace `$LLM_HOST` with the URL of OpenAI-compatible LLM server. You can run your own LLM server using vLLM template on VESSL Hub: https://vessl.ai/hub/vllm-run
+   Replace `$LLM_HOST` with the URL of OpenAI-compatible LLM server. You can run your own LLM server using vLLM template on VESSL Hub: https://app.vessl.ai/hub/vllm-run
 
 1. Access the Gradio interface by opening [http://localhost:7860](http://localhost:7860) in your web browser.
 
