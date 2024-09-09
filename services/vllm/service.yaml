@@ -14,9 +14,9 @@ run:
       # Start vLLM API server
       pip install autoawq==0.2.6
       pip install -r requirements.txt
-      pip uninstall -y transformer-engine
       pip install flash-attn==2.6.3
       vllm serve $MODEL_NAME --max-model-len 65536 --disable-frontend-multiprocessing
+    workdir: /code/services/vllm
 ports:
   - name: vllm
     type: http
