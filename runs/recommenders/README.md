@@ -65,7 +65,7 @@ description: Training a recommender system on amazon beauty dataset.
 resources:  
   cluster: vessl-aws-seoul
   preset: cpu-large
-image: quay.io/vessl-ai/python:3.9-r2  
+image: quay.io/vessl-ai/python:3.10-r18
 import:  
   /input/: hf://huggingface.co/datasets/VESSL/amazon-beauty-dataset
   /root/examples/: git://github.com/vessl-ai/examples
@@ -176,7 +176,7 @@ VESSL Service includes all necessary information such as code, commands, AI mode
 ```yaml
 # sasrec-service.yaml
 message: SasRec service from YAML
-image: quay.io/vessl-ai/python:3.9-r2
+image: quay.io/vessl-ai/python:3.10-r18
 resources:
   cluster: vessl-gcp-oregon
   preset: cpu-medium-spot

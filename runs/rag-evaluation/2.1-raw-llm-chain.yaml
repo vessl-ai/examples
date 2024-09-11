@@ -1,6 +1,6 @@
 name: raw-llm-chain
 import:
-  /code/: 
+  /code/:
     git:
       url: github.com/vessl-ai/examples.git
       ref: main
@@ -10,7 +10,7 @@ export:
 resources:
   cluster: vessl-gcp-oregon
   preset: cpu-small-spot
-image: quay.io/vessl-ai/python:3.10-r10
+image: quay.io/vessl-ai/python:3.10-r18
 run:
   - command: pip install -r requirements.txt
     workdir: /code/rag-evaluation

@@ -3,7 +3,7 @@ description: MNIST with hyperparameter tuning
 resources:
   cluster: vessl-gcp-oregon
   preset: cpu-medium-spot
-image: quay.io/vessl-ai/python:3.10-r15
+image: quay.io/vessl-ai/python:3.10-r18
 import:
   /code/:
     git:
