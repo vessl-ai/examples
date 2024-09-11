@@ -1,0 +1,6 @@
+transformers==4.44.2
+torch==2.3.1
+flash_attn==2.5.8
+accelerate==0.31.0
+gradio
+vllm
