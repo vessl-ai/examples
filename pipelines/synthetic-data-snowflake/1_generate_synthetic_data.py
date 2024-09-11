@@ -4,6 +4,7 @@ import argparse
 import re
 import json
 
+from cryptography.hazmat.primitives.serialization import load_pem_private_key
 from llama_index.readers.web import SimpleWebPageReader
 from snowflake.snowpark import Session
 from snowflake.cortex import Complete
@@ -95,7 +96,18 @@ def main():
     args = parser.parse_args()
 
     # Initialize session
-    session = Session.builder.config("connection_name", "vessl-oregon").create()
+    account = os.environ["SNOWFLAKE_ACCOUNT"]
+    user = os.environ["SNOWFLAKE_USER"]
+    private_key = load_pem_private_key(os.environ["SNOWFLAKE_PRIVATE_KEY"].encode(), password=None)
+    warehouse = os.environ["SNOWFLAKE_WAREHOUSE"]
+
+    connection_parameters = {
+        "account": account,
+        "user": user,
+        "private_key": private_key,
+        "warehouse": warehouse
+    }
+    session = Session.builder.configs(connection_parameters).create()
 
     # Load documents
     documents = SimpleWebPageReader(html_to_text=True).load_data(

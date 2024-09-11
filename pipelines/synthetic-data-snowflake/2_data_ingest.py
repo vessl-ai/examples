@@ -3,17 +3,28 @@ import os
 
 import pandas as pd
 
+from cryptography.hazmat.primitives.serialization import load_pem_private_key
 from snowflake.connector import connect
 from snowflake.core import Root
 from snowflake.core.table import Table, TableColumn
 from snowflake.snowpark import Session
 
 
-CONNECTION_NAME = os.environ.get("CONNECTION_NAME", "vessl-oregon")
+account = os.environ["SNOWFLAKE_ACCOUNT"]
+user = os.environ["SNOWFLAKE_USER"]
+private_key = load_pem_private_key(os.environ["SNOWFLAKE_PRIVATE_KEY"].encode(), password=None)
+warehouse = os.environ["SNOWFLAKE_WAREHOUSE"]
+
+connection_parameters = {
+    "account": account,
+    "user": user,
+    "private_key": private_key,
+    "warehouse": warehouse
+}
 
 
 def create_table(database: str, schema: str, table_name: str, vector_dim: int):
-    conn = connect(connection_name=CONNECTION_NAME)
+    conn = connect(**connection_parameters)
     root = Root(conn)
 
     docs_table = Table(
@@ -67,7 +78,7 @@ def main():
         vector_dim=args.vector_dim,
     )
 
-    with Session.builder.config("connection_name", CONNECTION_NAME).create() as session:
+    with Session.builder.configs(connection_parameters).create() as session:
         print(f"** Ingesting data from {args.data_path} into {args.database}.{args.schema}.{args.table_name} **")
         ingest_data(
             session=session,
