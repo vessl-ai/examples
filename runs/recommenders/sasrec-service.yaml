@@ -1,5 +1,5 @@
 message: SasRec service from YAML
-image: quay.io/vessl-ai/python:3.9-r2
+image: quay.io/vessl-ai/python:3.10-r18
 resources:
   cluster: vessl-gcp-oregon
   preset: cpu-medium-spot

@@ -5,7 +5,7 @@ import:
 resources:
   cluster: vessl-aws-oregon
   preset: cpu-small
-image: quay.io/vessl-ai/python:3.10-r2
+image: quay.io/vessl-ai/python:3.10-r18
 run:
   - command: python tracking/main.py
     workdir: /root/examples

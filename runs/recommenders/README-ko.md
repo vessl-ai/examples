@@ -44,32 +44,32 @@ VESSL을 처음 사용하시는 경우,  [Quickstart](https://docs.vessl.ai/docs
 
 학습을 시작하기전, VESSL CLI를 사용하여 학습된 모델을 저장할 모델 저장소를 생성해야 합니다.
 
-```sh 
+```sh
 # 'recommender'라는 이름의 새 모델 저장소 생성
 $ vessl model-repository create recommender
 
 # 모델 저장소가 생성되었는지 확인
-$ vessl model-repository list 
+$ vessl model-repository list
 ```
 
 ### 학습
 
 VESSL에서의 Run은 작업 실행을 위한 기본 단위로, 코드, 커맨드, AI 모델, 패키지, 환경 변수 등 필요한 모든 정보를 포함합니다. Run의 정의는 YAML 파일로 작성되며, 아래는 해당 예제에서 사용한 YAML 파일입니다.
- 
+
 > **참고**: 아래 YAML 파일에서 `{organizationName}`과 `{modelRepositoryName}`을 해당하는 값으로 교체해주세요.
 
 ```yaml
 # sasrec-train.yaml
 name: sasrec-train
 description: Training a recommender system on amazon beauty dataset.
-resources:  
+resources:
   cluster: vessl-aws-seoul
   preset: cpu-large
-image: quay.io/vessl-ai/python:3.9-r2  
-import:  
+image: quay.io/vessl-ai/python:3.10-r18
+import:
   /input/: hf://huggingface.co/datasets/VESSL/amazon-beauty-dataset
   /root/examples/: git://github.com/vessl-ai/examples
-export:  
+export:
   /output/: vessl-model://{organizationName}/{modelRepositoryName}
 run:
   - workdir: /root/examples/recommenders/sasrec
@@ -111,7 +111,7 @@ YAML에서 `WANDB_KEY`와 같이 민감한 정보는 환경변수(`env`)로 아�
 name: SasRec-train-wandb
 ...
 run:
-  - ... 
+  - ...
   - workdir: /root/examples/recommenders/sasrec
     command: python main.py --wandb-log True
   - ...
@@ -121,7 +121,7 @@ env:
     secret: true
 ```
 
-### Wandb에서 학습 과정 추적하기  
+### Wandb에서 학습 과정 추적하기
 
 VESSL Run 로그에서 wandb 링크를 찾아 해당 링크를 통해 wandb 대시보드에서 학습 과정을 실시간으로 모니터링 할 수 있습니다. 이를 통해 모델의 성능 지표와 학습 과정을 효과적으로 분석하고 개선할 수 있습니다.
 ![](asset/wandb-log.png)
@@ -174,7 +174,7 @@ VESSL의 Service 기능은 코드, 커맨드, AI 모델, 패키지, 환경 변�
 ```yaml
 # sasrec-service.yaml
 message: SasRec service from YAML
-image: quay.io/vessl-ai/python:3.9-r2
+image: quay.io/vessl-ai/python:3.10-r18
 resources:
   cluster: vessl-gcp-oregon
   preset: cpu-medium-spot
