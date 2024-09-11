@@ -1,0 +1,42 @@
+name: vllm-server
+description: LLM server with vLLM and Prometheus monitoring
+tags:
+  - vllm
+resources:
+  cluster: vessl-gcp-oregon
+  preset: gpu-l4-small-spot
+image: quay.io/vessl-ai/torch:2.3.1-cuda12.1-r5
+import:
+  /code/:
+    git:
+      url: github.com/vessl-ai/examples.git
+      ref: main
+run:
+  - command: |-
+      # Install Prometheus
+      export PROMETHEUS_VERSION=2.49.1
+      wget https://github.com/prometheus/prometheus/releases/download/v$PROMETHEUS_VERSION/prometheus-$PROMETHEUS_VERSION.linux-amd64.tar.gz
+      tar -xvf prometheus-$PROMETHEUS_VERSION.linux-amd64.tar.gz
+      mv prometheus-$PROMETHEUS_VERSION.linux-amd64 ./prometheus
+      rm prometheus-$PROMETHEUS_VERSION.linux-amd64.tar.gz
+      cp /code/vllm-run/monitoring/prometheus.yml /app/prometheus/prometheus.yml
+      /app/prometheus/prometheus --config.file=/app/prometheus/prometheus.yml &
+    workdir: /app
+  - command: |-
+      # Start vLLM API server
+      pip install autoawq==0.2.6
+      pip install vllm==0.5.4
+      pip uninstall -y transformer-engine
+      pip install flash-attn==2.6.3
+      vllm serve $MODEL_NAME --max-model-len 65536 --disable-frontend-multiprocessing
+    workdir: /code/vllm-run
+ports:
+  - name: vllm
+    type: http
+    port: 8000
+  - name: prometheus
+    type: http
+    port: 9090
+env:
+  MODEL_NAME: hugging-quants/Meta-Llama-3.1-8B-Instruct-AWQ-INT4
+  HF_TOKEN: HF_TOKEN  # Your Huggingface API token

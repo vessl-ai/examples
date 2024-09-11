@@ -1,0 +1,21 @@
+# vessl serve revision create --serving openllm -f revision-v1.yaml
+
+message: OpenLLM mistralai/Mistral-7B-Instruct-v0.2 on vLLM
+image: quay.io/vessl-ai/torch:2.2.0-cuda12.3-r3
+resources:
+  cluster: vessl-gcp-oregon
+  preset: gpu-l4-small-spot
+run: |-
+  pip install --upgrade openllm[vllm]
+  openllm start mistralai/Mistral-7B-Instruct-v0.2 --backend vllm --port 3000 --max-model-len 4096
+service:
+  expose: "3000"
+  autoscaling:
+    min: 1
+    max: 3
+    metric: nvidia.com/gpu
+    target: 60
+ports:
+  - port: 3000
+    name: openllm
+    type: http

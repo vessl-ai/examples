@@ -1,26 +1,10 @@
 # VESSL examples
-This repository contains [VESSL](https://www.vessl.ai/) examples. If you want to learn more about VESSL please follow the [quick start documentation](https://docs.vessl.ai/getting-started/quickstart).
+This repository contains examples of how to use [VESSL](https://www.vessl.ai/). If you want to learn more about VESSL, please follow the [quick start documentation](https://docs.vessl.ai/guides/get-started/quickstart).
 
-## Use hyperparameters on VESSL
-[Hyperparameters](https://docs.vessl.ai/user-guide/experiment/creating-an-experiment#hyperparameters) are automatically add to the container as [environment variables](https://kubernetes.io/docs/tasks/inject-data-application/define-environment-variable-container/) with the given key and value. If you want to use them at runtime, then append them to the [start command](https://docs.vessl.ai/user-guide/experiment/creating-an-experiment#start-command) as follows.
-```bash
-# Add learning_rate as a hyperparameter
-python main.py --learning-rate $learning_rate
-```
+Each directory contains the examples of corresponding features, such as [VESSL Run](https://docs.vessl.ai/guides/run/overview), [VESSL Service](https://docs.vessl.ai/guides/serve/overview), and [VESSL Pipeline](https://docs.vessl.ai/guides/pipeline/overview). If you want to dive into them more, please refer to the docs.
 
-You can now take the desired type of argument in Python script at runtime.
-```Python
-import argparse
-
-parser = argparse.ArgumentParser()
-parser.add_argument('--learning-rate', type=float, default=0.01)
-args = parser.parse_args()
-```
-
-## Try out VESSL examples
-
-- [Image classification (CIFAR) using Convnets (PyTorch)](cifar)
-- [Object detection with balloon dataset using Detectron2 (PyTorch)](detectron2)
-- [Distributed training for image classification (CIFAR) with Resnet18](distributed_cifar)
-- [Language modeling using LSTM RNNs (PyTorch)](language_model)
-- [Image classification (MNIST) using Convnets (PyTorch, Keras)](mnist)
+## Try out VESSL quickstarts
+- [Run RAG chatbot using LangChain with VESSL Run](runs/rag-chatbot/)
+- [Fine-tune Meta Llama 3.1 using VESSL Run](runs/finetune-llms/)
+- [Run FLUX.1 schnell model](runs/flux.1-schnell)
+- [Deploy Llama 3 service with vLLM on VESSL Service](services/service-llama-3)
