@@ -98,7 +98,7 @@ def main():
     # Initialize session
     account = os.environ["SNOWFLAKE_ACCOUNT"]
     user = os.environ["SNOWFLAKE_USER"]
-    private_key = load_pem_private_key(os.environ["SNOWFLAKE_PRIVATE_KEY"].encode(), password=None)
+    private_key = load_pem_private_key(os.environ["SNOWFLAKE_PRIVATE_KEY"].replace("\\n", "\n").encode(), password=None)
     warehouse = os.environ["SNOWFLAKE_WAREHOUSE"]
 
     connection_parameters = {
