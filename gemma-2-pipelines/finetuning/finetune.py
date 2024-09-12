@@ -102,7 +102,7 @@ def main():
         logging_dir="./logs",  # Directory for storing logs
         per_device_train_batch_size=args.batch_size,  # Number of samples per batch per device during training
         num_train_epochs=args.train_epochs,  # Total number of training epochs to perform
-        # max_steps=args.max_steps,                        # Maximum number of steps to train the model
+        max_steps=args.max_steps,  # Maximum number of steps to train the model
         gradient_accumulation_steps=1,  # Number of updates steps to accumulate before performing a backward/update pass
         warmup_steps=2,  # Linear warmup over warmup_steps
         learning_rate=2.5e-4,  # Learning rate for the optimizer
