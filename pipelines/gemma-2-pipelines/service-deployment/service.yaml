@@ -1,0 +1,25 @@
+message: Service using vLLM
+resources:
+  cluster: vessl-gcp-oregon
+  preset: gpu-l4-small-spot
+image: quay.io/vessl-ai/torch:2.3.1-cuda-12.1-r5
+run: |-
+  pip install packaging ninja
+  pip install flash-attn --no-build-isolation
+  pip install flashinfer -i https://flashinfer.ai/whl/cu121/torch2.3/
+
+  pip install vllm
+  pip install git+https://github.com/IST-DASLab/marlin.git
+
+  python -m vllm.entrypoints.openai.api_server --model $MODEL_NAME --quantization --awq_marlin
+service:
+  expose: "8000"
+  autoscaling:
+    min: 1
+    max: 2
+    metric: cpu
+    target: 50
+ports:
+  - 8000
+env:
+  MODEL_NAME: {{MODEL_NAME}}

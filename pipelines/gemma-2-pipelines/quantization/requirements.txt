@@ -1,0 +1,7 @@
+autoawq @ git+https://github.com/casper-hansen/AutoAWQ.git
+ninja>=1.11.1.1
+packaging>=24.1
+peft>=0.12.0
+torch==2.3.1
+transformers>=4.35.0
+bitsandbytes>=0.43.3

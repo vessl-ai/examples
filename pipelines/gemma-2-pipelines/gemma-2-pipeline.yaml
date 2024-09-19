@@ -1,0 +1,271 @@
+api_version: v1
+variables:
+  ADAPTER_NAME:
+    description: The name of huggingface repository to save adapter
+    required: true
+  BASE_MODEL_NAME:
+    description: The model name to finetune
+    required: true
+    default: google/gemma-2-9b-it
+  HF_TOKEN:
+    description: Hugging Face token
+    required: true
+  QUANTIZE:
+    description: Whether to quantize the finetuned adapter or not
+    options:
+      - "YES"
+      - "NO"
+    required: true
+    default: "YES"
+  QUANTIZED_MODEL_NAME:
+    description: The name of quantized model to upload to Hugging Face
+    required: false
+  SERVICE_NAME:
+    description: The name of the service to deploy
+    required: true
+steps:
+  - key: finetune
+    title: finetune
+    type: v1/run
+    spec:
+      input_variables:
+        BASE_MODEL_NAME:
+          type: pipeline_variable
+          value: BASE_MODEL_NAME
+        HF_TOKEN:
+          type: pipeline_variable
+          value: HF_TOKEN
+      run_spec:
+        name: finetune
+        description: ""
+        resources:
+          cluster: vessl-gcp-oregon
+          preset: gpu-l4-small
+        image: quay.io/vessl-ai/torch:2.3.1-cuda12.1-r5
+        import:
+          /root/code/:
+            git:
+              url: github.com/vessl-ai/examples.git
+              ref: main
+        export:
+          /root/output/: vessl-artifact://
+        run: |-
+          cd /root/code/gemma-2-pipelines/finetuning
+
+          pip install -r requirements.txt
+          pip install flash_attn>=2.6.3 --no-build-isolation
+
+          python finetune.py \
+            --base-model-name $BASE_MODEL_NAME \
+            --dataset vessl/mental_health_counseling_messages_no_sys \
+            --checkpoint-path /root/output/checkpoints \
+            --output-model-name /root/output/adapter \
+            --max-steps 10 \
+            --lora-rank 16 \
+            --batch-size 2
+        env:
+          BASE_MODEL_NAME:
+            source: inject
+          HF_TOKEN:
+            source: inject
+  - key: evaluate
+    title: evaluate
+    type: v1/run
+    depends_on:
+      - finetune
+    spec:
+      input_variables:
+        HF_TOKEN:
+          type: pipeline_variable
+          value: HF_TOKEN
+      volumes:
+        /root/model/:
+          source: pipeline-step
+          source_step:
+            step_key: finetune
+            volume_claim_name: /root/output/
+      run_spec:
+        name: evaluate
+        description: ""
+        resources:
+          cluster: vessl-gcp-oregon
+          preset: gpu-l4-small
+        image: quay.io/vessl-ai/torch:2.3.1-cuda12.1-r5
+        import:
+          /root/code/:
+            git:
+              url: github.com/vessl-ai/examples.git
+              ref: main
+          /root/model/: vessl-artifact://
+        run: |-
+          cd /root/code/gemma-2-pipelines/evaluation
+
+          pip install -r requirements.txt
+          pip install flash-attn>=2.6.3 --no-build-isolation
+
+          python evaluate.py \
+            --model-name /root/model/adapter \
+            --prompts "What is the capital of France?" "How does a transformer model work?"
+        env:
+          HF_TOKEN:
+            source: inject
+  - key: accept-eval-or-not
+    title: accept evalutation or not
+    type: v1/manual_judgment
+    depends_on:
+      - evaluate
+    spec:
+      assignee_email_addresses:
+        - sanghyuk@vessl.ai
+  - key: deploy-service
+    title: deploy-service
+    type: v1/run
+    depends_on:
+      - quantize-model:no
+      - quantize-and-upload
+    spec:
+      input_variables:
+        SERVICE_NAME:
+          type: pipeline_variable
+          value: SERVICE_NAME
+      run_spec:
+        name: deploy-service
+        description: ""
+        resources:
+          cluster: vessl-gcp-oregon
+          preset: cpu-medium
+        image: quay.io/vessl-ai/python:3.10-r18
+        import:
+          /root/code/:
+            git:
+              url: github.com/vessl-ai/examples.git
+              ref: main
+        run: |-
+          cd /root/code/gemma-2-pipelines/service-deployment
+
+          sed -i -e "s|{{MODEL_NAME}}|$MODEL_NAME|g" service.yaml
+          vessl service create -f service.yaml --service-name $SERVICE_NAME
+        env:
+          SERVICE_NAME:
+            source: inject
+  - key: Fail
+    title: Fail
+    type: v1/fail
+    depends_on:
+      - accept-eval-or-not:no
+    spec: {}
+  - key: quantize-model
+    title: quantize model
+    type: v1/if
+    depends_on:
+      - accept-eval-or-not:yes
+    spec:
+      condition: ${QUANTIZE} == YES
+  - key: quantize-and-upload
+    title: quantize-and-upload
+    type: v1/run
+    depends_on:
+      - quantize-model:yes
+    spec:
+      input_variables:
+        BASE_MODEL_NAME:
+          type: pipeline_variable
+          value: BASE_MODEL_NAME
+        HF_TOKEN:
+          type: pipeline_variable
+          value: HF_TOKEN
+        QUANTIZED_MODEL_NAME:
+          type: pipeline_variable
+          value: QUANTIZED_MODEL_NAME
+      volumes:
+        /root/model/:
+          source: pipeline-step
+          source_step:
+            step_key: finetune
+            volume_claim_name: /root/output/
+      run_spec:
+        name: quantize-and-upload
+        description: ""
+        resources:
+          cluster: vessl-gcp-oregon
+          preset: gpu-l4-small
+        image: quay.io/vessl-ai/torch:2.3.1-cuda12.1-r5
+        import:
+          /root/code/:
+            git:
+              url: github.com/vessl-ai/examples.git
+              ref: main
+          /root/model/: vessl-artifact://
+        export:
+          /root/output/: vessl-artifact://
+        run: |-
+          cd /root/code/gemma-2-pipelines/quantization
+
+          pip install -r requirements.txt
+          pip install flash-attn>=2.6.3 --no-build-isolation
+
+          pip install 'huggingface_hub[cli]'
+
+          python merge_and_quantize.py \
+            --base-model-name $BASE_MODEL_NAME \
+            --adapter-name /root/model/adapter \
+            --quantized-model-name /root/output
+
+          cd /root/output
+          huggingface-cli upload $QUANTIZED_MODEL_NAME . .
+        env:
+          BASE_MODEL_NAME:
+            source: inject
+          HF_TOKEN:
+            source: inject
+          QUANTIZED_MODEL_NAME:
+            source: inject
+  - key: notify
+    title: notify
+    type: v1/notification
+    depends_on:
+      - deploy-service
+    spec:
+      email_addresses:
+        - sanghyuk@vessl.ai
+      email_subject: Finetuning finished
+      email_contents: Your finetuning pipeline has successfully finished!
+  - key: upload-model
+    title: Upload Model
+    type: v1/run
+    depends_on:
+      - accept-eval-or-not:yes
+    spec:
+      input_variables:
+        ADAPTER_NAME:
+          type: pipeline_variable
+          value: ADAPTER_NAME
+        HF_TOKEN:
+          type: pipeline_variable
+          value: HF_TOKEN
+      volumes:
+        /root/model/:
+          source: pipeline-step
+          source_step:
+            step_key: finetune
+            volume_claim_name: /root/output/
+      run_spec:
+        name: Upload Model
+        description: ""
+        resources:
+          cluster: vessl-gcp-oregon
+          preset: cpu-medium
+        image: quay.io/vessl-ai/python:3.10-r18
+        import:
+          /root/model/: vessl-artifact://
+        run: |-
+          cd /root/model/adapter
+
+          pip install 'huggingface_hub[cli]'
+
+          huggingface-cli upload $ADAPTER_NAME . .
+        env:
+          ADAPTER_NAME:
+            source: inject
+          HF_TOKEN:
+            source: inject
