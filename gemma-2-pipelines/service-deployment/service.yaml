@@ -22,4 +22,4 @@ service:
 ports:
   - 8000
 env:
-  MODEL_NAME: vessl/gemma-2-9b-mental-counselor-marlin-awq
+  MODEL_NAME: {{MODEL_NAME}}
