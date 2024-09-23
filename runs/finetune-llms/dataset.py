@@ -14,6 +14,23 @@ def alpaca_to_chatml(sample):
     }
 
 
+def sharegpt_to_chatml(sample):
+    conversation = sample["conversations"]
+
+    system_content = [c for c in conversation if c["from"] == "system"]
+    system = system_content[0]["value"] if system_content else ""
+    user = [c for c in conversation if c["from"] == "human"][0]["value"]
+    assistant = [c for c in conversation if c["from"] == "gpt"][0]["value"]
+
+    return {
+        "messages": [
+            {"role": "system", "content": system},
+            {"role": "user", "content": user},
+            {"role": "assistant", "content": assistant},
+        ]
+    }
+
+
 def meltal_health_to_chatml(sample):
     return {
         "messages": [
@@ -34,10 +51,28 @@ def create_dataset(data_args: DatasetArguments):
         dataset = load_from_disk(data_args.dataset_name)
 
     # inappropriately hardcoded
-    if set(dataset.column_names["train"]) >= {"input", "instruction", "output"}:
+    column_names = dataset.column_names["train"]
+    if set(column_names) >= {"input", "instruction", "output"}:
+        # alpaca
         dataset = dataset.map(alpaca_to_chatml)
-    elif set(dataset.column_names["train"]) >= {"Context", "Response"}:
+        dataset = dataset.remove_columns(
+            [col for col in column_names if col != "messages"]
+        )
+    elif "conversations" in column_names and (
+        set(dataset["train"][0]["conversations"][0].keys())
+        >= {"from", "value", "weight"}
+    ):
+        # sharegpt
+        dataset = dataset.map(sharegpt_to_chatml)
+        dataset = dataset.remove_columns(
+            [col for col in column_names if col != "messages"]
+        )
+    elif set(column_names) >= {"Context", "Response"}:
+        # mental health care
         dataset = dataset.map(meltal_health_to_chatml)
+        dataset = dataset.remove_columns(
+            [col for col in column_names if col != "messages"]
+        )
 
     train_dataset = dataset["train"]
     if "val" in dataset.keys():
