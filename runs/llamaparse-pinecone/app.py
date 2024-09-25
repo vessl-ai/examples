@@ -17,12 +17,12 @@ system_prompt_template = "You are a helpful AI assistant. Use the following piec
 
 # Parse command-line arguments
 parser = argparse.ArgumentParser(description="PDF Parser and RAG Chatbot")
-parser.add_argument("--llama_parse_api_key", help="LlamaParse API Key")
-parser.add_argument("--pinecone_api_key", help="Pinecone API Key")
-parser.add_argument("--openai_api_key", help="OpenAI API Key")
-parser.add_argument("--openai_api_base", default="https://api.openai.com/v1", help="OpenAI API Base URL")
-parser.add_argument("--pinecone_index_name", default="pdf-parser-index", help="Pinecone Index Name")
-parser.add_argument("--pinecone_region", default="us-east-1", help="Pinecone Region")
+parser.add_argument("--llama-parse-api-key", help="LlamaCloud API Key")
+parser.add_argument("--pinecone-api-key", help="Pinecone API Key")
+parser.add_argument("--openai-api-key", help="OpenAI API Key")
+parser.add_argument("--openai-api-base", default="https://api.openai.com/v1", help="OpenAI API Base URL")
+parser.add_argument("--pinecone-index-name", default="pdf-parser-index", help="Pinecone Index Name")
+parser.add_argument("--pinecone-region", default="us-east-1", help="Pinecone Region")
 args = parser.parse_args()
 
 # Set environment variables from command-line arguments
