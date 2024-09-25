@@ -20,4 +20,4 @@ ports:
     type: http
     port: 4999
 env:
-  LANGDECHAT_ENDPOINT: https://model-service-gateway-8j9vujye2dl9.dev2.vssl.ai
+  LANGDECHAT_ENDPOINT: <endpoint>
