@@ -64,4 +64,4 @@ port=4999
 if os.environ.get("PORT"):
     port = int(os.environ.get("PORT"))
 
-demo.launch(server_port=port)
+demo.launch(server_name="0.0.0.0", server_port=port)
