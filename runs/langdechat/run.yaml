@@ -1,14 +1,10 @@
 name: langdechat-test
-termination_protection: true
 import:
-  /root/:
-    git:
-      url: https://github.com/vessl-ai/examples
-      ref: main
+  /root/: git://github.com/vessl-ai/examples.git
 resources:
-  cluster: vessl-aws-seoul
-  preset: cpu-small
-image: quay.io/vessl-ai/python:3.10-r18
+  cluster: vessl-oci-seoul
+  preset: cpu-medium
+image: quay.io/vessl-ai/python:3.11-r13
 run:
   - command: |-
       pip install poetry
@@ -16,7 +12,7 @@ run:
       poetry run python app.py
     workdir: /root/runs/langdechat
 ports:
-  - name: "4999"
+  - name: gradio
     type: http
     port: 4999
 env:
