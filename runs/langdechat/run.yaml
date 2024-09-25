@@ -1,0 +1,23 @@
+name: langdechat-test
+termination_protection: true
+import:
+  /root/:
+    git:
+      url: https://github.com/vessl-ai/examples
+      ref: main
+resources:
+  cluster: vessl-aws-seoul
+  preset: cpu-small
+image: quay.io/vessl-ai/python:3.10-r18
+run:
+  - command: |-
+      pip install poetry
+      poetry install
+      poetry run python app.py
+    workdir: /root/runs/langdechat
+ports:
+  - name: "4999"
+    type: http
+    port: 4999
+env:
+  LANGDECHAT_ENDPOINT: https://model-service-gateway-8j9vujye2dl9.dev2.vssl.ai
