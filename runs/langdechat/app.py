@@ -1,5 +1,6 @@
 import json
 import os
+import uuid
 from typing import List
 
 import gradio as gr
@@ -28,8 +29,7 @@ def format_history(history: List[str]):
 
 continuation_token: str = None
 
-def query_langdechat(message: str, history: List[str]):
-    global continuation_token 
+def query_langdechat(message: str, history: List[str], continuation_token: str):
     data = {
         "query": message,
         # "history": format_history(history),
@@ -56,8 +56,9 @@ def query_langdechat(message: str, history: List[str]):
 
 demo = gr.ChatInterface(
     fn=query_langdechat,
-    examples=[{"text": "hello"}, {"text": "hola"}, {"text": "merhaba"}],
+    examples=[],
     title="Langdechat Test Bot",
+    additional_inputs=[gr.State(value=lambda: uuid.uuid4().hex.lower()[0:10])],
 )
 
 port=4999
