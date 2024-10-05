@@ -14,9 +14,10 @@ pc = None  # Pinecone client
 openai_client = None  # OpenAI client
 parser = None  # LlamaParse client
 system_prompt_template = "You are a helpful AI assistant. Use the following pieces of context to answer the human's question. If you don't know the answer, just say that you can't find the answer from the context, don't try to make up an answer. Context: {context}"
+uploaded_files = []
 
 # Parse command-line arguments
-parser = argparse.ArgumentParser(description="PDF Parser and RAG Chatbot")
+parser = argparse.ArgumentParser(description="Chat-with-document demo")
 parser.add_argument("--llama-parse-api-key", help="LlamaCloud API Key")
 parser.add_argument("--pinecone-api-key", help="Pinecone API Key")
 parser.add_argument("--openai-api-key", help="OpenAI API Key")
@@ -109,34 +110,36 @@ def handle_chat(message, history):
 def start_parse():
     return gr.update(value="Parsing documents...", interactive=False)
 
-def parse_and_ingest(file_paths: List[str], progress=gr.Progress()):
-    global pc, parser
+def parse_and_ingest(new_files: List[str], progress=gr.Progress()):
+    global pc, parser, uploaded_files
     if pc is None or parser is None:
         gr.Warning("💡 Please initialize the settings first on the 'Settings' tab.")
         return [
-            gr.update(value=file_paths),
+            gr.update(value=[]),
             gr.update(value="Parse and Ingest", interactive=True),
-            gr.update(value="", visible=False)
+            gr.update(value="", visible=False),
+            gr.update(value=uploaded_files)
         ]
 
-    if not file_paths:
-        gr.Warning("No files uploaded.")
+    if not new_files:
+        gr.Warning("No new files uploaded.")
         return [
             gr.update(value=[]),
             gr.update(value="Parse and Ingest", interactive=True),
-            gr.update(value="", visible=False)
+            gr.update(value="", visible=False),
+            gr.update(value=uploaded_files)
         ]
 
     gr.Info("Parsing documents...")
     index = pc.Index(args.pinecone_index_name)
-    progress((0, len(file_paths)), desc=f"Parsing documents")
+    progress((0, len(new_files)), desc=f"Upload & parse documents using LlamaParse")
 
     try:
-        documents = parser.load_data(file_paths)
-        progress((len(file_paths), len(file_paths)+len(documents)), desc=f"Ingesting documents into vector database")
+        documents = parser.load_data(new_files)
+        progress((len(new_files), len(new_files)+len(documents)), desc=f"Ingesting documents into vector database")
 
         for i, doc in enumerate(documents):
-            progress((len(file_paths)+i, len(file_paths)+len(documents)), desc=f"Ingesting documents into vector database")
+            progress((len(new_files)+i, len(new_files)+len(documents)), desc=f"Ingesting documents into vector database")
 
             embedding = get_embedding(doc.text)
             index.upsert(vectors=[
@@ -147,11 +150,15 @@ def parse_and_ingest(file_paths: List[str], progress=gr.Progress()):
                 }
             ])
 
-        gr.Info(f"Parsed and ingested {len(documents)} documents from {len(file_paths)} files into the vector database.")
+        # Add successfully processed files to the uploaded_files list
+        uploaded_files.extend(new_files)
+
+        gr.Info(f"Parsed and ingested {len(documents)} documents from {len(new_files)} files into the vector database.")
         return [
             gr.update(value=[]),
             gr.update(value="Parse and Ingest", interactive=True),
-            gr.update(value="", visible=False)
+            gr.update(value="", visible=False),
+            gr.update(value=uploaded_files)
         ]
 
     except Exception as e:
@@ -159,8 +166,14 @@ def parse_and_ingest(file_paths: List[str], progress=gr.Progress()):
         return [
             gr.update(value=[]),
             gr.update(value="Parse and Ingest", interactive=True),
-            gr.update(value=traceback.format_exc(), visible=True)
+            gr.update(value=traceback.format_exc(), visible=True),
+            gr.update(value=uploaded_files)  # Return the existing list of uploaded files
         ]
+
+def clear_uploaded_files():
+    global uploaded_files
+    uploaded_files = []
+    return gr.update(value=[])
 
 def browse_vectors(query):
     if pc is None:
@@ -169,14 +182,14 @@ def browse_vectors(query):
     try:
         query_embedding = get_embedding(query)
         index = pc.Index(args.pinecone_index_name)
-        results = index.query(vector=query_embedding, top_k=5, include_metadata=True)
+        results = index.query(vector=query_embedding, top_k=10, include_metadata=True)
 
         vectors_data = []
         for item in results['matches']:
             vectors_data.append([
-                item.id,
                 item.score,
-                item.metadata['text'][:1000] + "..."  # Truncate text to 1000 characters
+                item.metadata['text'][:500] + "...",  # Truncate text to 500 characters
+                item.id
             ])
 
         return [vectors_data, gr.update(value="", visible=False)]
@@ -218,8 +231,8 @@ footer {visibility: hidden}
 """
 
 # Gradio interface
-with gr.Blocks(css=css, fill_height=True, title="🦙 PDF RAG demo with LlamaIndex and Pinecone") as demo:
-    gr.Markdown("# 🦙 PDF RAG demo with LlamaIndex and Pinecone!")
+with gr.Blocks(css=css, fill_height=True, title="🦙 Chat-with-document demo with LlamaIndex and Pinecone") as demo:
+    gr.Markdown("# 🦙 Chat-with-document Demo with LlamaIndex and Pinecone!")
 
     gr.Markdown("""
     Parse PDF documents and chat with an AI about the content using LlamaParse, Pinecone, and self-hosted LLMs!
@@ -235,7 +248,11 @@ with gr.Blocks(css=css, fill_height=True, title="🦙 PDF RAG demo with LlamaInd
         gr.ChatInterface(handle_chat)
 
     with gr.Tab("Document"):
-        file_input = gr.File(label="Upload PDF", file_count="multiple")
+        with gr.Row():
+            with gr.Column(scale=1):
+                uploaded_files_view = gr.Files(label="Uploaded Files", interactive=False, value=uploaded_files)
+            with gr.Column(scale=3):
+                file_input = gr.File(label="Upload PDF", file_count="multiple")
         parse_button = gr.Button("Parse and Ingest")
         parse_error_msg = gr.Textbox(label="Error Message", visible=False, value="", lines=10)
 
@@ -245,7 +262,7 @@ with gr.Blocks(css=css, fill_height=True, title="🦙 PDF RAG demo with LlamaInd
             search_button = gr.Button("Search", scale=1)
 
         vector_output = gr.DataFrame(
-            headers=["id", "score", "text"],
+            headers=["score", "text", "id"],
             label="Search Results",
             interactive=False
         )
@@ -273,7 +290,11 @@ with gr.Blocks(css=css, fill_height=True, title="🦙 PDF RAG demo with LlamaInd
 
     parse_button.click(
         start_parse, outputs=[parse_button]
-    ).then(parse_and_ingest, inputs=[file_input], outputs=[file_input, parse_button, parse_error_msg])
+    ).then(
+        parse_and_ingest,
+        inputs=[file_input],
+        outputs=[file_input, parse_button, parse_error_msg, uploaded_files_view]
+    )
     search_input.submit(
         browse_vectors,
         inputs=[search_input],
