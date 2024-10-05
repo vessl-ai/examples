@@ -41,16 +41,22 @@ def initialize_pinecone():
     global pc
     pc = Pinecone(api_key=args.pinecone_api_key)
 
-    if args.pinecone_index_name not in pc.list_indexes().names():
-        pc.create_index(
-            name=args.pinecone_index_name,
-            dimension=1024,  # Dimensionality of the embeddings (multilingual-e5-large)
-            metric="cosine",
-            spec=ServerlessSpec(
-                cloud="aws",
-                region=args.pinecone_region
+    try:
+        indices = pc.list_indexes()
+        if args.pinecone_index_name not in indices.names():
+            pc.create_index(
+                name=args.pinecone_index_name,
+                dimension=1024,  # Dimensionality of the embeddings (multilingual-e5-large)
+                metric="cosine",
+                spec=ServerlessSpec(
+                    cloud="aws",
+                    region=args.pinecone_region
+                )
             )
-        )
+    except Exception as e:
+        pc = None
+        raise e
+
 
 def initialize_openai():
     if not args.openai_api_key:
@@ -82,12 +88,16 @@ def handle_chat(message, history):
         yield "💡 Please initialize the settings first on the 'Settings' tab."
         return
 
-    # Get message embedding
-    query_embedding = get_embedding(message)
+    try:
+        # Get message embedding
+        query_embedding = get_embedding(message)
 
-    # Search Pinecone for relevant contexts
-    index = pc.Index(args.pinecone_index_name)
-    results = index.query(vector=query_embedding, top_k=5, include_metadata=True)
+        # Search Pinecone for relevant contexts
+        index = pc.Index(args.pinecone_index_name)
+        results = index.query(vector=query_embedding, top_k=5, include_metadata=True)
+    except Exception as e:
+        yield f"💡 Error querying Pinecone, Please update the prompt or reinitialize Pinecone on the 'Settings' tab.\nError: {str(e)}"
+        return
 
     # Prepare context from search results
     contexts = [item.metadata['text'] for item in results['matches']]
@@ -323,13 +333,13 @@ if __name__ == "__main__":
     try:
         initialize_pinecone()
     except Exception as e:
-        print(f"Error initializing Pinecone: {str(e)}, skipping initialization.")
+        print(f"Error initializing Pinecone, skipping initialization: {str(e)}")
     try:
         initialize_openai()
     except Exception as e:
-        print(f"Error initializing OpenAI: {str(e)}, skipping initialization.")
+        print(f"Error initializing OpenAI, skipping initialization: {str(e)}")
     try:
         initialize_llama_parse()
     except Exception as e:
-        print(f"Error initializing LlamaParse: {str(e)}, skipping initialization.")
+        print(f"Error initializing LlamaParse, skipping initialization: {str(e)}")
     demo.queue().launch()
