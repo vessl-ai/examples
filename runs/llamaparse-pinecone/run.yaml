@@ -1,8 +1,9 @@
-name: rag-chatbot-llamaindex-pinecone
-description: RAG chatbot with 🦙LlamaParse and 🌲Pinecone!
+name: chatbot-llamaindex-pinecone
+description: Chat with document with 🦙LlamaParse and 🌲Pinecone!
 tags:
   - RAG
   - LLM
+  - Chatbot
 resources:
   cluster: vessl-gcp-oregon
   preset: gpu-l4-small-spot
@@ -12,35 +13,15 @@ import:
     git:
       url: github.com/vessl-ai/examples.git
 run:
-  - command: |  # Install some dependencies for LLM acceleration those have conflicts with common libraries
-      pip install vllm==0.6.1.post2 autoawq==0.2.6
-      pip uninstall -y transformer-engine flash-attn
-      pip install flash-attn==2.6.3
-    workdir: /code
-  - command: |
-      python -m vllm.entrypoints.openai.api_server --model $MODEL_NAME --dtype auto --gpu-memory-utilization 0.9 &
-    workdir: /code
   - command: |
       pip install -r requirements.txt
     workdir: /code/runs/llamaparse-pinecone
   - command: |
-      python app.py \
-        --llama-parse-api-key $LLAMA_PARSE_API_KEY \
-        --pinecone-api-key $PINECONE_API_KEY \
-        --pinecone-index-name $PINECONE_INDEX_NAME \
-        --pinecone-region $PINECONE_REGION \
-        --openai-api-base http://localhost:8000/v1
+      python app.py
     workdir: /code/runs/llamaparse-pinecone
 ports:
   - name: gradio
     type: http
     port: 7860
-  - name: vllm
-    type: http
-    port: 8000
 env:
-  LLAMA_PARSE_API_KEY: ""
-  PINECONE_API_KEY: ""
-  PINECONE_INDEX_NAME: vessl-rag-chatbot-index
-  PINECONE_REGION: us-east-1
-  MODEL_NAME: hugging-quants/Meta-Llama-3.1-8B-Instruct-AWQ-INT4
+  GRADIO_SERVER_NAME: "0.0.0.0"

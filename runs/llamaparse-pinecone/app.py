@@ -18,9 +18,9 @@ uploaded_files = []
 
 # Parse command-line arguments
 parser = argparse.ArgumentParser(description="Chat-with-document demo")
-parser.add_argument("--llama-parse-api-key", help="LlamaCloud API Key")
-parser.add_argument("--pinecone-api-key", help="Pinecone API Key")
-parser.add_argument("--openai-api-key", help="OpenAI API Key")
+parser.add_argument("--llama-parse-api-key", required=False, help="LlamaCloud API Key")
+parser.add_argument("--pinecone-api-key", required=False, help="Pinecone API Key")
+parser.add_argument("--openai-api-key", required=False, help="OpenAI API Key")
 parser.add_argument("--openai-api-base", default="https://api.openai.com/v1", help="OpenAI API Base URL")
 parser.add_argument("--pinecone-index-name", default="pdf-parser-index", help="Pinecone Index Name")
 parser.add_argument("--pinecone-region", default="us-east-1", help="Pinecone Region")
@@ -35,6 +35,9 @@ if not args.openai_api_key:
     args.openai_api_key = os.getenv("OPENAI_API_KEY")
 
 def initialize_pinecone():
+    if not args.pinecone_api_key:
+        raise ValueError("Pinecone API key is not provided.")
+
     global pc
     pc = Pinecone(api_key=args.pinecone_api_key)
 
@@ -50,13 +53,19 @@ def initialize_pinecone():
         )
 
 def initialize_openai():
+    if not args.openai_api_key:
+        raise ValueError("OpenAI API key is not provided.")
+
     global openai_client
     openai_client = OpenAI(
-        base_url=args.openai_api_base,
+        base_url=None if not args.openai_api_base else args.openai_api_base,
         api_key=args.openai_api_key
     )
 
 def initialize_llama_parse():
+    if not args.llama_parse_api_key:
+        raise ValueError("LlamaCloud API key is not provided.")
+
     global parser
     parser = LlamaParse(api_key=args.llama_parse_api_key, result_type="text", fast_mode=True)
 
@@ -314,7 +323,16 @@ with gr.Blocks(css=css, fill_height=True, title="🦙 Chat-with-document demo wi
     )
 
 if __name__ == "__main__":
-    initialize_pinecone()
-    initialize_openai()
-    initialize_llama_parse()
-    demo.queue().launch(server_name="0.0.0.0")
+    try:
+        initialize_pinecone()
+    except Exception as e:
+        print(f"Error initializing Pinecone: {str(e)}, skipping initialization.")
+    try:
+        initialize_openai()
+    except Exception as e:
+        print(f"Error initializing OpenAI: {str(e)}, skipping initialization.")
+    try:
+        initialize_llama_parse()
+    except Exception as e:
+        print(f"Error initializing LlamaParse: {str(e)}, skipping initialization.")
+    demo.queue().launch()
