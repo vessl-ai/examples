@@ -78,20 +78,16 @@ def get_embedding(text):
     return embeddings.data[0]["values"]
 
 def handle_chat(message, history):
-    if openai_client is None or pc is None:
+    if openai_client is None or pc is None or parser is None:
         yield "💡 Please initialize the settings first on the 'Settings' tab."
         return
-
-    # Prepare conversation history
-    print(history)
-    conversation = "\n".join([f"Human: {h[0]}\nAI: {h[1]}" for h in history])
 
     # Get message embedding
     query_embedding = get_embedding(message)
 
     # Search Pinecone for relevant contexts
     index = pc.Index(args.pinecone_index_name)
-    results = index.query(vector=query_embedding, top_k=3, include_metadata=True)
+    results = index.query(vector=query_embedding, top_k=5, include_metadata=True)
 
     # Prepare context from search results
     contexts = [item.metadata['text'] for item in results['matches']]
@@ -250,7 +246,7 @@ with gr.Blocks(css=css, fill_height=True, title="🦙 Chat-with-document demo wi
       1. **Chat Tab**: Ask questions about the ingested documents and receive AI-generated responses.
       2. **Document Tab**: Upload and ingest PDF documents into the vector database using LlamaParse.
       3. **Vector Browser Tab**: Search for specific information in the Pinecone vector database or remove entries.
-      4. **Settings Tab**: Configure your API keys and system prompts
+      4. **Settings Tab**: Configure your API keys and system prompts.
     """)
 
     with gr.Tab("Chat", elem_id="chat-container"):
@@ -279,17 +275,18 @@ with gr.Blocks(css=css, fill_height=True, title="🦙 Chat-with-document demo wi
 
     with gr.Tab("Settings", elem_id="settings-container"):
         with gr.Group():
-            gr.Markdown("### 🌲 Pinecone Settings")
+            gr.Markdown("### 🌲 Pinecone Settings\n\t* Retrieve an API key from the [Pinecone console](https://app.pinecone.io/organizations/-/projects/-/keys).")
+            gr.Markdown
             pinecone_api_key = gr.Textbox(label="Pinecone API Key", value=args.pinecone_api_key)
             pinecone_region = gr.Textbox(label="Pinecone Region", value=args.pinecone_region)
             pinecone_index_name = gr.Textbox(label="Pinecone Index Name", value=args.pinecone_index_name)
 
         with gr.Group():
-            gr.Markdown("### 🦙 LlamaCloud Settings")
+            gr.Markdown("### 🦙 LlamaCloud Settings\n\t* Obtain an API key from the [LlamaCloud dashboard]( ttps://cloud.llamaindex.ai/api-key).")
             llama_parse_api_key = gr.Textbox(label="LlamaCloud API Key", value=args.llama_parse_api_key)
 
         with gr.Group():
-            gr.Markdown("### 🧠 LLM Settings")
+            gr.Markdown("### 🧠 LLM Settings\n\t* For OpenAI: Obtain an API key from [OpenAI's API Key page](https://platform.openai.com/api-keys). For OpenAI-compatible endpoints (e.g., vLLM, TGI), update the API Base URL and key accordingly.")
             openai_api_key = gr.Textbox(label="OpenAI API Key", value=args.openai_api_key)
             openai_api_base = gr.Textbox(label="OpenAI API Base URL", value=args.openai_api_base)
             prompt_input = gr.Textbox(label="Prompt Template", value=system_prompt_template, lines=5)
