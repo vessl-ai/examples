@@ -143,7 +143,11 @@ def main():
         for doc in documents:
             print(f"Original doc: {doc.id_}")
             samples = generate_faq_samples(session, doc, args.samples_per_doc, llm_model=args.model_name)
-            writer.writerows(samples)
+            try:
+                writer.writerows(samples)
+            except Exception as e:
+                print(f"Failed to write the sample to csv: {e}")
+                print(f"Original sample: {samples}")
             file.flush()
             for sample in samples[:3]:
                 print(f"Question: {sample['question']}")
