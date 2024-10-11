@@ -21,7 +21,7 @@ uploaded_files = []
 parser = argparse.ArgumentParser(description="Chat-with-document demo")
 parser.add_argument("--llama-parse-api-key", required=False, help="LlamaCloud API Key")
 parser.add_argument("--pinecone-api-key", required=False, help="Pinecone API Key")
-parser.add_argument("--openai-api-base", help="Base URL of OpenAI-compatible API")
+parser.add_argument("--openai-api-base", default="https://api.openai.com/v1", help="Base URL of OpenAI-compatible API")
 parser.add_argument("--openai-api-key", required=False, help="API Key for OpenAI-compatible API")
 parser.add_argument("--openai-api-model", default="gpt-4o-mini", help="Model served by OpenAI-compatible API")
 parser.add_argument("--pinecone-index-name", default="pdf-parser-index", help="Pinecone Index Name")
