@@ -5,13 +5,14 @@ from typing import List
 import uuid
 
 import gradio as gr
+from llama_index.core.llms import ChatMessage, MessageRole
+from llama_index.llms.openai_like import OpenAILike
 from llama_parse import LlamaParse
-from openai import OpenAI
 from pinecone import Pinecone, ServerlessSpec
 
 # Initialize global variables
 pc = None  # Pinecone client
-openai_client = None  # OpenAI client
+openailike_client = None  # OpenAILike client
 parser = None  # LlamaParse client
 system_prompt_template = "You are a helpful AI assistant. Use the following pieces of context to answer the human's question. If you don't know the answer, just say that you can't find the answer from the context, don't try to make up an answer. Context: {context}"
 uploaded_files = []
@@ -20,8 +21,9 @@ uploaded_files = []
 parser = argparse.ArgumentParser(description="Chat-with-document demo")
 parser.add_argument("--llama-parse-api-key", required=False, help="LlamaCloud API Key")
 parser.add_argument("--pinecone-api-key", required=False, help="Pinecone API Key")
-parser.add_argument("--openai-api-key", required=False, help="OpenAI API Key")
-parser.add_argument("--openai-api-base", default="https://api.openai.com/v1", help="OpenAI API Base URL")
+parser.add_argument("--openai-api-base", help="Base URL of OpenAI-compatible API")
+parser.add_argument("--openai-api-key", required=False, help="API Key for OpenAI-compatible API")
+parser.add_argument("--openai-api-model", default="gpt-4o-mini", help="Model served by OpenAI-compatible API")
 parser.add_argument("--pinecone-index-name", default="pdf-parser-index", help="Pinecone Index Name")
 parser.add_argument("--pinecone-region", default="us-east-1", help="Pinecone Region")
 args = parser.parse_args()
@@ -33,6 +35,7 @@ if not args.pinecone_api_key:
     args.pinecone_api_key = os.getenv("PINECONE_API_KEY")
 if not args.openai_api_key:
     args.openai_api_key = os.getenv("OPENAI_API_KEY")
+
 
 def initialize_pinecone():
     if not args.pinecone_api_key:
@@ -59,14 +62,14 @@ def initialize_pinecone():
 
 
 def initialize_openai():
-    if not args.openai_api_key:
-        raise ValueError("OpenAI API key is not provided.")
+    global openailike_client
+    print(args.openai_api_base, args.openai_api_model, args.openai_api_key)
+    openailike_client = OpenAILike(
+        model=args.openai_api_model,
+        is_chat_model=True,
+        api_base=args.openai_api_base,
+        api_key=args.openai_api_key if args.openai_api_key else "tgi")
 
-    global openai_client
-    openai_client = OpenAI(
-        base_url=None if not args.openai_api_base else args.openai_api_base,
-        api_key=args.openai_api_key
-    )
 
 def initialize_llama_parse():
     if not args.llama_parse_api_key:
@@ -84,7 +87,7 @@ def get_embedding(text):
     return embeddings.data[0]["values"]
 
 def handle_chat(message, history):
-    if openai_client is None or pc is None or parser is None:
+    if openailike_client is None or pc is None or parser is None:
         yield "💡 Please initialize the settings first on the 'Settings' tab."
         return
 
@@ -94,7 +97,7 @@ def handle_chat(message, history):
 
         # Search Pinecone for relevant contexts
         index = pc.Index(args.pinecone_index_name)
-        results = index.query(vector=query_embedding, top_k=5, include_metadata=True)
+        results = index.query(vector=query_embedding, top_k=3, include_metadata=True)
     except Exception as e:
         yield f"💡 Error querying Pinecone, Please update the prompt or reinitialize Pinecone on the 'Settings' tab.\nError: {str(e)}"
         return
@@ -107,20 +110,15 @@ def handle_chat(message, history):
     system_prompt = system_prompt_template.format(context=context_str)
 
     # Generate response using OpenAI
-    response = openai_client.chat.completions.create(
-        model="gpt-4o-mini",
+    response = openailike_client.stream_chat(
         messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": message},
+            ChatMessage(role=MessageRole.SYSTEM, content=system_prompt),
+            ChatMessage(role=MessageRole.USER, content=message),
         ],
-        stream=True
     )
 
-    full_response = ""
     for chunk in response:
-        if chunk.choices[0].delta.content is not None:
-            full_response += chunk.choices[0].delta.content
-            yield full_response
+        yield str(chunk.message.content)
 
 def start_parse():
     return gr.update(value="Parsing documents...", interactive=False)
@@ -216,13 +214,14 @@ def start_update():
     gr.Info("Updating settings...")
     return gr.update(interactive=False)
 
-def update_settings(openai_api_key, llama_parse_api_key, pinecone_api_key, pinecone_region, openai_api_base, prompt_input):
+def update_settings(llama_parse_api_key, pinecone_api_key, pinecone_region, openai_api_base, openai_api_model, openai_api_key, prompt_input):
     global args, system_prompt_template
-    args.openai_api_key = openai_api_key
     args.llama_parse_api_key = llama_parse_api_key
     args.pinecone_api_key = pinecone_api_key
     args.pinecone_region = pinecone_region
     args.openai_api_base = openai_api_base
+    args.openai_api_model = openai_api_model
+    args.openai_api_key = openai_api_key
     system_prompt_template = prompt_input
 
     try:
@@ -238,11 +237,11 @@ def update_settings(openai_api_key, llama_parse_api_key, pinecone_api_key, pinec
 css = """
 footer {visibility: hidden}
 .contain { display: flex; flex-direction: column; }
-.gradio-container { height: 150vh !important; }
+.gradio-container { height: 170vh !important; }
 #component-0, .tabs { height: 100%; }
 
 .tabs, #chat-container.tabitem .gap { height: 100%; }
-#chat-container.tabitem { height: 55%; }
+#chat-container.tabitem { height: 48%; }
 """
 
 # Gradio interface
@@ -285,6 +284,10 @@ with gr.Blocks(css=css, fill_height=True, title="🦙 Chat-with-document demo wi
 
     with gr.Tab("Settings", elem_id="settings-container"):
         with gr.Group():
+            gr.Markdown("### 🦙 LlamaCloud Settings\n\t* Obtain an API key from the [LlamaCloud dashboard]( ttps://cloud.llamaindex.ai/api-key).")
+            llama_parse_api_key = gr.Textbox(label="LlamaCloud API Key", value=args.llama_parse_api_key)
+
+        with gr.Group():
             gr.Markdown("### 🌲 Pinecone Settings\n\t* Retrieve an API key from the [Pinecone console](https://app.pinecone.io/organizations/-/projects/-/keys).")
             gr.Markdown
             pinecone_api_key = gr.Textbox(label="Pinecone API Key", value=args.pinecone_api_key)
@@ -292,13 +295,10 @@ with gr.Blocks(css=css, fill_height=True, title="🦙 Chat-with-document demo wi
             pinecone_index_name = gr.Textbox(label="Pinecone Index Name", value=args.pinecone_index_name)
 
         with gr.Group():
-            gr.Markdown("### 🦙 LlamaCloud Settings\n\t* Obtain an API key from the [LlamaCloud dashboard]( ttps://cloud.llamaindex.ai/api-key).")
-            llama_parse_api_key = gr.Textbox(label="LlamaCloud API Key", value=args.llama_parse_api_key)
-
-        with gr.Group():
             gr.Markdown("### 🧠 LLM Settings\n\t* For OpenAI: Obtain an API key from [OpenAI's API Key page](https://platform.openai.com/api-keys). For OpenAI-compatible endpoints (e.g., vLLM, TGI), update the API Base URL and key accordingly.")
-            openai_api_key = gr.Textbox(label="OpenAI API Key", value=args.openai_api_key)
-            openai_api_base = gr.Textbox(label="OpenAI API Base URL", value=args.openai_api_base)
+            openai_api_base = gr.Textbox(label="OpenAI-compatible API Base URL", value=args.openai_api_base)
+            openai_api_model = gr.Textbox(label="LLMs to use", value=args.openai_api_model)
+            openai_api_key = gr.Textbox(label="OpenAI-compatible API Key", value=args.openai_api_key)
             prompt_input = gr.Textbox(label="Prompt Template", value=system_prompt_template, lines=5)
 
         update_settings_button = gr.Button("Update")
@@ -325,7 +325,7 @@ with gr.Blocks(css=css, fill_height=True, title="🦙 Chat-with-document demo wi
         start_update, outputs=[update_settings_button]
     ).then(
         update_settings,
-        inputs=[openai_api_key, llama_parse_api_key, pinecone_api_key, pinecone_region, openai_api_base, prompt_input],
+        inputs=[llama_parse_api_key, pinecone_api_key, pinecone_region, openai_api_base, openai_api_model, openai_api_key, prompt_input],
         outputs=[update_settings_button, update_settings_error_msg]
     )
 
