@@ -214,11 +214,12 @@ def start_update():
     gr.Info("Updating settings...")
     return gr.update(interactive=False)
 
-def update_settings(llama_parse_api_key, pinecone_api_key, pinecone_region, openai_api_base, openai_api_model, openai_api_key, prompt_input):
+def update_settings(llama_parse_api_key, pinecone_api_key, pinecone_region, pinecone_index_name, openai_api_base, openai_api_model, openai_api_key, prompt_input):
     global args, system_prompt_template
     args.llama_parse_api_key = llama_parse_api_key
     args.pinecone_api_key = pinecone_api_key
     args.pinecone_region = pinecone_region
+    args.pinecone_index_name = pinecone_index_name
     args.openai_api_base = openai_api_base
     args.openai_api_model = openai_api_model
     args.openai_api_key = openai_api_key
@@ -325,7 +326,7 @@ with gr.Blocks(css=css, fill_height=True, title="🦙 Chat-with-document demo wi
         start_update, outputs=[update_settings_button]
     ).then(
         update_settings,
-        inputs=[llama_parse_api_key, pinecone_api_key, pinecone_region, openai_api_base, openai_api_model, openai_api_key, prompt_input],
+        inputs=[llama_parse_api_key, pinecone_api_key, pinecone_region, pinecone_index_name, openai_api_base, openai_api_model, openai_api_key, prompt_input],
         outputs=[update_settings_button, update_settings_error_msg]
     )
 
