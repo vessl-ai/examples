@@ -2,7 +2,9 @@ from transformers import (
     HfArgumentParser,
     TrainingArguments,
 )
+from transformers import AutoModelForCausalLM, AutoTokenizer, Trainer, TrainingArguments, BitsAndBytesConfig, Trainer, pipeline
 from trl import SFTTrainer
+from peft import PeftConfig, PeftModel
 from vessl.integration.transformers import VesslCallback
 
 from arguments import DatasetArguments, ModelArguments, PeftArguments, VesslArguments
@@ -56,6 +58,8 @@ def main(
         checkpoint = training_args.resume_from_checkpoint
     trainer.train(resume_from_checkpoint=checkpoint)
 
+    if vessl_args.save_merged:
+        model.save_pretrained_merged("merged_model", tokenizer, save_method = "merged_16bit")
 
 if __name__ == "__main__":
     parser = HfArgumentParser(
