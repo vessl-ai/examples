@@ -7,10 +7,6 @@ import gradio as gr
 from openai import OpenAI
 
 
-openai_api_base = "http://localhost:8000/v1"
-client = OpenAI(base_url=openai_api_base)
-
-
 def encode_image(image_path):
   with open(image_path, "rb") as image_file:
     return base64.b64encode(image_file.read()).decode('utf-8')
@@ -47,6 +43,8 @@ def chat_function(message, history):
                 }
             )
     history_openai_format.append(msg)
+
+    client = OpenAI(base_url=args.llm_endpoint)
 
     stream = client.chat.completions.create(
         model=args.model_id,
@@ -93,6 +91,7 @@ if __name__ == "__main__":
     parser.add_argument("--model-id", default="microsoft/Phi-3.5-vision-instruct",
                         help="HuggingFace model name for LLM.")
     parser.add_argument("--port", default=7860, type=int, help="Port number for the Gradio app.")
+    parser.add_argument("--llm-endpoint", default="http://localhost:8000/v1", help="OpenAI or compatible API endpoint.")
     args = parser.parse_args()
 
     main(args)
