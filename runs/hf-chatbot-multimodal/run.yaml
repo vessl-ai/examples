@@ -8,7 +8,6 @@ import:
   /code/:
     git:
       url: github.com/vessl-ai/examples.git
-      ref: vssl-10945
 resources:
   cluster: vessl-oci-sanjose
   preset: gpu-a10-medium
