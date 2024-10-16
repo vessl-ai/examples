@@ -1,0 +1,33 @@
+name: huggingface-multimodal-chatbot
+description: Multimodal chatbot using HuggingFace OSS models
+tags:
+  - chatbot
+  - LLM
+  - multimodal
+import:
+  /code/:
+    git:
+      url: github.com/vessl-ai/examples.git
+resources:
+  cluster: vessl-oci-sanjose
+  preset: gpu-a10-medium
+image: quay.io/vessl-ai/torch:2.3.1-cuda12.1-r5
+run:
+  - command: |-
+      apt update && apt install -y libgl1
+      pip install -r requirements.txt
+    workdir: /code/runs/hf-chatbot-multimodal
+  - command: vllm serve $MODEL_ID --tensor-parallel-size 2 --max-model-len 32768 --limit-mm-per-prompt image=16 --trust-remote-code &
+    workdir: /root
+  - command: python app.py --model-id $MODEL_ID
+    workdir: /code/runs/hf-chatbot-multimodal
+ports:
+  - name: gradio
+    type: http
+    port: 7860
+  - name: vllm
+    type: http
+    port: 8000
+env:
+  MODEL_ID: microsoft/Phi-3.5-vision-instruct
+  OPENAI_API_KEY: abc123
