@@ -9,6 +9,8 @@ You can load & run models which can be loaded using `AutoModelForCausalLM.from_p
 ## Run in Local
 
 > **NOTE**: You might need NVIDIA GPU to accelerate inference of the LLM loaded.
+> 
+> Also note that bfloat16 is only supported with GPUs with compute capability of at least 8.0: Float16 will be used with older GPUs, using more GPU memory.
 
 1. Clone the repository:
 
