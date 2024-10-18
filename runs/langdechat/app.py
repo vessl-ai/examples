@@ -52,7 +52,31 @@ def query_langdechat(message: str, history: List[str], continuation_token: str):
     continuation_token = res_data["continuation_token"]
     return res_data["message"]
 
+def query_langdechat_test(message: str, workflow_revision_input: str, role: str, continuation_token: str):
 
+    data = {
+        "query": message,
+        # "history": format_history(history),
+        "variables": {},
+        "role": role, #some role,
+        "workflow_revision_input": continuation_token, #some workflow_revision_input
+    }
+
+    if continuation_token:
+        data["continuation_token"] = continuation_token
+
+    print(">>>>>>>>>> Data")
+    print(json.dumps(data))
+
+    r = requests.post(f"{LANGDECHAT_ENDPOINT}/chat-test", json=data)
+
+    if r.status_code != 200:
+        print(f">>>>>>>>>> Error: {r.status_code}")
+        print(r.text)
+        return "Error"
+    res_data = r.json()
+    continuation_token = res_data["continuation_token"]
+    return res_data["message"]
 
 demo = gr.ChatInterface(
     fn=query_langdechat,
