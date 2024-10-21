@@ -41,8 +41,11 @@ def query_langdechat(message: str, history: List[str], endpoint: str, continuati
 
     print(">>>>>>>>>> Data")
     print(json.dumps(data))
+    headers = {}
+    if api_key:
+        headers = {"Authorization": f"Bearer {api_key}"}
 
-    r = requests.post(f"{endpoint}/chat", json=data, headers={"Authorization": f"Bearer {api_key}"})
+    r = requests.post(f"{endpoint}/chat", json=data, headers=headers)
 
     if r.status_code != 200:
         print(f">>>>>>>>>> Error: {r.status_code}")
