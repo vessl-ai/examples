@@ -75,6 +75,7 @@ def main(args):
             curator.df[
                 args.rows_per_page * curator.current_page : args.rows_per_page * (curator.current_page + 1)
             ],
+            max_height=1000,
             interactive=False,
         )
         with gr.Row():
