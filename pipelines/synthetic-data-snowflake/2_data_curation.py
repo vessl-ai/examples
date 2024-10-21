@@ -46,9 +46,7 @@ class Curator:
             gr.update(value=f"Page {self.current_page + 1} / {self.total_pages}"),
             gr.DataFrame(
                 self.df[
-                    self.rows_per_page
-                    * self.current_page : self.rows_per_page
-                    * (self.current_page + 1)
+                    self.rows_per_page * self.current_page : self.rows_per_page * (self.current_page + 1)
                 ]
             ),
         )
@@ -75,11 +73,8 @@ def main(args):
         )
         grdf = gr.DataFrame(
             curator.df[
-                args.rows_per_page
-                * curator.current_page : args.rows_per_page
-                * (curator.current_page + 1)
+                args.rows_per_page * curator.current_page : args.rows_per_page * (curator.current_page + 1)
             ],
-            height=1000,
             interactive=False,
         )
         with gr.Row():
