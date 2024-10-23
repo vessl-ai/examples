@@ -65,7 +65,7 @@ steps:
           /code/:
             git:
               url: github.com/vessl-ai/examples.git
-              ref: snowflake-world-tour
+              ref: main
         export:
           /data/: vessl-dataset://vessl-ai/vessl-support-synthetic-data
         run:
@@ -85,7 +85,7 @@ steps:
           SNOWFLAKE_WAREHOUSE:
             source: inject
           SNOWFLAKE_PRIVATE_KEY:
-            secret: snowflake-vessl-oregon-pri-key
+            secret: snowflake-private-key
   - key: data-curation
     title: Data Curation
     type: v1/run
@@ -103,7 +103,7 @@ steps:
           /code/:
             git:
               url: github.com/vessl-ai/examples.git
-              ref: snowflake-world-tour
+              ref: main
           /data/: vessl-dataset://vessl-ai/vessl-support-synthetic-data
         export:
           /data/: vessl-dataset://vessl-ai/vessl-support-synthetic-data
@@ -159,7 +159,7 @@ steps:
           /code/:
             git:
               url: github.com/vessl-ai/examples.git
-              ref: snowflake-world-tour
+              ref: main
           /data/: vessl-dataset://vessl-ai/vessl-support-synthetic-data
         run: 
           - command: |-
@@ -184,7 +184,7 @@ steps:
           SNOWFLAKE_WAREHOUSE:
             source: inject
           SNOWFLAKE_PRIVATE_KEY:
-            secret: snowflake-vessl-oregon-pri-key
+            secret: snowflake-private-key
   - key: chat
     title: Chat with LLM
     type: v1/run
@@ -230,7 +230,7 @@ steps:
           /code/:
             git:
               url: github.com/vessl-ai/examples.git
-              ref: snowflake-world-tour
+              ref: main
           /data/: vessl-dataset://vessl-ai/vessl-support-synthetic-data
         run: 
           - command: |-
@@ -258,7 +258,7 @@ steps:
           SNOWFLAKE_WAREHOUSE:
             source: inject
           SNOWFLAKE_PRIVATE_KEY:
-            secret: snowflake-vessl-oregon-pri-key
+            secret: snowflake-private-key
         ports:
           - name: gradio
             type: http
