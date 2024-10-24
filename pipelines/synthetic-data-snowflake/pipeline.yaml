@@ -270,7 +270,7 @@ steps:
       - synthetic-data-generation
     spec:
       email_addresses:
-        - ian@vessl.ai
+        - test@example.com
       email_subject: Please Curate the Synthetic Data Generated
       email_contents: Come to the pipeline page.
   - key: notify-ingestion
@@ -280,6 +280,6 @@ steps:
       - data-ingestion
     spec:
       email_addresses:
-        - ian@vessl.ai
+        - test@example.com
       email_subject: Synthetic Data Generation & Ingestion Success
       email_contents: You can chat with the LLM now.

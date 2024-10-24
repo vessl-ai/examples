@@ -68,12 +68,29 @@ VESSL Pipeline is a tool designed for those working on streamlining complex mach
 
 To create and run the synthetic data generation pipeline, follow the steps below:
 
-1. Create a VESSL acccount if you don't have one.
+1. Replace the email address in the YAML file in this folder ([`pipeline.yaml`](./pipeline.yaml)) with your own email address.
+    ```yaml
+    # pipeline.yaml
+    ...
+    steps:
+    ...
+      - key: notify-curation
+        ...
+        spec:
+          email_addresses:
+            - test@example.com
+    ...
+      - key: notify-ingestion
+        ...
+        spec:
+          email_addresses:
+            - test@example.com
+    ```
 2. Go to the VESSL Pipelines page. Create a new pipeline.
     ![Create New Pipeline](./assets/new-pipeline.png)
 3. Create a new revision at the **Revisions** tab.
     ![Create New Revision](./assets/new-revision.png)
-4. Enable the **Create from YAML** toggle and upload the YAML file in this folder ([`pipeline.yaml`](./pipeline.yaml)).
+4. Enable the **Create from YAML** toggle and upload the YAML file.
 5. Click **Edit** button of the revision you just created.
     ![Edit revision](./assets/revision-edit.png)
 6. Click **Publish** button to publish the revision.
