@@ -1,0 +1,285 @@
+api_version: v1
+variables:
+  DATABASE:
+    description: database in Snowflake
+    required: true
+  EMBEDDING_MODEL:
+    description: embedding model name
+    default: nv-embed-qa-4
+  LLM_MODEL:
+    description: LLM model name to create synth data and chat with
+    default: llama3.1-405b
+  SAMPLES_PER_DOC:
+    description: how many sample to generate per doc
+    default: "10"
+  SCHEMA:
+    description: schema in Snowflake
+    default: public
+  TABLE_NAME:
+    description: table name to save synthetic data
+    required: true
+  VECTOR_DIM:
+    description: vector dimension
+    options:
+      - "768"
+      - "1024"
+    default: "1024"
+  SNOWFLAKE_ACCOUNT:
+    description: snowflake account locator
+    required: true
+  SNOWFLAKE_USER:
+    description: snowflake user name
+    required: true
+  SNOWFLAKE_WAREHOUSE:
+    description: snowflake warehouse name
+    required: true
+steps:
+  - key: synthetic-data-generation
+    title: Synthetic Data Generation
+    type: v1/run
+    spec:
+      input_variables:
+        LLM_MODEL:
+          type: pipeline_variable
+          value: LLM_MODEL
+        SAMPLES_PER_DOC:
+          type: pipeline_variable
+          value: SAMPLES_PER_DOC
+        SNOWFLAKE_ACCOUNT:
+          type: pipeline_variable
+          value: SNOWFLAKE_ACCOUNT
+        SNOWFLAKE_USER:
+          type: pipeline_variable
+          value: SNOWFLAKE_USER
+        SNOWFLAKE_WAREHOUSE:
+          type: pipeline_variable
+          value: SNOWFLAKE_WAREHOUSE
+      run_spec:
+        name: Synthetic Data Generation
+        description: ""
+        resources:
+          cluster: vessl-gcp-oregon
+          preset: cpu-medium-spot
+        image: quay.io/vessl-ai/python:3.11-r13
+        import:
+          /code/:
+            git:
+              url: github.com/vessl-ai/examples.git
+              ref: main
+        export:
+          /data/: vessl-dataset://vessl-ai/vessl-support-synthetic-data
+        run:
+          - command: |-
+              pip install -r requirements.txt
+              python 1_generate_synthetic_data.py --model-name ${LLM_MODEL} --samples-per-doc ${SAMPLES_PER_DOC} --output-file /data/samples.csv
+            workdir: /code/pipelines/synthetic-data-snowflake
+        env:
+          LLM_MODEL:
+            source: inject
+          SAMPLES_PER_DOC:
+            source: inject
+          SNOWFLAKE_ACCOUNT:
+            source: inject
+          SNOWFLAKE_USER:
+            source: inject
+          SNOWFLAKE_WAREHOUSE:
+            source: inject
+          SNOWFLAKE_PRIVATE_KEY:
+            secret: snowflake-private-key
+  - key: data-curation
+    title: Data Curation
+    type: v1/run
+    depends_on:
+      - synthetic-data-generation
+    spec:
+      run_spec:
+        name: Data Curation
+        description: ""
+        resources:
+          cluster: vessl-gcp-oregon
+          preset: cpu-medium-spot
+        image: quay.io/vessl-ai/python:3.11-r13
+        import:
+          /code/:
+            git:
+              url: github.com/vessl-ai/examples.git
+              ref: main
+          /data/: vessl-dataset://vessl-ai/vessl-support-synthetic-data
+        export:
+          /data/: vessl-dataset://vessl-ai/vessl-support-synthetic-data
+        run: 
+          - command: |-
+              pip install -r requirements.txt
+              pip install gradio
+              python 2_data_curation.py --input-path /data/samples.csv --output-path /data/samples-curated.csv --rows-per-page 20
+            workdir: /code/pipelines/synthetic-data-snowflake
+        ports:
+          - name: gradio
+            type: http
+            port: 7860
+  - key: data-ingestion
+    title: Data Ingestion
+    type: v1/run
+    depends_on:
+      - data-curation
+    spec:
+      input_variables:
+        EMBEDDING_MODEL:
+          type: pipeline_variable
+          value: EMBEDDING_MODEL
+        VECTOR_DIM:
+          type: pipeline_variable
+          value: VECTOR_DIM
+        DATABASE:
+          type: pipeline_variable
+          value: DATABASE
+        SCHEMA:
+          type: pipeline_variable
+          value: SCHEMA
+        TABLE_NAME:
+          type: pipeline_variable
+          value: TABLE_NAME
+        SNOWFLAKE_ACCOUNT:
+          type: pipeline_variable
+          value: SNOWFLAKE_ACCOUNT
+        SNOWFLAKE_USER:
+          type: pipeline_variable
+          value: SNOWFLAKE_USER
+        SNOWFLAKE_WAREHOUSE:
+          type: pipeline_variable
+          value: SNOWFLAKE_WAREHOUSE
+      run_spec:
+        name: Data Ingestion
+        description: ""
+        resources:
+          cluster: vessl-gcp-oregon
+          preset: cpu-medium-spot
+        image: quay.io/vessl-ai/python:3.11-r13
+        import:
+          /code/:
+            git:
+              url: github.com/vessl-ai/examples.git
+              ref: main
+          /data/: vessl-dataset://vessl-ai/vessl-support-synthetic-data
+        run: 
+          - command: |-
+              pip install -r requirements.txt
+              python 3_data_ingest.py --data-path /data/samples-curated.csv --database ${DATABASE} --schema ${SCHEMA} --table-name ${TABLE_NAME} --vector-dim ${VECTOR_DIM} --embedding-model ${EMBEDDING_MODEL}
+            workdir: /code/pipelines/synthetic-data-snowflake
+        env:
+          EMBEDDING_MODEL:
+            source: inject
+          VECTOR_DIM:
+            source: inject
+          DATABASE:
+            source: inject
+          SCHEMA:
+            source: inject
+          TABLE_NAME:
+            source: inject
+          SNOWFLAKE_ACCOUNT:
+            source: inject
+          SNOWFLAKE_USER:
+            source: inject
+          SNOWFLAKE_WAREHOUSE:
+            source: inject
+          SNOWFLAKE_PRIVATE_KEY:
+            secret: snowflake-private-key
+  - key: chat
+    title: Chat with LLM
+    type: v1/run
+    depends_on:
+      - data-ingestion
+    spec:
+      input_variables:
+        LLM_MODEL:
+          type: pipeline_variable
+          value: LLM_MODEL
+        EMBEDDING_MODEL:
+          type: pipeline_variable
+          value: EMBEDDING_MODEL
+        VECTOR_DIM:
+          type: pipeline_variable
+          value: VECTOR_DIM
+        DATABASE:
+          type: pipeline_variable
+          value: DATABASE
+        SCHEMA:
+          type: pipeline_variable
+          value: SCHEMA
+        TABLE:
+          type: pipeline_variable
+          value: TABLE_NAME
+        SNOWFLAKE_ACCOUNT:
+          type: pipeline_variable
+          value: SNOWFLAKE_ACCOUNT
+        SNOWFLAKE_USER:
+          type: pipeline_variable
+          value: SNOWFLAKE_USER
+        SNOWFLAKE_WAREHOUSE:
+          type: pipeline_variable
+          value: SNOWFLAKE_WAREHOUSE
+      run_spec:
+        name: Chat with LLM
+        description: ""
+        resources:
+          cluster: vessl-gcp-oregon
+          preset: cpu-medium-spot
+        image: quay.io/vessl-ai/python:3.11-r13
+        import:
+          /code/:
+            git:
+              url: github.com/vessl-ai/examples.git
+              ref: main
+          /data/: vessl-dataset://vessl-ai/vessl-support-synthetic-data
+        run: 
+          - command: |-
+              pip install -r requirements.txt
+              pip install gradio
+              python 4_chat.py --database ${DATABASE} --schema ${SCHEMA} --table ${TABLE} --llm-model ${LLM_MODEL} --vector-dim ${VECTOR_DIM} --embedding-model ${EMBEDDING_MODEL}
+            workdir: /code/pipelines/synthetic-data-snowflake
+        env:
+          LLM_MODEL:
+            source: inject
+          EMBEDDING_MODEL:
+            source: inject
+          VECTOR_DIM:
+            source: inject
+          DATABASE:
+            source: inject
+          SCHEMA:
+            source: inject
+          TABLE:
+            source: inject
+          SNOWFLAKE_ACCOUNT:
+            source: inject
+          SNOWFLAKE_USER:
+            source: inject
+          SNOWFLAKE_WAREHOUSE:
+            source: inject
+          SNOWFLAKE_PRIVATE_KEY:
+            secret: snowflake-private-key
+        ports:
+          - name: gradio
+            type: http
+            port: 7860
+  - key: notify-curation
+    title: Ask for the Data Curation
+    type: v1/notification
+    depends_on:
+      - synthetic-data-generation
+    spec:
+      email_addresses:
+        - test@example.com
+      email_subject: Please Curate the Synthetic Data Generated
+      email_contents: Come to the pipeline page.
+  - key: notify-ingestion
+    title: Notify the End of Data Ingestion
+    type: v1/notification
+    depends_on:
+      - data-ingestion
+    spec:
+      email_addresses:
+        - test@example.com
+      email_subject: Synthetic Data Generation & Ingestion Success
+      email_contents: You can chat with the LLM now.
