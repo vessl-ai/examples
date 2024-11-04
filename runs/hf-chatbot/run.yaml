@@ -13,10 +13,9 @@ import:
       url: github.com/vessl-ai/examples.git
 run:
   - command: |
-      pip install autoawq==0.2.4  # Install AutoAWQ separately to avoid conflicts
+      pip install autoawq>=0.2.6  # Install AutoAWQ separately to avoid conflicts
       pip install -r requirements.txt
-      pip uninstall -y transformer-engine
-      pip install flash-attn==2.5.7
+      pip install flash-attn>=2.6.3
     workdir: /code/hf-chatbot
   - command: |
       python app.py --model-id $MODEL_ID --use-vllm
