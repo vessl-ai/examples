@@ -13,19 +13,19 @@ import:
       url: github.com/vessl-ai/examples.git
 run:
   - command: |  # Install some dependencies for LLM acceleration those have conflicts with common libraries
-      pip install vllm==0.4.1 autoawq==0.2.5
-      pip uninstall -y transformer-engine flash-attn
-      pip install flash-attn==2.5.8
+      pip install autoawq>=0.2.6
+      pip install vllm>=0.6.3
+      pip install flash-attn>=2.6.3
     workdir: /code
   - command: |
       python -m vllm.entrypoints.openai.api_server --model $MODEL_NAME --dtype auto --gpu-memory-utilization 0.8 &
     workdir: /code
   - command: |
       pip install -r requirements.txt
-    workdir: /code/rag-chatbot
+    workdir: /code/runs/rag-chatbot
   - command: |
       python app.py --llm-host http://localhost:8000/v1
-    workdir: /code/rag-chatbot
+    workdir: /code/runs/rag-chatbot
 ports:
   - name: gradio
     type: http
