@@ -6,8 +6,8 @@ from sam2.build_sam import build_sam2
 from sam2.automatic_mask_generator import SAM2AutomaticMaskGenerator
 
 
-sam2_checkpoint = "/sam2-repo/checkpoints/sam2_hiera_base_plus.pt"
-model_cfg = "sam2_hiera_b+.yaml"
+sam2_checkpoint = "/sam2-repo/checkpoints/sam2.1_hiera_base_plus.pt"
+model_cfg = "/sam2-repo/sam2/configs/sam2.1/sam2.1_hiera_b+.yaml"
 
 sam2 = build_sam2(model_cfg, sam2_checkpoint, device ='cuda', apply_postprocessing=False)
 mask_generator = SAM2AutomaticMaskGenerator(sam2)
