@@ -1,0 +1,332 @@
+api_version: v1
+variables:
+  ADAPTER_NAME:
+    description: Repository name of QLoRA adapter to upload
+    required: true
+    default: vessl/Meta-Llama-3.1-8B-Instruct-ko-finqa-qlora
+  BASE_MODEL_NAME:
+    description: Base LLM name to fine-tune
+    options:
+      - meta-llama/Meta-Llama-3.1-8B-Instruct
+      - mistralai/Mistral-Large-Instruct-2407
+    required: true
+    default: meta-llama/Meta-Llama-3.1-8B-Instruct
+  HF_TOKEN:
+    description: Hugginface token to access to model registry
+    required: true
+  QUANTIZE_MODEL:
+    description: Whether to quantize trained model for production usage
+    options:
+      - "yes"
+      - "no"
+    required: true
+    default: "yes"
+  QUANTIZED_MODEL_NAME:
+    description: Repository name of quantized model
+    required: true
+    default: vessl/Meta-Llama-3.1-8B-Instruct-ko-finqa-awq-marlin
+steps:
+  - key: Fine-tune-with-QLoRA
+    title: Fine-tune with QLoRA
+    type: v1/run
+    description: 'Fine-tune model with QLoRA '
+    spec:
+      input_variables:
+        BASE_MODEL_NAME:
+          type: pipeline_variable
+          value: BASE_MODEL_NAME
+        HF_TOKEN:
+          type: pipeline_variable
+          value: HF_TOKEN
+      run_spec:
+        name: Fine-tune with QLoRA
+        description: 'Fine-tune model with QLoRA '
+        resources:
+          cluster: vessl-gcp-oregon
+          preset: gpu-l4-small-spot
+        image: quay.io/vessl-ai/cuda:12.4-r3
+        import:
+          /code/:
+            git:
+              url: github.com/vessl-ai/examples.git
+              ref: main
+        export:
+          /root/output/: vessl-artifact://
+        run: 
+          - command: |-
+              pip install torch==2.3.1
+              pip install -r requirements.txt
+
+              python finetune.py \
+                --base-model-name $BASE_MODEL_NAME \
+                --checkpoint-path /root/output/checkpoints \
+                --output-model-name /root/output/adapter \
+                --train-epochs 1 \
+                --lora-rank 8
+            workdir: /code/pipelines/pipelines-quickstart/llm-finetuning
+        env:
+          BASE_MODEL_NAME:
+            source: inject
+          HF_TOKEN:
+            source: inject
+  - key: Quantize-Model
+    title: Quantize Model?
+    type: v1/if
+    depends_on:
+      - Fine-tune-with-QLoRA
+    spec:
+      condition: ${QUANTIZE_MODEL} == yes
+  - key: Upload-Adapter
+    title: Upload Adapter
+    type: v1/run
+    depends_on:
+      - Fine-tune-with-QLoRA
+    spec:
+      input_variables:
+        ADAPTER_NAME:
+          type: pipeline_variable
+          value: ADAPTER_NAME
+        HF_TOKEN:
+          type: pipeline_variable
+          value: HF_TOKEN
+      volumes:
+        /model/:
+          source: pipeline-step
+          source_step:
+            step_key: Fine-tune-with-QLoRA
+            volume_claim_name: /root/output/
+      run_spec:
+        name: Upload Adapter
+        description: ""
+        resources:
+          cluster: vessl-oci-seoul
+          preset: gpu-a10-small
+        image: quay.io/vessl-ai/python:3.10-r1
+        import:
+          /model/: vessl-artifact://
+        run: |-
+          pip install -U "huggingface_hub[cli]"
+
+          huggingface-cli upload $ADAPTER_NAME /model/adapter .
+        env:
+          ADAPTER_NAME:
+            source: inject
+          HF_TOKEN:
+            source: inject
+  - key: AWQ-Marlin-Quantization
+    title: AWQ+Marlin Quantization
+    type: v1/run
+    depends_on:
+      - Quantize-Model:yes
+    spec:
+      input_variables:
+        ADAPTER_NAME:
+          type: pipeline_variable
+          value: ADAPTER_NAME
+        BASE_MODEL_NAME:
+          type: pipeline_variable
+          value: BASE_MODEL_NAME
+        HF_TOKEN:
+          type: pipeline_variable
+          value: HF_TOKEN
+      run_spec:
+        name: AWQ+Marlin Quantization
+        description: ""
+        resources:
+          cluster: vessl-gcp-oregon
+          preset: gpu-l4-small-spot
+        image: quay.io/vessl-ai/cuda:12.4-r3
+        import:
+          /code/:
+            git:
+              url: github.com/vessl-ai/examples.git
+              ref: main
+        export:
+          /root/output/: vessl-artifact://
+        run: 
+          - command: |-
+              pip install torch==2.3.1
+              pip install -r requirements.txt
+
+              python merge_and_quantize.py \
+                --base-model-name $BASE_MODEL_NAME \
+                --adapter-name $ADAPTER_NAME \
+                --quantized-model-name /root/output
+            workdir: /code/pipelines/pipelines-quickstart/llm-quantization
+        env:
+          ADAPTER_NAME:
+            source: inject
+          BASE_MODEL_NAME:
+            source: inject
+          HF_TOKEN:
+            source: inject
+  - key: Evaluate-Quantized-Model
+    title: Evaluate Quantized Model
+    type: v1/run
+    depends_on:
+      - AWQ-Marlin-Quantization
+    spec:
+      input_variables:
+        HF_TOKEN:
+          type: pipeline_variable
+          value: HF_TOKEN
+        QUANTIZED_MODEL_NAME:
+          type: pipeline_variable
+          value: QUANTIZED_MODEL_NAME
+      volumes:
+        /model/:
+          source: pipeline-step
+          source_step:
+            step_key: AWQ-Marlin-Quantization
+            volume_claim_name: /root/output/
+      run_spec:
+        name: Evaluate Quantized Model
+        description: ""
+        resources:
+          cluster: vessl-gcp-oregon
+          preset: gpu-l4-small-spot
+        image: quay.io/vessl-ai/cuda:12.4-r3
+        import:
+          /code/:
+            git:
+              url: github.com/vessl-ai/examples.git
+              ref: main
+          /model/: vessl-artifact://
+        run: 
+          - command: |-
+              pip install torch==2.3.1
+              pip install -r requirements.txt
+              pip install "git+https://github.com/IST-DASLab/marlin"
+
+              python evaluate.py \
+                --model-name /model \
+                --quantization awq \
+                --prompts "What is the capital of France?" "How does a transformer model work?"
+            workdir: /code/pipelines/pipelines-quickstart/llm-finetuning-eval
+        env:
+          HF_TOKEN:
+            source: inject
+          QUANTIZED_MODEL_NAME:
+            source: inject
+  - key: Accept-Evaluation
+    title: Accept Evaluation?
+    type: v1/manual_judgment
+    description: See the logs from "Evaluate Model" and decide whether to push the fine-tuned model to production.
+    depends_on:
+      - Evaluate-Quantized-Model
+      - Evaluate-Original-Model
+    spec:
+      assignee_email_addresses:
+        - test@example.com
+  - key: Fail
+    title: Fail
+    type: v1/fail
+    depends_on:
+      - Accept-Evaluation:no
+    spec: {}
+  - key: Upload-Quantized-Model
+    title: Upload Quantized Model
+    type: v1/run
+    depends_on:
+      - Evaluated-Quantized-Model:yes
+    spec:
+      input_variables:
+        HF_TOKEN:
+          type: pipeline_variable
+          value: HF_TOKEN
+        QUANTIZED_MODEL_NAME:
+          type: pipeline_variable
+          value: QUANTIZED_MODEL_NAME
+      volumes:
+        /model/:
+          source: pipeline-step
+          source_step:
+            step_key: AWQ-Marlin-Quantization
+            volume_claim_name: /root/output/
+      run_spec:
+        name: Upload Quantized Model
+        description: ""
+        resources:
+          cluster: vessl-gcp-oregon
+          preset: cpu-medium-spot
+        image: quay.io/vessl-ai/python:3.10-r1
+        import:
+          /model/: vessl-artifact://
+        run: |-
+          pip install -U "huggingface_hub[cli]"
+
+          huggingface-cli upload $QUANTIZED_MODEL_NAME /model .
+        env:
+          HF_TOKEN:
+            source: inject
+          QUANTIZED_MODEL_NAME:
+            source: inject
+  - key: Notify-Fine-tuning-Completion
+    title: Notify Fine-tuning Completion
+    type: v1/notification
+    depends_on:
+      - Evaluated-Quantized-Model:no
+      - Upload-Quantized-Model
+    spec:
+      email_addresses:
+        - test@example.com
+      email_subject: '[llm-finetuning] Fine tuning job has finished'
+      email_contents: ':wink:'
+  - key: Notify-Fine-tuning-has-failed
+    title: Notify Fine-tuning has failed
+    type: v1/notification
+    depends_on:
+      - Fail
+    spec:
+      email_addresses:
+        - test@example.com
+      email_subject: '[llm-finetuning] Fine-tuning has failed'
+      email_contents: :-(
+  - key: Evaluate-Original-Model
+    title: Evaluate Original Model
+    type: v1/run
+    depends_on:
+      - Quantize-Model:no
+    spec:
+      input_variables:
+        ADAPTER_NAME:
+          type: pipeline_variable
+          value: ADAPTER_NAME
+        HF_TOKEN:
+          type: pipeline_variable
+          value: HF_TOKEN
+      run_spec:
+        name: Evaluate Original Model
+        description: ""
+        resources:
+          cluster: vessl-gcp-oregon
+          preset: gpu-l4-small-spot
+        image: quay.io/vessl-ai/cuda:12.4-r3
+        import:
+          /code/:
+            git:
+              url: github.com/vessl-ai/examples.git
+              ref: main
+        run: 
+          - command: |-
+              cd /code/pipelines/llm-finetuning-eval
+
+              pip install torch==2.3.1
+              pip install -r requirements.txt
+
+              python evaluate.py \
+                --model-name $ADAPTER_NAME \
+                --prompts "What is the capital of France?" "How does a transformer model work?"
+            workdir: /code/pipelines/pipelines-quickstart/llm-finetuning-eval
+        env:
+          ADAPTER_NAME:
+            source: inject
+          HF_TOKEN:
+            source: inject
+  - key: Evaluated-Quantized-Model
+    title: Evaluated Quantized Model?
+    type: v1/if
+    depends_on:
+      - Accept-Evaluation:yes
+    spec:
+      condition: ${QUANTIZE_MODEL} == yes
