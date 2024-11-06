@@ -1,4 +1,4 @@
-torch==2.3.1
+torch==2.4.0
 datasets==3.1.0
-unsloth[cu124-ampere-torch230] @ git+https://github.com/unslothai/unsloth.git@October-2024
+unsloth[cu124-ampere-torch240] @ git+https://github.com/unslothai/unsloth.git@October-2024
 unsloth-zoo==2024.10.0
