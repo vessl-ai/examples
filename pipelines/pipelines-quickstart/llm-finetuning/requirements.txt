@@ -1,4 +1,5 @@
 torch==2.4.0
 datasets==3.1.0
+bitsandbytes==0.44.1
 unsloth[cu124-ampere-torch240] @ git+https://github.com/unslothai/unsloth.git@October-2024
 unsloth-zoo==2024.10.0
