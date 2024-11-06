@@ -145,6 +145,7 @@ steps:
         run: 
           - command: |-
               pip install -r requirements.txt
+              pip install flash-attn==2.6.3
 
               python merge_and_quantize.py \
                 --base-model-name $BASE_MODEL_NAME \
@@ -194,6 +195,7 @@ steps:
           - command: |-
               pip install -r requirements.txt
               pip install "git+https://github.com/IST-DASLab/marlin"
+              pip install flash-attn==2.6.3
 
               python evaluate.py \
                 --model-name /model \
