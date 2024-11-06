@@ -54,7 +54,6 @@ steps:
           /root/output/: vessl-artifact://
         run: 
           - command: |-
-              pip install torch==2.3.1
               pip install -r requirements.txt
 
               python finetune.py \
@@ -145,7 +144,6 @@ steps:
           /root/output/: vessl-artifact://
         run: 
           - command: |-
-              pip install torch==2.3.1
               pip install -r requirements.txt
 
               python merge_and_quantize.py \
@@ -194,7 +192,6 @@ steps:
           /model/: vessl-artifact://
         run: 
           - command: |-
-              pip install torch==2.3.1
               pip install -r requirements.txt
               pip install "git+https://github.com/IST-DASLab/marlin"
 
@@ -309,9 +306,6 @@ steps:
               ref: main
         run: 
           - command: |-
-              cd /code/pipelines/llm-finetuning-eval
-
-              pip install torch==2.3.1
               pip install -r requirements.txt
 
               python evaluate.py \
