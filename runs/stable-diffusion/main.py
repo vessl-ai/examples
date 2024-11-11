@@ -3,7 +3,7 @@ import torch
 from diffusers import DPMSolverMultistepScheduler, StableDiffusionPipeline
 
 # Load model from Hugging Face Diffusers
-model_id = "stabilityai/stable-diffusion-2-1"
+model_id = "stabilityai/stable-cascade"
 
 # Use the DPMSolverMultistepScheduler (DPM-Solver++) scheduler here instead
 pipe = StableDiffusionPipeline.from_pretrained(model_id, torch_dtype=torch.float16)
