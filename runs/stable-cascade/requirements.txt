@@ -1,5 +1,4 @@
-accelerate==0.28.0
-diffusers==0.27.2
-gradio==4.23.0
-torch
-transformers==4.39.1
+accelerate==1.1.1
+diffusers==0.31.0
+gradio==5.5.0
+transformers==4.46.2

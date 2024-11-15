@@ -1,5 +1,5 @@
-name: stable-cascade
-description: Gradio app with Stable Cascade
+name: stable-diffusion
+description: Gradio app with Stable Diffusion
 tags:
   - LLM
   - text-to-image
@@ -11,12 +11,15 @@ import:
   /code/:
     git:
       url: github.com/vessl-ai/examples.git
+      ref: main
 run:
   - command: |-
       pip install -r requirements.txt
       python app.py
-    workdir: /code/runs/stable-cascade
+    workdir: /code/runs/stable-diffusion
 ports:
   - name: gradio
     type: http
     port: 7860
+env:
+  MODEL_NAME: stabilityai/stable-diffusion-2-1
