@@ -1,4 +1,4 @@
-streamlit==1.40.0
-diffusers==0.31.0
 accelerate==1.1.1
+diffusers==0.31.0
+gradio==5.5.0
 transformers==4.46.2
