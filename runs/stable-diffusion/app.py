@@ -33,8 +33,8 @@ def generate(
     negative_prompt: str = "",
     seed: int = 0,
     randomize_seed: bool = True,
-    width: int = 1024,
-    height: int = 1024,
+    width: int = 768,
+    height: int = 768,
     num_inference_steps: int = 50,
     guidance_scale: float = 7.5,
     num_images_per_prompt: int = 2,
@@ -54,7 +54,7 @@ def generate(
         num_images_per_prompt=num_images_per_prompt,
     )
 
-    return output
+    return output.images
 
 
 examples = [
