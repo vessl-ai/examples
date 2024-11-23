@@ -260,7 +260,13 @@ with gr.Blocks(css=css, fill_height=True, title="🦙 Chat-with-document demo wi
     """)
 
     with gr.Tab("Chat", elem_id="chat-container"):
-        gr.ChatInterface(handle_chat)
+        examples = [
+            "What was Riot revenue in 2023?",
+            "What is Riot's approach in bitcoin?",
+            "How many bitcoin does MARA hold?",
+            "What is MARA's approach in bitcoin?"
+        ]
+        gr.ChatInterface(handle_chat, examples=examples)
 
     with gr.Tab("Document"):
         with gr.Row():
