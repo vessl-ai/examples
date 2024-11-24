@@ -132,7 +132,7 @@ def main():
     )
 
     # Load documents
-    documents = glob.glob("*.md", recursive=True)
+    documents = glob.glob(f"{args.data_path}/*.md", recursive=True)
 
     # Open CSV file to save results
     with open(args.output_path, mode="w", newline="\n") as file:
