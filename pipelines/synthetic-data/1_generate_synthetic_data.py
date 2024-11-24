@@ -120,7 +120,7 @@ def main():
     parser.add_argument(
         "--output-path",
         type=str,
-        default="/data/sample.jsonl",
+        default="/data/samples.csv",
         help="Output file to save the generated samples",
     )
     args = parser.parse_args()
