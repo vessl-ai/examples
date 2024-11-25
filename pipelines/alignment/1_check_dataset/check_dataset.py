@@ -5,7 +5,7 @@ from datasets import load_dataset
 
 
 def main(dataset_name_or_path: str):
-    dataset = load_dataset(dataset_name_or_path)
+    dataset = load_dataset(dataset_name_or_path)["train"]
     if all(col in dataset.column_names for col in ["chosen", "rejected"]):
         print(f"The dataset ({dataset_name_or_path}) is a preference dataset.")
         vessl.update_context_variables({"IS_PREF_DATASET": "YES"})
