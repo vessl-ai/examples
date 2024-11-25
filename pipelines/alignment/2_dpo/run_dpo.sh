@@ -1,6 +1,7 @@
 if [ "$FINETUNING_METHOD" == "Full" ]; then
     accelerate launch dpo.py \
     --model_name_or_path /root/model \
+    --trust_remote_code True \
     --attn_implementation flash_attention_2 \
     --dataset_name /root/dataset \
     --loss_type sigmoid \
@@ -22,6 +23,7 @@ if [ "$FINETUNING_METHOD" == "Full" ]; then
 elif [ "$FINETUNING_METHOD" == "LoRA" ]; then
     accelerate launch dpo.py \
     --model_name_or_path /root/model \
+    --trust_remote_code True \
     --attn_implementation flash_attention_2 \
     --dataset_name /root/dataset \
     --loss_type sigmoid \
@@ -43,6 +45,7 @@ elif [ "$FINETUNING_METHOD" == "LoRA" ]; then
 elif [ "$FINETUNING_METHOD" = "QLoRA" ]; then
     accelerate launch dpo.py \
     --model_name_or_path /root/model \
+    --trust_remote_code True \
     --attn_implementation flash_attention_2 \
     --dataset_name /root/dataset \
     --loss_type sigmoid \
