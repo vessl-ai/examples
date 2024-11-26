@@ -54,4 +54,4 @@ case "$FINETUNING_METHOD" in
 esac
 
 # Execute the command
-accelerate launch dpo.py $COMMON_ARGS $METHOD_ARGS
+accelerate launch sft.py $COMMON_ARGS $METHOD_ARGS
