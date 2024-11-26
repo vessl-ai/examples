@@ -12,8 +12,9 @@ class LLMChatHander:
         self.tokenizer = AutoTokenizer.from_pretrained(
             model_name_or_path, trust_remote_code=True
         )
+        self.use_vllm = use_vllm
 
-        if use_vllm:
+        if self.use_vllm:
             from vllm.engine.arg_utils import AsyncEngineArgs
             from vllm.engine.async_llm_engine import AsyncLLMEngine
 
