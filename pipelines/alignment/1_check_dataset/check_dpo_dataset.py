@@ -4,8 +4,18 @@ import vessl
 from datasets import Value, load_dataset, load_from_disk
 
 PREF_FORMAT_MAPPING = {
-    "chosen": Value(dtype="string", id=None),
-    "rejected": Value(dtype="string", id=None),
+    "chosen": [
+        {
+            "content": Value(dtype="string", id=None),
+            "role": Value(dtype="string", id=None),
+        }
+    ],
+    "rejected": [
+        {
+            "content": Value(dtype="string", id=None),
+            "role": Value(dtype="string", id=None),
+        }
+    ],
 }
 
 
