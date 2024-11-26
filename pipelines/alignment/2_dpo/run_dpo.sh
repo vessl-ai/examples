@@ -6,7 +6,7 @@ if [ "$FINETUNING_METHOD" == "Full" ]; then
     --gradient_checkpointing True \
     --dataset_name /root/dataset \
     --max_length 4096 \
-    --loss_type sigmoid \
+    --loss_type $LOSS_TYPE \
     --learning_rate $LEARNING_RATE \
     --max_steps 1000 \
     --logging_steps 25 \
@@ -26,7 +26,7 @@ elif [ "$FINETUNING_METHOD" == "LoRA" ]; then
     --gradient_checkpointing False \
     --dataset_name /root/dataset \
     --max_length 4096 \
-    --loss_type sigmoid \
+    --loss_type $LOSS_TYPE \
     --learning_rate $LEARNING_RATE \
     --max_steps 1000 \
     --logging_steps 25 \
@@ -52,7 +52,7 @@ elif [ "$FINETUNING_METHOD" = "QLoRA" ]; then
     --gradient_checkpointing False \
     --dataset_name /root/dataset \
     --max_length 4096 \
-    --loss_type sigmoid \
+    --loss_type $LOSS_TYPE \
     --learning_rate $LEARNING_RATE \
     --max_steps 1000 \
     --logging_steps 25 \
