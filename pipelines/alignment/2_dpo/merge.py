@@ -96,13 +96,13 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--model-name-or-path", type=str, required=True)
     parser.add_argument("--adapter-name-or-path", type=str, required=True)
-    parser.add_argument("--output", type=str, required=True)
+    parser.add_argument("--output-dir", type=str, required=True)
     parser.add_argument("--peft", type=str, choices=("lora", "qlora"), default="lora")
     args = parser.parse_args()
 
     main(
         model_name_or_path=args.model_name_or_path,
         adapter_name_or_path=args.adapter_name_or_path,
-        output_dir=args.output,
+        output_dir=args.output_dir,
         peft_type=args.peft,
     )
