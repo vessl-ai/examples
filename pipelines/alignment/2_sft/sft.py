@@ -39,14 +39,6 @@ def main(
     )
 
     peft_config = get_peft_config(model_config)
-    if peft_config is None:
-        ref_model = AutoModelForCausalLM.from_pretrained(
-            model_config.model_name_or_path,
-            trust_remote_code=model_config.trust_remote_code,
-            **model_kwargs,
-        )
-    else:
-        ref_model = None
 
     tokenizer = AutoTokenizer.from_pretrained(
         model_config.model_name_or_path,
@@ -71,7 +63,6 @@ def main(
 
     trainer = SFTTrainer(
         model,
-        ref_model,
         args=training_args,
         train_dataset=train_dataset,
         eval_dataset=eval_dataset,
