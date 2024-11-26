@@ -80,8 +80,11 @@ def main(model_name_or_path, adapter_name_or_path, output_dir, peft_type):
         torch_dtype=torch.bfloat16,
         quantization_config=quant_config,
         device_map="auto",
+        trust_remote_code=True,
     )
-    tokenizer = AutoTokenizer.from_pretrained(model_name_or_path)
+    tokenizer = AutoTokenizer.from_pretrained(
+        model_name_or_path, trust_remote_code=True
+    )
 
     if peft_type == "qlora":
         model = dequantize_model(model, tokenizer)
