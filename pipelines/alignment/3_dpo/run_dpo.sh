@@ -1,6 +1,12 @@
+if [ -z "$1" ]; then
+    model_path="/root/model"
+else
+    model_path="$1"
+fi
+
 # Common parameters for all methods
 COMMON_ARGS="
-    --model_name_or_path /root/model \
+    --model_name_or_path $model_path \
     --trust_remote_code True \
     --attn_implementation flash_attention_2 \
     --dataset_name /root/dataset \
