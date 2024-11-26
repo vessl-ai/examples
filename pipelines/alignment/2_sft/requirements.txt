@@ -1,0 +1,9 @@
+accelerate>=1.1.1
+transformers>=4.46.3
+datasets>=3.1.0
+trl>=0.12.1
+torch>=2.4.0
+bitsandbytes>=0.42.0
+peft>=0.13.2
+packaging>=24.2
+ninja>=1.11.1.2
