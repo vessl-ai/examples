@@ -7,7 +7,7 @@ if [ "$FINETUNING_METHOD" == "Full" ]; then
     --dataset_name /root/dataset \
     --max_length 4096 \
     --loss_type sigmoid \
-    --learning_rate 0.0003 \
+    --learning_rate $LEARNING_RATE \
     --max_steps 1000 \
     --logging_steps 25 \
     --output_dir /root/training_results \
@@ -27,7 +27,7 @@ elif [ "$FINETUNING_METHOD" == "LoRA" ]; then
     --dataset_name /root/dataset \
     --max_length 4096 \
     --loss_type sigmoid \
-    --learning_rate 0.0003 \
+    --learning_rate $LEARNING_RATE \
     --max_steps 1000 \
     --logging_steps 25 \
     --output_dir /root/training_results \
@@ -53,7 +53,7 @@ elif [ "$FINETUNING_METHOD" = "QLoRA" ]; then
     --dataset_name /root/dataset \
     --max_length 4096 \
     --loss_type sigmoid \
-    --learning_rate 0.0003 \
+    --learning_rate $LEARNING_RATE \
     --max_steps 1000 \
     --logging_steps 25 \
     --output_dir /root/training_results \
