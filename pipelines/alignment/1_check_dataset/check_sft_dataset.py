@@ -1,8 +1,7 @@
 import argparse
-import logging
 
 import vessl
-from datasets import Value, load_dataset
+from datasets import Value, load_dataset, load_from_disk
 
 SFT_FORMAT_MAPPING = {
     "chatml": [
@@ -19,7 +18,10 @@ SFT_FORMAT_MAPPING = {
 
 
 def main(dataset_name_or_path: str):
-    dataset = load_dataset(dataset_name_or_path)["train"]
+    try:
+        dataset = load_from_disk(dataset_name_or_path)["train"]
+    except FileNotFoundError:
+        dataset = load_dataset(dataset_name_or_path)["train"]
 
     if "messages" in dataset.features:
         if dataset.features["messages"] == SFT_FORMAT_MAPPING["chatml"]:

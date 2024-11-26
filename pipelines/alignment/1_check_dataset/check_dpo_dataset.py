@@ -1,7 +1,7 @@
 import argparse
 
 import vessl
-from datasets import Value, load_dataset
+from datasets import Value, load_dataset, load_from_disk
 
 PREF_FORMAT_MAPPING = {
     "chosen": Value(dtype="string", id=None),
@@ -10,7 +10,10 @@ PREF_FORMAT_MAPPING = {
 
 
 def main(dataset_name_or_path: str):
-    dataset = load_dataset(dataset_name_or_path)["train"]
+    try:
+        dataset = load_from_disk(dataset_name_or_path)["train"]
+    except FileNotFoundError:
+        dataset = load_dataset(dataset_name_or_path)["train"]
 
     if dataset.features.items() >= PREF_FORMAT_MAPPING.items():
         print(f"The dataset ({dataset_name_or_path}) is a preference dataset.")
