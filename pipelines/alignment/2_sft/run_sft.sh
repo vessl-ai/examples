@@ -10,7 +10,7 @@ COMMON_ARGS="
     --trust_remote_code True \
     --attn_implementation flash_attention_2 \
     --dataset_name /root/dataset \
-    --max_length 4096 \
+    --max_seq_length 4096 \
     --packing \
     --warmup_ratio 0.1 \
     --learning_rate $LEARNING_RATE \
