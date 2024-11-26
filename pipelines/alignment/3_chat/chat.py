@@ -119,7 +119,7 @@ def main(model_name_or_path: str, port: int, use_vllm: bool):
         with gr.Row():
             close_button = gr.Button("Close", variant="stop")
             close_button.click(
-                fm=lambda: gr.update(interactive=False), outputs=[close_button]
+                fn=lambda: gr.update(interactive=False), outputs=[close_button]
             ).then(fn=close_app)
 
     demo.queue().launch(server_name="0.0.0.0", server_port=port)
