@@ -18,7 +18,7 @@ class LLMChatHander:
             from vllm.engine.async_llm_engine import AsyncLLMEngine
 
             engine_args = AsyncEngineArgs(
-                model_name_or_path=model_name_or_path,
+                model=model_name_or_path,
                 tokenizer=None,
                 tokenizer_mode="auto",
                 trust_remote_code=True,
