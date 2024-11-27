@@ -8,7 +8,7 @@ import gradio as gr
 from transformers import AutoTokenizer
 
 class LLMChatHandler():
-    def __init__(self, model_id: str, max_num_seqs: int, max_model_len: int):
+    def __init__(self, model_id: str, max_num_seqs: int, max_model_len: int, dtype: str):
         self.tokenizer = AutoTokenizer.from_pretrained(model_id)
         self.terminators = [
             self.tokenizer.eos_token_id,
@@ -39,7 +39,7 @@ class LLMChatHandler():
             max_model_len=max_model_len,
             load_format=_guess_load_format(model_id=model_id),
             quantization=_guess_quantization(model_id=model_id),
-            dtype="auto",
+            dtype=dtype,
         )
         self.vllm_engine = AsyncLLMEngine.from_engine_args(engine_args)
 
@@ -111,7 +111,7 @@ def close_app():
 
 def main(args):
     print(f"Loading the model {args.model_id}...")
-    hdlr = LLMChatHandler(model_id=args.model_id, max_num_seqs=args.max_num_seqs, max_model_len=args.max_model_len)
+    hdlr = LLMChatHandler(model_id=args.model_id, max_num_seqs=args.max_num_seqs, max_model_len=args.max_model_len, dtype=args.dtype)
 
     with gr.Blocks(title=f"🤗 Chatbot with {args.model_id}", fill_height=True) as demo:
         with gr.Row():
@@ -136,6 +136,7 @@ if __name__ == "__main__":
 
     parser.add_argument("--model-id", default="unsloth/Llama-3.2-3B-Instruct-bnb-4bit", help="HuggingFace model name for LLM.")
     parser.add_argument("--port", default=7860, type=int, help="Port number for the Gradio app.")
+    parser.add_argument("--dtype", default="auto", type=str, help="Data type for model weights and activations.")
     parser.add_argument("--max-num-seqs", default=16, type=int, help="")
     parser.add_argument("--max-model-len", default=32767, type=int, help="")
     args = parser.parse_args()
