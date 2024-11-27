@@ -1,0 +1,5 @@
+autoawq>=0.2.6
+gradio>=5.4.0
+vllm>=0.6.4
+bitsandbytes>=0.44.0
+hf_transfer
