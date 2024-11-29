@@ -1,4 +1,4 @@
-peft_type=${FINETUNING_METHOD,,}
+peft_type=${PEFT_METHOD,,}
 
 python merge.py --model-name-or-path /root/model \
     --adapter-name-or-path /root/training_results \

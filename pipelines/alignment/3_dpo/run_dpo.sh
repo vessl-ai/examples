@@ -25,7 +25,7 @@ COMMON_ARGS="
     --save_total_limit 20"
 
 # Method-specific parameters
-case "$FINETUNING_METHOD" in
+case "$PEFT_METHOD" in
     "Full")
         METHOD_ARGS="--gradient_checkpointing True"
         ;;
@@ -53,7 +53,7 @@ case "$FINETUNING_METHOD" in
         --lora_task_type CausalLM"
         ;;
     *)
-        echo "Invalid FINETUNING_METHOD: $FINETUNING_METHOD"
+        echo "Invalid PEFT_METHOD: $PEFT_METHOD"
         exit 1
         ;;
 esac
