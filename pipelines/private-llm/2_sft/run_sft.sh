@@ -15,6 +15,7 @@ COMMON_ARGS="
     --warmup_ratio 0.1 \
     --learning_rate $LEARNING_RATE \
     --max_steps $MAX_STEPS \
+    --num_train_epochs $NUM_TRAIN_EPOCHS \
     --logging_steps 25 \
     --output_dir /root/training_results \
     --per_device_train_batch_size $BATCH_SIZE \
