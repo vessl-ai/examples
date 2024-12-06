@@ -17,7 +17,7 @@ COMMON_ARGS="
     --max_steps $MAX_STEPS \
     --num_train_epochs $NUM_TRAIN_EPOCHS \
     --logging_steps 25 \
-    --output_dir /root/training_results \
+    --output_dir /root/results/sft_intermediate \
     --per_device_train_batch_size $BATCH_SIZE \
     --per_device_eval_batch_size 1 \
     --bf16 \
@@ -25,6 +25,12 @@ COMMON_ARGS="
     --save_strategy steps \
     --save_steps 1000 \
     --save_total_limit 20"
+
+if [ "$RESUME_FROM_CKPT" = "YES" ]; then
+    RESUME_ARGS="--resume_from_checkpoint"
+else
+    RESUME_ARGS=""
+fi
 
 # Method-specific parameters
 case "$PEFT_METHOD" in
@@ -61,4 +67,4 @@ case "$PEFT_METHOD" in
 esac
 
 # Execute the command
-accelerate launch sft.py $COMMON_ARGS $METHOD_ARGS
+accelerate launch sft.py $COMMON_ARGS $METHOD_ARGS $RESUME_ARGS
