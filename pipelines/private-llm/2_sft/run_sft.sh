@@ -23,7 +23,7 @@ COMMON_ARGS="
     --bf16 \
     --torch_dtype bfloat16 \
     --save_strategy steps \
-    --save_steps 1000 \
+    --save_steps 2 \
     --save_total_limit 20"
 
 if [ "$RESUME_FROM_CKPT" = "YES" ]; then
