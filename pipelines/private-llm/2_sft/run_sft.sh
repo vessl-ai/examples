@@ -27,7 +27,7 @@ COMMON_ARGS="
     --save_total_limit 20"
 
 if [ "$RESUME_FROM_CKPT" = "YES" ]; then
-    RESUME_ARGS="--resume_from_checkpoint"
+    RESUME_ARGS="--resume_from_last_ckpt"
 else
     RESUME_ARGS=""
 fi

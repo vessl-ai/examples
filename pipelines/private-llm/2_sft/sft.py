@@ -1,3 +1,5 @@
+from dataclasses import dataclass
+
 import torch
 from datasets import load_dataset, load_from_disk
 from transformers import AutoModelForCausalLM, AutoTokenizer
@@ -14,8 +16,16 @@ from trl import (
 from trl.trainer.utils import SIMPLE_CHAT_TEMPLATE
 
 
+@dataclass
+class AdditionalArguments:
+    resume_from_last_ckpt: bool = False
+
+
 def main(
-    script_args: ScriptArguments, training_args: SFTConfig, model_config: ModelConfig
+    script_args: ScriptArguments,
+    training_args: SFTConfig,
+    model_config: ModelConfig,
+    additional_args: AdditionalArguments,
 ):
     torch_dtype = (
         model_config.torch_dtype
@@ -70,7 +80,7 @@ def main(
         peft_config=peft_config,
     )
 
-    trainer.train()
+    trainer.train(resume_from_checkpoint=additional_args.resume_from_last_ckpt)
 
     if training_args.eval_strategy != "no":
         metrics = trainer.evaluate()
@@ -81,7 +91,9 @@ def main(
 
 
 if __name__ == "__main__":
-    parser = TrlParser((ScriptArguments, SFTConfig, ModelConfig))
-    script_args, training_args, model_config = parser.parse_args_into_dataclasses()
+    parser = TrlParser((ScriptArguments, SFTConfig, ModelConfig, AdditionalArguments))
+    script_args, training_args, model_config, additional_args = (
+        parser.parse_args_into_dataclasses()
+    )
 
-    main(script_args, training_args, model_config)
+    main(script_args, training_args, model_config, additional_args)
