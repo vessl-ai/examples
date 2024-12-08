@@ -37,7 +37,7 @@ case "$PEFT_METHOD" in
         --lora_dropout 0.05 \
         --lora_r 8 \
         --lora_target_modules all-linear \
-        --lora_task_type CausalLM"
+        --lora_task_type CAUSAL_LM"
         ;;
     "QLoRA")
         METHOD_ARGS="
@@ -50,7 +50,7 @@ case "$PEFT_METHOD" in
         --lora_dropout 0.05 \
         --lora_r 8 \
         --lora_target_modules all-linear \
-        --lora_task_type CausalLM"
+        --lora_task_type CAUSAL_LM"
         ;;
     *)
         echo "Invalid PEFT_METHOD: $PEFT_METHOD"
