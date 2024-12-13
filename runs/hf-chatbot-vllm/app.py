@@ -7,6 +7,7 @@ from threading import Thread
 import gradio as gr
 from transformers import AutoTokenizer
 
+
 class LLMChatHandler():
     def __init__(self, model_id: str, max_num_seqs: int, max_model_len: int, dtype: str):
         self.tokenizer = AutoTokenizer.from_pretrained(model_id)
@@ -104,10 +105,6 @@ class LLMChatHandler():
 
         t.join()
 
-def close_app():
-    gr.Info("Terminated the app!")
-    sleep(1)
-    os._exit(0)
 
 def main(args):
     print(f"Loading the model {args.model_id}...")
@@ -120,11 +117,6 @@ def main(args):
                 "<h3>Interact with LLM using chat interface!<br></h3>"
                 f"<h3>Original model: <a href='https://huggingface.co/{args.model_id}' target='_blank'>{args.model_id}</a></h3>")
         gr.ChatInterface(hdlr.chat_function)
-        with gr.Row():
-            close_button = gr.Button("Close the app", variant="stop")
-            close_button.click(
-                fn=lambda: gr.update(interactive=False), outputs=[close_button]
-            ).then(fn=close_app)
 
     demo.queue().launch(server_name="0.0.0.0", server_port=args.port)
 
