@@ -56,6 +56,7 @@ def main(
         dataset_kwargs={"skip_prepare_dataset": True},
         dataset_num_proc=4,
         max_seq_length=2048,
+        packing=False,
     )
 
     model.config.use_cache = False
