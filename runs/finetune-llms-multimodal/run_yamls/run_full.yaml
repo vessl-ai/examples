@@ -1,0 +1,41 @@
+name: finetune-llama-3.1
+description: Finetune llama 3.1
+tags:
+  - finetune
+  - llama-3.1
+resources:
+  cluster: vessl-gcp-oregon
+  preset: gpu-l4-small
+image: quay.io/vessl-ai/torch:2.3.1-cuda12.1-r5
+import:
+  /root/code:
+    git:
+      url: https://github.com/vessl-ai/examples.git
+      ref: main
+run:
+  - command: |-
+      pip install -r requirements.txt
+      pip install flash-attn==2.6.3 --no-build-isolation
+      python main.py \
+      --model_name_or_path $MODEL_NAME \
+      --dataset_name $DATASET_NAME \
+      --output_dir outputs \
+      --max_seq_length 2048 \
+      --num_train_epochs 1 \
+      --logging_steps 5 \
+      --bf16 True \
+      --learning_rate 1e-5 \
+      --weight_decay 1e-2 \
+      --per_device_train_batch_size 4 \
+      --per_device_eval_batch_size 4 \
+      --gradient_accumulation_steps 2 \
+      --gradient_checkpointing True \
+      --upload_model True \
+      --repository_name $REPOSITORY_NAME
+    workdir: /root/code/finetune-llms
+env:
+  HF_TOKEN:
+    secret: HF_TOKEN
+  MODEL_NAME: meta-llama/Meta-Llama-3.1-8B-Instruct
+  DATASET_NAME: Amod/mental_health_counseling_conversations
+  REPOSITORY_NAME: Llama-3.1-8B-counselor
