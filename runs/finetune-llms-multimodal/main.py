@@ -41,7 +41,7 @@ def main(
         train_dataset=train_dataset,
         eval_dataset=eval_dataset,
         peft_config=peft_config,
-        packing=data_args.packing,
+        # packing=data_args.packing,
         dataset_text_field=data_args.dataset_text_field,
         max_seq_length=data_args.max_seq_length,
         callbacks=[
@@ -56,7 +56,6 @@ def main(
         dataset_kwargs={"skip_prepare_dataset": True},
         dataset_num_proc=4,
         max_seq_length=2048,
-        packing=False,
     )
 
     model.config.use_cache = False
