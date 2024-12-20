@@ -36,9 +36,9 @@ def load_model_and_tokenizer(model_args: ModelArguments, data_args: DatasetArgum
         quantization_config = BitsAndBytesConfig(load_in_8bit=model_args.load_in_8bit)
 
     if model_args.use_unsloth:
-        from unsloth import FastLanguageModel
+        from unsloth import FastVisionModel
 
-        model, _ = FastLanguageModel.from_pretrained(
+        model, _ = FastVisionModel.from_pretrained(
             model_name=model_args.model_name_or_path,
             max_seq_length=data_args.max_seq_length,
             dtype=None,
@@ -89,7 +89,7 @@ def get_unsloth_peft_model(
     training_args: TrainingArguments,
     data_args: DatasetArguments,
 ):
-    from unsloth import FastLanguageModel
+    from unsloth import FastVisionModel
 
     target_modules = (
         peft_args.lora_target_modules[0]
@@ -97,7 +97,7 @@ def get_unsloth_peft_model(
         else peft_args.lora_target_modules
     )
 
-    model = FastLanguageModel.get_peft_model(
+    model = FastVisionModel.get_peft_model(
         model,
         lora_alpha=peft_args.lora_alpha,
         lora_dropout=peft_args.lora_dropout,
