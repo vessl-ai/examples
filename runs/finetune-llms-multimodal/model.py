@@ -90,6 +90,7 @@ def get_unsloth_peft_model(
     data_args: DatasetArguments,
 ):
     from unsloth import FastVisionModel
+    FastVisionModel.for_training(model)
 
     target_modules = (
         peft_args.lora_target_modules[0]

@@ -1,4 +1,4 @@
-from datasets import load_dataset, load_from_disk
+from datasets import load_dataset, load_from_disk, Image
 from datasets.builder import DatasetGenerationError
 
 from arguments import DatasetArguments
@@ -45,15 +45,20 @@ def meltal_health_to_chatml(sample):
 
 
 def radiology_to_chatml(sample):
+    feature = Image()
     return {
         "messages": [
             {"role": "user", 
              "content": [
                  {"type": "text", "text": "You are an expert radiographer. Describe accurately what you see in this image."},
-                 {"type": "image", "image": sample["image"]},
+                 {"type": "image", "image": feature.encode_example(sample["image"])},
              ]
             },
-            {"role": "assistant", "content": sample["caption"]},
+            {"role": "assistant", 
+             "content": [
+                 {"type": "text", "text": sample["caption"]},
+             ]
+            },
         ]
     }
 
