@@ -54,7 +54,6 @@ def main(
         remove_unused_columns=False,
         dataset_kwargs={"skip_prepare_dataset": True},
         dataset_num_proc=4,
-        max_seq_length=2048,
     )
 
     model.config.use_cache = False
