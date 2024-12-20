@@ -36,7 +36,7 @@ def main(
     trainer = SFTTrainer(
         model=model,
         tokenizer=tokenizer,
-        data_collator=UnslothVisionDataCollator,
+        data_collator=UnslothVisionDataCollator(model, tokenizer),
         args=training_args,
         train_dataset=train_dataset,
         eval_dataset=eval_dataset,
