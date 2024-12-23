@@ -92,16 +92,17 @@ def create_dataset(data_args: DatasetArguments):
         dataset = dataset.remove_columns(
             [col for col in column_names if col != "messages"]
         )
-    elif "image" in column_names and set(column_names) >= {"image", "caption"}:
-        dataset = dataset.map(radiology_to_chatml)
-        dataset = dataset.remove_columns(
-            [col for col in column_names if col != "messages"]
-        )
 
     train_dataset = dataset["train"]
     if "val" in dataset.keys():
         eval_dataset = dataset["val"]
+    elif "test" in dataset.keys():
+        eval_dataset = dataset["test"]
     else:
         eval_dataset = None
 
+    if "image" in column_names and set(column_names) >= {"image", "caption"}:
+        train_dataset = [radiology_to_chatml(sample) for sample in train_dataset]
+        eval_dataset = [radiology_to_chatml(sample) for sample in eval_dataset]
+    
     return train_dataset, eval_dataset
