@@ -38,7 +38,7 @@ def load_model_and_tokenizer(model_args: ModelArguments, data_args: DatasetArgum
     if model_args.use_unsloth:
         from unsloth import FastVisionModel
 
-        model, _ = FastVisionModel.from_pretrained(
+        model, tokenizer = FastVisionModel.from_pretrained(
             model_name=model_args.model_name_or_path,
             max_seq_length=data_args.max_seq_length,
             dtype=None,
@@ -54,10 +54,10 @@ def load_model_and_tokenizer(model_args: ModelArguments, data_args: DatasetArgum
             torch_dtype="auto",
         )
 
-    tokenizer = AutoTokenizer.from_pretrained(
-        model_args.model_name_or_path, trust_remote_code=True
-    )
-    tokenizer.pad_token = tokenizer.eos_token
+    # tokenizer = AutoTokenizer.from_pretrained(
+    #     model_args.model_name_or_path, trust_remote_code=True
+    # )
+    # tokenizer.pad_token = tokenizer.eos_token
 
     return model, tokenizer
 
