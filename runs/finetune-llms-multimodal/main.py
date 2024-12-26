@@ -65,7 +65,7 @@ def main(
     trainer.train(resume_from_checkpoint=checkpoint)
 
     if vessl_args.save_merged:
-        model.save_pretrained_merged("merged_model", tokenizer, save_method = "merged_16bit")
+        model.save_pretrained_merged(vessl_args.merged_model_path, tokenizer, save_method = "merged_16bit")
 
 if __name__ == "__main__":
     parser = HfArgumentParser(

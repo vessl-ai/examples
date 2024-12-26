@@ -76,4 +76,5 @@ class DatasetArguments:
 class VesslArguments:
     upload_model: Optional[bool] = field(default=False)
     repository_name: Optional[str] = field(default=None)
-    save_merged : Optional[bool] = field(default=False)
+    save_merged : Optional[bool] = field(default=False),
+    merged_model_path: Optional[str] = field(default=None)
