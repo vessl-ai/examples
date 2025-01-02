@@ -1,7 +1,7 @@
 torch==2.4.0
 datasets==3.1.0
 bitsandbytes==0.45.0
-xformers==0.0.29.post1
+xformers==0.0.27.post2
 huggingface-hub==0.27.0
 unsloth==2024.12.12
 unsloth-zoo==2024.12.7
