@@ -39,7 +39,7 @@ def quantize_and_save_model(args):
     tokenizer = AutoTokenizer.from_pretrained(args.base_model_name, trust_remote_code=True)
 
     # Quantization configuration
-    quant_config = {"zero_point": False, "q_group_size": 128, "w_bit": 4, "version": "Marlin"}
+    quant_config = {"zero_point": True, "q_group_size": 128, "w_bit": 4, "version": "GEMM"}
     model.quantize(tokenizer, quant_config=quant_config)
 
     # Save the quantized model and tokenizer
