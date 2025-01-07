@@ -1,4 +1,4 @@
-name: yolo11-gradio
+name: yolo-gradio
 import:
   /code/:
     git:
@@ -13,7 +13,7 @@ run:
       apt update && apt install -y libgl1
       pip install gradio ultralytics
       python app.py
-    workdir: /code/runs/YOLO11
+    workdir: /code/runs/YOLO11/predict
 ports:
   - name: gradio
     type: http
