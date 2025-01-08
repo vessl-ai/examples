@@ -12,9 +12,11 @@ run:
   - command: |-
       apt update && apt install -y libgl1
       pip install gradio ultralytics
-      python app.py
+      python app.py $MODEL_PATH
     workdir: /code/runs/YOLO11/predict
 ports:
   - name: gradio
     type: http
     port: 7860
+env:
+  MODEL_PATH: yolo11n.pt
