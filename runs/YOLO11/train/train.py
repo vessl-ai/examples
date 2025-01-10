@@ -1,10 +1,31 @@
 import argparse
+import re
 
+import vessl
 from ultralytics import YOLO
+
+
+def vessl_callback(trainer):
+    metrics = trainer.metrics
+    for key in list(metrics.keys()).copy():
+        if key.endswith("(B)"):
+            key_split = re.split("/|\(", key)
+            new_key = f"{key_split[0]}/box_{key_split[1]}"
+            metrics[new_key] = metrics.pop(key)
+        elif key.endswith("(M)"):
+            key_split = re.split("/|\(", key)
+            new_key = f"{key_split[0]}/mask_{key_split[1]}"
+            metrics[new_key] = metrics.pop(key)
+    metrics["fitness"] = trainer.fitness
+    vessl.log(
+        payload=metrics,
+        step=trainer.epoch,
+    )
 
 
 def main(args: argparse.Namespace):
     model = YOLO(args.model)
+    model.add_callback("on_fit_epoch_end", vessl_callback)
     results = model.train(
         data=args.data,
         epochs=args.epochs,
