@@ -1,0 +1,22 @@
+name: yolo-gradio
+import:
+  /code/:
+    git:
+      url: github.com/vessl-ai/examples.git
+      ref: main
+resources:
+  cluster: vessl-gcp-oregon
+  preset: gpu-l4-small-spot
+image: quay.io/vessl-ai/torch:2.3.1-cuda12.1-r5
+run:
+  - command: |-
+      apt update && apt install -y libgl1
+      pip install gradio ultralytics
+      python app.py $MODEL_PATH
+    workdir: /code/runs/YOLO11/predict
+ports:
+  - name: gradio
+    type: http
+    port: 7860
+env:
+  MODEL_PATH: yolo11n.pt
