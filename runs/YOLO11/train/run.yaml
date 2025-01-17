@@ -24,4 +24,4 @@ run:
 env:
   MODEL_PATH: yolo11n.pt
   DATASET_PATH: african-wildlife.yaml
-  RUN_NAME: coco_detect
+  RUN_NAME: african-wildlife
