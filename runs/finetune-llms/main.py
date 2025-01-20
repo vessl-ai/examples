@@ -1,10 +1,5 @@
-from transformers import (
-    HfArgumentParser,
-    TrainingArguments,
-)
-from transformers import AutoModelForCausalLM, AutoTokenizer, Trainer, TrainingArguments, BitsAndBytesConfig, Trainer, pipeline
-from trl import SFTTrainer
-from peft import PeftConfig, PeftModel
+from transformers import HfArgumentParser
+from trl import SFTConfig, SFTTrainer
 from vessl.integration.transformers import VesslCallback
 
 from arguments import DatasetArguments, ModelArguments, PeftArguments, VesslArguments
@@ -16,17 +11,17 @@ def main(
     model_args: ModelArguments,
     peft_args: PeftArguments,
     data_args: DatasetArguments,
-    training_args: TrainingArguments,
+    training_args: SFTConfig,
     vessl_args: VesslArguments,
 ):
-    model, tokenizer = load_model_and_tokenizer(model_args, data_args)
+    model, tokenizer = load_model_and_tokenizer(model_args, training_args)
 
     train_dataset, eval_dataset = create_dataset(data_args)
 
     peft_config = None
     if peft_args.peft_type is not None:
         if model_args.use_unsloth:
-            model = get_unsloth_peft_model(model, peft_args, training_args, data_args)
+            model = get_unsloth_peft_model(model, peft_args, training_args)
         else:
             peft_config = get_peft_config(peft_args)
 
@@ -39,9 +34,6 @@ def main(
         train_dataset=train_dataset,
         eval_dataset=eval_dataset,
         peft_config=peft_config,
-        packing=data_args.packing,
-        dataset_text_field=data_args.dataset_text_field,
-        max_seq_length=data_args.max_seq_length,
         callbacks=[
             VesslCallback(
                 upload_model=vessl_args.upload_model,
@@ -67,7 +59,7 @@ if __name__ == "__main__":
             ModelArguments,
             PeftArguments,
             DatasetArguments,
-            TrainingArguments,
+            SFTConfig,
             VesslArguments,
         )
     )
