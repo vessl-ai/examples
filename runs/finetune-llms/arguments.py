@@ -66,7 +66,6 @@ class PeftArguments:
 @dataclass
 class DatasetArguments:
     dataset_name: str
-    packing: Optional[bool] = field(default=False)
     dataset_text_field: Optional[str] = field(
         default=None, metadata={"help": "Dataset field to use as input text."}
     )

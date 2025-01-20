@@ -39,7 +39,6 @@ def main(
         train_dataset=train_dataset,
         eval_dataset=eval_dataset,
         peft_config=peft_config,
-        packing=data_args.packing,
         dataset_text_field=data_args.dataset_text_field,
         max_seq_length=data_args.max_seq_length,
         callbacks=[
