@@ -111,7 +111,7 @@ def close_app():
 
 def main(args):
     print(f"Loading the model {args.model_id}...")
-    hdlr = LLMChatHandler(args.model_id, args.use_vllm, args.max_model_len, args.tensor_parall_size)
+    hdlr = LLMChatHandler(args.model_id, args.use_vllm, args.max_model_len, args.tensor_parallel_size)
 
     with gr.Blocks(title=f"🤗 Chatbot with {args.model_id}", fill_height=True) as demo:
         with gr.Row():
@@ -138,7 +138,7 @@ if __name__ == "__main__":
     parser.add_argument("--port", default=7860, type=int, help="Port number for the Gradio app.")
     parser.add_argument("--use-vllm", action="store_true", help="Use vLLM instead of HuggingFace AutoModelForCausalLM.")
     parser.add_argument("--max-model-len", type=int, default=0, help="Model context length. If unspecified, will be automatically derived from the model config.")
-    parser.add_argument("--tensor-parallel-size", default=1, type=int, help="Number of tensor parallel replicas.")
+    parser.add_argument("-tp", "--tensor-parallel-size", default=1, type=int, help="Number of tensor parallel replicas.")
     args = parser.parse_args()
 
     main(args)
