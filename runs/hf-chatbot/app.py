@@ -8,7 +8,7 @@ import gradio as gr
 from transformers import AutoTokenizer
 
 class LLMChatHandler():
-    def __init__(self, model_id: str, use_vllm: bool = False, max_model_len=0, tensor_parallel_size=1):
+    def __init__(self, model_id: str, use_vllm: bool = False):
         self.use_vllm = use_vllm
         self.tokenizer = AutoTokenizer.from_pretrained(model_id)
         self.terminators = [
@@ -25,8 +25,6 @@ class LLMChatHandler():
                 trust_remote_code=True,
                 quantization="awq" if "awq" in model_id or "AWQ" in model_id else None,
                 dtype="auto",
-                max_model_len=max_model_len if max_model_len else None,
-                tensor_parallel_size=tensor_parallel_size,
             )
             self.vllm_engine = AsyncLLMEngine.from_engine_args(engine_args)
         else:
@@ -111,7 +109,7 @@ def close_app():
 
 def main(args):
     print(f"Loading the model {args.model_id}...")
-    hdlr = LLMChatHandler(args.model_id, args.use_vllm, args.max_model_len, args.tensor_parall_size)
+    hdlr = LLMChatHandler(args.model_id, args.use_vllm)
 
     with gr.Blocks(title=f"🤗 Chatbot with {args.model_id}", fill_height=True) as demo:
         with gr.Row():
@@ -137,8 +135,7 @@ if __name__ == "__main__":
     parser.add_argument("--model-id", default="casperhansen/llama-3-8b-instruct-awq", help="HuggingFace model name for LLM.")
     parser.add_argument("--port", default=7860, type=int, help="Port number for the Gradio app.")
     parser.add_argument("--use-vllm", action="store_true", help="Use vLLM instead of HuggingFace AutoModelForCausalLM.")
-    parser.add_argument("--max-model-len", type=int, default=0, help="Model context length. If unspecified, will be automatically derived from the model config.")
-    parser.add_argument("--tensor-parallel-size", default=1, type=int, help="Number of tensor parallel replicas.")
+    parser.add_argument("--tensor-parallelism", default=1, type=int, help="Number of tensor parallelism.")
     args = parser.parse_args()
 
     main(args)
