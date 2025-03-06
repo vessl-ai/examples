@@ -1,4 +1,4 @@
-name: nim-test
+name: nvidia-nim-llama-3.1-8b-instruct
 resources:
   cluster: vessl-kr-a100-80g-sxm
   preset: gpu-a100-80g-small
