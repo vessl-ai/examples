@@ -1,0 +1,15 @@
+name: nim-test
+resources:
+  cluster: vessl-kr-a100-80g-sxm
+  preset: gpu-a100-80g-small
+image:
+  url: nvcr.io/nim/meta/llama-3.1-8b-instruct:latest
+  credential_name: ngc-credential
+run: /opt/nvidia/nvidia_entrypoint.sh /opt/nim/start-server.sh
+ports:
+  - name: openai
+    type: http
+    port: 8000
+env:
+  NGC_API_KEY:
+    secret: ngc-api-key
