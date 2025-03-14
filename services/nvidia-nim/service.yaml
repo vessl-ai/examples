@@ -1,0 +1,24 @@
+resources:
+  cluster: vessl-oci-sanjose
+  preset: gpu-a10-small
+image:
+  url: nvcr.io/nim/meta/llama-3.1-8b-instruct:latest
+  credential_name: ngc-credential
+run: /opt/nvidia/nvidia_entrypoint.sh /opt/nim/start-server.sh
+ports:
+  - name: openai
+    type: http
+    port: 8000
+service:
+  expose: "8000"
+  autoscaling:
+    min: 1
+    max: 2
+    metric: cpu
+    target: 50
+  monitoring:
+    - port: "8000"
+      path: /v1/metrics
+env:
+  NGC_API_KEY:
+    secret: ngc-api-key
