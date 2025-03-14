@@ -1,5 +1,5 @@
 ## NVIDIA NIM
-This repository contains a VESSL RUN Template to run Meta's `Llama-3.1-8B-Instruct` model with self-hosted NVIDIA NIM.
+This repository contains a VESSL Service Template to deploy Meta's `Llama-3.1-8B-Instruct` model with self-hosted NVIDIA NIM.
 
 ### Instruction
 1. Generate an NGC API key if you don't have one. Please refer to the [NVIDIA Documentation](https://docs.nvidia.com/ngc/gpu-cloud/ngc-user-guide/index.html#generating-personal-api-key) for the detailed guide.
@@ -19,21 +19,15 @@ This repository contains a VESSL RUN Template to run Meta's `Llama-3.1-8B-Instru
     $ vessl configure
     ```
 
-5. (Optional) Create a new project (replace `${PROJECT_NAME}` with the project name):
-    ```bash
-    $ vessl project create ${PROJECT_NAME}
-    $ vessl configure -p ${PROJECT_NAME}
-    ```
-
-6. Clone the repository:
+5. Clone the repository:
     ```bash
     $ git clone https://github.com/vessl-ai/examples.git
     $ cd examples/runs/nvidia-nim
     ```
 
-7. Deploy the application with the provided YAML file ([`run.yaml`](./run.yaml)):
+6. Create a new Service revision with the provided YAML file ([`service.yaml`](./service.yaml)):
     ```bash
-    $ vessl run create -f run.yaml
+    $ vessl service create -f service.yaml
     ```
 
 For additional information and support, please refer to the [VESSL documentation](https://docs.vessl.ai).
