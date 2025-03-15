@@ -1,0 +1,22 @@
+name: nemo-curator-math-synthetic-data-generator
+import:
+  /code/:
+    git:
+      url: github.com/vessl-ai/examples.git
+      ref: main
+export:
+  /output/: volume://vessl-storage
+resources:
+  cluster: vessl-kr-a100-80g-sxm
+  preset: cpu-medium
+image: quay.io/vessl-ai/python:3.11-r13
+run:
+  - |-
+    apt update && apt install -y libgl1
+    pip install --extra-index-url https://pypi.nvidia.com "nemo-curator[all]"
+  - command: python main.py --endpoint $LLM_ENDPOINT --model $MODEL_NAME --topics 3 --subtopics 3 --questions 5 --output /output/math_questions.jsonl
+    workdir: /code/runs/nvidia-nemo-curator
+env:
+  LLM_ENDPOINT: https://api.openai.com
+  MODEL_NAME: gpt-4o-mini
+  OPENAI_API_KEY: abc123
