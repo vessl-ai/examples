@@ -28,6 +28,7 @@ def main():
         model_name=args.base_model_name,
         max_seq_length=args.max_seq_length,  # Maximum sequence length
         load_in_4bit=True,
+        fix_tokenizer=False,
     )
 
     model = FastLanguageModel.get_peft_model(
