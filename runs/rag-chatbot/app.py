@@ -242,7 +242,7 @@ def main(args: argparse.Namespace):
                     with gr.Row():
                         uploader = gr.Files(
                             file_count="multiple",
-                            file_types=["pdf"],
+                            file_types=[".pdf"],
                             interactive=True,
                             label="Upload your PDF documents here")
                     with gr.Row():
