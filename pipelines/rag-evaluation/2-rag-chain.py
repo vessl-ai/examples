@@ -199,7 +199,7 @@ def main(args: argparse.Namespace):
     print(f"Saved RAG results to {dataset_path}.")
 
 
-if __name__ == "main":
+if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--chroma-path", type=str, default="/chroma")
     parser.add_argument("--collection-name", type=str, default="fever-wiki-pages")
