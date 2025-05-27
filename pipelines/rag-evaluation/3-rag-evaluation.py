@@ -4,8 +4,8 @@ import os
 import torch
 
 from datasets import load_from_disk
-from langchain_huggingface.embeddings.huggingface import HuggingFaceEmbeddings
-from langchain_openai import ChatOpenAI
+from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_community.llms import VLLM
 from ragas import evaluate
 from ragas.metrics import (
     faithfulness, 
@@ -19,14 +19,10 @@ from ragas.metrics import (
 def main(args: argparse.Namespace):
 
     # initialize evaluation models
-    print("evaluation endpoint:", args.evaluation_endpoint)
-    base_url = os.path.join(args.evaluation_endpoint, "v1")
-    evaluation_model = ChatOpenAI(
-        base_url=base_url,
-        model=evaluation_model,
+    evaluation_model = VLLM(
+        model=args.evaluation_model,
         temperature=0.0,
-        max_tokens=4096,
-        streaming=True,
+        max_model_len=4096,
     )
     evaluation_embeddings = HuggingFaceEmbeddings(
         model_name=args.embedding_model,
@@ -60,7 +56,6 @@ def main(args: argparse.Namespace):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--evaluation-endpoint", type=str, default="https://api.openai.com")
     parser.add_argument("--evaluation-model", type=str, default="gpt-4o")
     parser.add_argument("--embedding-model", type=str, default="BAAI/bge-m3")
     args = parser.parse_args()

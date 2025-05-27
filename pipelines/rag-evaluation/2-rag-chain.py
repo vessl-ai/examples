@@ -7,11 +7,11 @@ import torch
 
 from datasets import Dataset
 from langchain_chroma import Chroma
-from langchain_huggingface.embeddings.huggingface import HuggingFaceEmbeddings
+from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.prompts import PromptTemplate
-from langchain_openai import ChatOpenAI
+from langchain_community.llms import VLLM
 
 
 def format_docs(docs):
@@ -45,7 +45,7 @@ def load_dataset_and_initialize_chroma(chroma_path, collection_name, embedding_m
     return vector_store, claims
 
 
-def initialize_rag_chain(vector_store, rag_pattern, llm_endpoint, llm_model, reranker_model):
+def initialize_rag_chain(vector_store, rag_pattern, llm_model, reranking_model):
     prompt = PromptTemplate.from_template(
         "As an AI assistant, you are assigned to perform verification tasks. Utilize the provided retrieved context to formulate your answer whether the given claim is true or false. If the context doesn't contain sufficient information for a direct or comprehensive response, clarify that the given context didn't offer enough information to provide a fully accurate response.\n"
         "Presented Claim: {question}\n"
@@ -54,14 +54,9 @@ def initialize_rag_chain(vector_store, rag_pattern, llm_endpoint, llm_model, rer
 
     retriever = vector_store.as_retriever()
 
-    print("LLM endpoint:", llm_endpoint)
-    base_url = os.path.join(llm_endpoint, "v1")
-    llm = ChatOpenAI(
-        base_url=base_url,
+    llm = VLLM(
         model=llm_model,
-        temperature=0,
-        max_tokens=4096,
-        streaming=True,
+        max_model_len=32768,
     )
 
     rag_chain_from_docs = (
@@ -83,12 +78,9 @@ def initialize_rag_chain(vector_store, rag_pattern, llm_endpoint, llm_model, rer
                 "Passage:"
             )
 
-            hyde_llm = ChatOpenAI(
-                base_url=base_url,
+            hyde_llm = VLLM(
                 model=llm_model,
-                temperature=0,
-                max_tokens=4096,
-                streaming=True,
+                max_model_len=4096,
             )
 
             hyde_chain = (
@@ -110,7 +102,7 @@ def initialize_rag_chain(vector_store, rag_pattern, llm_endpoint, llm_model, rer
             )
 
             encoder = HuggingFaceCrossEncoder(
-                model_name=reranker_model,
+                model_name=reranking_model,
                 model_kwargs={
                     "device": "cuda:1" if torch.cuda.is_available() else "cpu",
                     "trust_remote_code": True,
@@ -133,7 +125,7 @@ def initialize_rag_chain(vector_store, rag_pattern, llm_endpoint, llm_model, rer
             )
 
             encoder = HuggingFaceCrossEncoder(
-                model_name=reranker_model,
+                model_name=reranking_model,
                 model_kwargs={
                     "device": "cuda:1" if torch.cuda.is_available() else "cpu",
                     "trust_remote_code": True,
@@ -150,12 +142,9 @@ def initialize_rag_chain(vector_store, rag_pattern, llm_endpoint, llm_model, rer
                 "Passage:"
             )
 
-            hyde_llm = ChatOpenAI(
-                base_url=base_url,
+            hyde_llm = VLLM(
                 model=llm_model,
-                temperature=0,
-                max_tokens=4096,
-                streaming=True,
+                max_model_len=4096,
             )
 
             hyde_chain = (
@@ -201,7 +190,7 @@ def rag_chain_batch(rag_chain, claims, rag_pattern):
     
 def main(args: argparse.Namespace):
     vector_store, claims = load_dataset_and_initialize_chroma(args.chroma_path, args.collection_name, args.embedding_model, args.data_path)
-    rag_chain = initialize_rag_chain(vector_store, args.rag_pattern, args.llm_endpoint, args.llm_model, args.reranker_model)
+    rag_chain = initialize_rag_chain(vector_store, args.rag_pattern, args.llm_model, args.reranking_model)
     rag_results = rag_chain_batch(rag_chain, claims, args.rag_pattern)
 
     dataset_path = os.path.join(args.output_path, f"dataset-{args.rag_pattern}")
@@ -216,7 +205,6 @@ if __name__ == "main":
     parser.add_argument("--collection-name", type=str, default="fever-wiki-pages")
     parser.add_argument("--embedding-model", type=str, default="BAAI/bge-m3")
     parser.add_argument("--data-path", type=str, default="/data")
-    parser.add_argument("--llm-endpoint", type=str, default="https://api.openai.com")
     parser.add_argument("--llm-model", type=str, default="gpt-4o")
     parser.add_argument("--rag-pattern", type=str)
     parser.add_argument("--reranking-model", type=str, default="BAAI/bge-reranker-v2-m3")

@@ -9,7 +9,7 @@ from datasets import load_dataset
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_chroma import Chroma
 from langchain_core.documents import Document
-from langchain_community.embeddings.huggingface import HuggingFaceBgeEmbeddings
+from langchain_huggingface import HuggingFaceEmbeddings
 
 
 def main(args: argparse.Namespace):
@@ -20,7 +20,7 @@ def main(args: argparse.Namespace):
     vector_store = Chroma(
         client=client,
         collection_name=args.collection_name,
-        embedding_function=HuggingFaceBgeEmbeddings(
+        embedding_function=HuggingFaceEmbeddings(
             model_name=args.embedding_model,
             model_kwargs={
                 "device": "cuda" if torch.cuda.is_available() else "cpu",
