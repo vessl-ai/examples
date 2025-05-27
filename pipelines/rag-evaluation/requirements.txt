@@ -1,0 +1,8 @@
+datasets
+langchain
+langchain-chroma
+langchain-community
+langchain-huggingface
+langchain-openai
+ragas
+vllm
