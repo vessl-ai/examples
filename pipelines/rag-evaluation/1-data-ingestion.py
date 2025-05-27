@@ -51,7 +51,7 @@ def main(args: argparse.Namespace):
     text_chunks = text_splitter.split_documents(docs)
     print(f"Adding {len(text_chunks)} documents to Chroma...")
 
-    batch_size = 40000
+    batch_size = 5000
     for i in range(0, len(text_chunks), batch_size):
         print(f"Adding documents #{i} ~ #{i + batch_size}...")
         vector_store.add_documents(text_chunks[i:i + batch_size])
