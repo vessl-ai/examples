@@ -21,8 +21,11 @@ def main(args: argparse.Namespace):
     # initialize evaluation models
     evaluation_model = VLLM(
         model=args.evaluation_model,
+        vllm_kwargs={
+            "gpu_memory_utilization": 0.8,
+            "max_model_len": 4096,
+        },
         temperature=0.0,
-        max_model_len=4096,
     )
     evaluation_embeddings = HuggingFaceEmbeddings(
         model_name=args.embedding_model,

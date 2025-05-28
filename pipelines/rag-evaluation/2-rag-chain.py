@@ -29,7 +29,7 @@ def load_dataset_and_initialize_chroma(chroma_path, collection_name, embedding_m
         embedding_function=HuggingFaceEmbeddings(
             model_name=embedding_model,
             model_kwargs={
-                "device": "cuda:0" if torch.cuda.is_available() else "cpu",
+                "device": "cuda" if torch.cuda.is_available() else "cpu",
                 "trust_remote_code": True,
             },
         ),
@@ -56,7 +56,10 @@ def initialize_rag_chain(vector_store, rag_pattern, llm_model, reranking_model):
 
     llm = VLLM(
         model=llm_model,
-        max_model_len=32768,
+        vllm_kwargs={
+            "gpu_memory_utilization": 0.8,
+            "max_model_len": 32768,
+        },
     )
 
     rag_chain_from_docs = (
@@ -78,15 +81,10 @@ def initialize_rag_chain(vector_store, rag_pattern, llm_model, reranking_model):
                 "Passage:"
             )
 
-            hyde_llm = VLLM(
-                model=llm_model,
-                max_model_len=4096,
-            )
-
             hyde_chain = (
                 {"question": RunnablePassthrough()}
                 | hyde_prompt
-                | hyde_llm
+                | llm
                 | StrOutputParser()
             )
 
@@ -98,13 +96,13 @@ def initialize_rag_chain(vector_store, rag_pattern, llm_model, reranking_model):
             from langchain_community.cross_encoders import HuggingFaceCrossEncoder
 
             retriever = vector_store.as_retriever(
-                search_kwargs={"k": 5},
+                search_kwargs={"k": 10},
             )
 
             encoder = HuggingFaceCrossEncoder(
                 model_name=reranking_model,
                 model_kwargs={
-                    "device": "cuda:1" if torch.cuda.is_available() else "cpu",
+                    "device": "cuda" if torch.cuda.is_available() else "cpu",
                     "trust_remote_code": True,
                 },
             )
@@ -121,13 +119,13 @@ def initialize_rag_chain(vector_store, rag_pattern, llm_model, reranking_model):
             from langchain_community.cross_encoders import HuggingFaceCrossEncoder
 
             retriever = vector_store.as_retriever(
-                search_kwargs={"k": 5},
+                search_kwargs={"k": 10},
             )
 
             encoder = HuggingFaceCrossEncoder(
                 model_name=reranking_model,
                 model_kwargs={
-                    "device": "cuda:1" if torch.cuda.is_available() else "cpu",
+                    "device": "cuda" if torch.cuda.is_available() else "cpu",
                     "trust_remote_code": True,
                 },
             )
@@ -142,15 +140,10 @@ def initialize_rag_chain(vector_store, rag_pattern, llm_model, reranking_model):
                 "Passage:"
             )
 
-            hyde_llm = VLLM(
-                model=llm_model,
-                max_model_len=4096,
-            )
-
             hyde_chain = (
                 {"question": RunnablePassthrough()}
                 | hyde_prompt
-                | hyde_llm
+                | llm
                 | StrOutputParser()
             )
 
@@ -166,16 +159,11 @@ def initialize_rag_chain(vector_store, rag_pattern, llm_model, reranking_model):
     return rag_chain
 
 
-def rag_chain_batch(rag_chain, claims, rag_pattern):
+def rag_chain_batch(rag_chain, claims):
     inputs = [{"question": c["claim"]} for c in claims]
 
     print("Getting RAG results...")
-    if rag_pattern in ["naive", "hyde"]:
-        rag_results = rag_chain.batch(inputs)
-    else:  # rag_chain.batch() raises an error for reranking patterns
-        rag_results = [
-            rag_chain.invoke(ip) for ip in inputs
-        ]
+    rag_results = rag_chain.batch(inputs)
 
     # save RAG results
     dataset = Dataset.from_dict({
@@ -191,7 +179,7 @@ def rag_chain_batch(rag_chain, claims, rag_pattern):
 def main(args: argparse.Namespace):
     vector_store, claims = load_dataset_and_initialize_chroma(args.chroma_path, args.collection_name, args.embedding_model, args.data_path)
     rag_chain = initialize_rag_chain(vector_store, args.rag_pattern, args.llm_model, args.reranking_model)
-    rag_results = rag_chain_batch(rag_chain, claims, args.rag_pattern)
+    rag_results = rag_chain_batch(rag_chain, claims)
 
     dataset_path = os.path.join(args.output_path, f"dataset-{args.rag_pattern}")
     os.makedirs(args.output_path, exist_ok=True)
