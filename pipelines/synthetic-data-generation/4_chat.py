@@ -45,7 +45,6 @@ class LLMChatHandler:
         self.llm = VLLM(
             model=llm_model,
             vllm_kwargs={
-                "device"
                 "max_model_len": 16384,
             },
         )
