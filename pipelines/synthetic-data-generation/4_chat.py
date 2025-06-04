@@ -60,7 +60,16 @@ class LLMChatHandler:
         self.rag_chain = RunnablePassthrough.assign(context=self.retrieve_docs).assign(answer=self.chain_from_docs)
 
     def rag_query(self, message: str, history: List[List[str]]) -> str:
-        return self.rag_chain.invoke({"question": message})
+        full_response = ""
+        try:
+            for response in self.rag_chain.stream(message):
+                if "answer" in response:
+                    full_response += response["answer"]
+                yield full_response
+        except Exception as e:
+            gr.Warning(f"Error while generating message:\n{e}")
+        return full_response
+        # return self.rag_chain.invoke({"question": message})
         
     def close_app(self):
         gr.Info("Terminated the app!")
