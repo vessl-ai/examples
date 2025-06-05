@@ -81,7 +81,7 @@ def main(args):
     ) as demo:
         with gr.Row():
             gr.Markdown(
-                f"<h2>Chatbot with ❄️ Cortex and {args.llm_model}</h2>"
+                f"<h2>Chatbot with {args.llm_model}</h2>"
                 "<h3>Interact with LLM using chat interface!<br></h3>"
             )
         gr.ChatInterface(handler.rag_query)
