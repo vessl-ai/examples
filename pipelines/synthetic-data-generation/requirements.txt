@@ -1,0 +1,6 @@
+vllm
+langchain
+langchain-community
+langchain-huggingface
+langchain-chroma
+chromadb
