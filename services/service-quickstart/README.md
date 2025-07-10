@@ -1,6 +1,6 @@
 # 1-minute guide to VESSL Service
 
-This is a 1-minute quickstart for deploying Llama 3.1 with VESSL Service. Here, you will set up a text generation API using vLLM acceleration.
+This is a 1-minute quickstart for deploying Phi-4-mini-reasoning with VESSL Service. Here, you will set up a text generation API using vLLM acceleration.
 
 ## What's included
 * `quickstart.yaml` - A YAML configuration that specifies the service details such as computing resources, autoscaling options, and port settings for your API server.
@@ -8,7 +8,7 @@ This is a 1-minute quickstart for deploying Llama 3.1 with VESSL Service. Here, 
 
 ## Launch the app
 
-Deploy your service with VESSL Service with a single command. This will create a first revision of your production Llama 3.1.
+Deploy your service with VESSL Service with a single command. This will create a first revision of your production Phi-4-mini-reasoning.
 ```
 vessl service create -f quickstart.yaml
 ```
@@ -73,7 +73,7 @@ wget https://huggingface.co/datasets/anon8231489123/ShareGPT_Vicuna_unfiltered/r
 python vllm/benchmarks/benchmark_serving.py \
   --backend vllm \
   --base-url ${API_ENDPOINT_URL} \
-  --model hugging-quants/Meta-Llama-3.1-8B-Instruct-AWQ-INT4 \
+  --model microsoft/Phi-4-mini-reasoning \
   --request-rate 3 \
   --dataset-path ShareGPT_V3_unfiltered_cleaned_split.json 
 ```

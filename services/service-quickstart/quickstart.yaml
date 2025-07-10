@@ -1,16 +1,14 @@
-name: vllm-llama-3-1-server
-message: Quickstart to serve Llama 3.1 model with vllm.
+message: Quickstart to serve Phi-4-mini-reasoning model with vllm.
 image: quay.io/vessl-ai/torch:2.3.1-cuda12.1-r5
 resources:
-  cluster: vessl-gcp-oregon
-  preset: gpu-l4-small-spot
-run:
-- command: |
-    apt update && apt install -y libgl1
-    pip install --upgrade vllm fastapi pydantic
-    vllm serve $MODEL_NAME --max-model-len 65536
+  cluster: vessl-oci-sanjose
+  preset: gpu-a10-small
+run: |-
+  apt update && apt install -y libgl1
+  pip install --upgrade vllm accelerate https://github.com/Dao-AILab/flash-attention/releases/download/v2.8.1/flash_attn-2.8.1+cu12torch2.7cxx11abiTRUE-cp310-cp310-linux_x86_64.whl --no-build-isolation
+  vllm serve $MODEL_NAME --max-model-len 32768
 env:
-  MODEL_NAME: hugging-quants/Meta-Llama-3.1-8B-Instruct-AWQ-INT4
+  MODEL_NAME: microsoft/Phi-4-mini-reasoning
 ports:
 - port: 8000
 service:
