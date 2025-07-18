@@ -7,4 +7,5 @@ datasets>=2.14.0
 Pillow>=10.0.0
 tqdm>=4.65.0
 protobuf>=5.27.3
-sentencepiece>=0.2.0 
+sentencepiece>=0.2.0
+bitsandbytes>=0.46.1
