@@ -7,8 +7,8 @@ import:
 export:
   /output/: volume://vessl-storage
 resources:
-  cluster: vessl-oci-sanjose
-  preset: gpu-a10-small
+  cluster: vessl-kr-a100-80g-sxm
+  preset: gpu-a100-80g-small
 image: quay.io/vessl-ai/torch:2.3.1-cuda12.1-r5
 run:
   - command: |-
