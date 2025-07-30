@@ -40,7 +40,7 @@ def load_model_and_tokenizer(model_args: ModelArguments, training_args: SFTConfi
 
         model, _ = FastLanguageModel.from_pretrained(
             model_name=model_args.model_name_or_path,
-            max_seq_length=training_args.max_seq_length,
+            max_seq_length=training_args.max_length,
             dtype=None,
             load_in_4bit=model_args.load_in_4bit,
         )
@@ -103,7 +103,7 @@ def get_unsloth_peft_model(
         r=peft_args.lora_r,
         target_modules=target_modules,
         use_gradient_checkpointing=training_args.gradient_checkpointing,
-        max_seq_length=training_args.max_seq_length,
+        max_seq_length=training_args.max_length,
     )
 
     return model
