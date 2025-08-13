@@ -76,7 +76,7 @@ def create_demo():
                 with gr.Accordion("Advanced Options", open=False):
                     width = gr.Slider(128, 8192, 1360, step=16, label="Width")
                     height = gr.Slider(128, 8192, 768, step=16, label="Height")
-                    num_steps = gr.Slider(1, 50, 4, step=1, label="Number of steps")
+                    num_steps = gr.Slider(1, 100, 50, step=1, label="Number of steps")
                     seed = gr.Textbox(-1, label="Seed (-1 for random)")
 
                 generate_btn = gr.Button("Generate")
