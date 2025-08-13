@@ -1,0 +1,23 @@
+name: qwen-image
+description: a sample Qwen-Image app with gradio
+tags:
+  - text-to-image
+  - diffusion
+import:
+  /code/:
+    git:
+      url: github.com/vessl-ai/examples.git
+      ref: main
+resources:
+  cluster: vessl-kr-a100-80g-sxm
+  preset: gpu-a100-80g-small
+image: quay.io/vessl-ai/cuda:12.4-r4
+run:
+  - command: |-
+      pip install --upgrade accelerate gradio protobuf sentencepiece torch torchvision transformers git+https://github.com/huggingface/diffusers
+      python app.py
+    workdir: /code/runs/qwen-image
+ports:
+  - name: gradio
+    type: http
+    port: 7860
