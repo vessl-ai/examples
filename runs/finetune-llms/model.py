@@ -21,17 +21,37 @@ def set_attn():
 
 def load_model_and_tokenizer(model_args: ModelArguments, training_args: SFTConfig):
     quantization_config = None
+    
+    # Check if we're loading GPT-OSS model
+    is_gpt_oss = "gpt-oss" in model_args.model_name_or_path.lower()
 
     if model_args.load_in_4bit:
-        compute_dtype = getattr(torch, model_args.bnb_4bit_compute_dtype)
-        store_dtype = getattr(torch, model_args.bnb_4bit_quant_storage)
-        quantization_config = BitsAndBytesConfig(
-            load_in_4bit=model_args.load_in_4bit,
-            bnb_4bit_quant_type=model_args.bnb_4bit_quant_type,
-            bnb_4bit_compute_dtype=compute_dtype,
-            bnb_4bit_use_double_quant=model_args.bnb_4bit_use_double_quant,
-            bnb_4bit_quant_storage=store_dtype,
-        )
+        if is_gpt_oss:
+            # GPT-OSS uses MXFP4 quantization
+            try:
+                from transformers import Mxfp4Config
+                quantization_config = Mxfp4Config(dequantize=True)
+            except ImportError:
+                # Fallback to regular 4bit quantization if MXFP4 not available
+                compute_dtype = getattr(torch, model_args.bnb_4bit_compute_dtype)
+                store_dtype = getattr(torch, model_args.bnb_4bit_quant_storage)
+                quantization_config = BitsAndBytesConfig(
+                    load_in_4bit=model_args.load_in_4bit,
+                    bnb_4bit_quant_type=model_args.bnb_4bit_quant_type,
+                    bnb_4bit_compute_dtype=compute_dtype,
+                    bnb_4bit_use_double_quant=model_args.bnb_4bit_use_double_quant,
+                    bnb_4bit_quant_storage=store_dtype,
+                )
+        else:
+            compute_dtype = getattr(torch, model_args.bnb_4bit_compute_dtype)
+            store_dtype = getattr(torch, model_args.bnb_4bit_quant_storage)
+            quantization_config = BitsAndBytesConfig(
+                load_in_4bit=model_args.load_in_4bit,
+                bnb_4bit_quant_type=model_args.bnb_4bit_quant_type,
+                bnb_4bit_compute_dtype=compute_dtype,
+                bnb_4bit_use_double_quant=model_args.bnb_4bit_use_double_quant,
+                bnb_4bit_quant_storage=store_dtype,
+            )
     elif model_args.load_in_8bit:
         quantization_config = BitsAndBytesConfig(load_in_8bit=model_args.load_in_8bit)
 
@@ -45,13 +65,28 @@ def load_model_and_tokenizer(model_args: ModelArguments, training_args: SFTConfi
             load_in_4bit=model_args.load_in_4bit,
         )
     else:
+        # Special handling for GPT-OSS models
+        if is_gpt_oss:
+            model_kwargs = {
+                "quantization_config": quantization_config,
+                "trust_remote_code": True,
+                "attn_implementation": "eager",  # GPT-OSS requires eager attention
+                "device_map": "auto",
+                "torch_dtype": torch.bfloat16,  # GPT-OSS works best with bfloat16
+                "use_cache": False,
+            }
+        else:
+            model_kwargs = {
+                "quantization_config": quantization_config,
+                "trust_remote_code": True,
+                "attn_implementation": set_attn(),
+                "device_map": "auto",
+                "torch_dtype": "auto",
+            }
+        
         model = AutoModelForCausalLM.from_pretrained(
             model_args.model_name_or_path,
-            quantization_config=quantization_config,
-            trust_remote_code=True,
-            attn_implementation=set_attn(),
-            device_map="auto",
-            torch_dtype="auto",
+            **model_kwargs
         )
 
     tokenizer = AutoTokenizer.from_pretrained(
@@ -62,7 +97,7 @@ def load_model_and_tokenizer(model_args: ModelArguments, training_args: SFTConfi
     return model, tokenizer
 
 
-def get_peft_config(peft_args: PeftArguments):
+def get_peft_config(peft_args: PeftArguments, model_name: str = None):
     from peft import LoraConfig
 
     target_modules = (

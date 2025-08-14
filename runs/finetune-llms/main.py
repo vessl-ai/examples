@@ -23,7 +23,7 @@ def main(
         if model_args.use_unsloth:
             model = get_unsloth_peft_model(model, peft_args, training_args)
         else:
-            peft_config = get_peft_config(peft_args)
+            peft_config = get_peft_config(peft_args, model_args.model_name_or_path)
 
     training_args.gradient_checkpointing_kwargs = {"use_reentrant": False}
 
