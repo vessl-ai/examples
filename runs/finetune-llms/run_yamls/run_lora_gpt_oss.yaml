@@ -17,11 +17,11 @@ run:
   - command: |-
       pip install -r requirements.txt
       pip install triton>=3.4.0
-      python main.py \
+      python -u main.py \
       --model_name_or_path $MODEL_NAME \
       --dataset_name $DATASET_NAME \
       --output_dir gpt-oss-20b-multilingual-reasoner \
-      --max_seq_length 2048 \
+      --max_length 2048 \
       --num_train_epochs 1 \
       --logging_steps 1 \
       --bf16 True \
@@ -43,10 +43,12 @@ run:
       --bnb_4bit_quant_type nf4 \
       --upload_model True \
       --repository_name $REPOSITORY_NAME \
-    workdir: /root/code/finetune-llms
+    workdir: /root/code/runs/finetune-llms
 env:
   HF_TOKEN:
     secret: HF_TOKEN
   MODEL_NAME: openai/gpt-oss-20b  # Change to openai/gpt-oss-120b for 120B model training
   DATASET_NAME: HuggingFaceH4/Multilingual-Thinking
   REPOSITORY_NAME: gpt-oss-20b-multilingual-reasoner
+  TOKENIZERS_PARALLELISM: "false"
+  PYTORCH_CUDA_ALLOC_CONF: "expandable_segments:True"

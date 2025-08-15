@@ -1,0 +1,29 @@
+# GptOssForCausalLM does not support LoRA as of 2025-08-14; Keep this for future reference
+
+name: serve-gpt-oss-lora
+description: Serve fine-tuned GPT-OSS model with LoRA adapter using vLLM
+tags:
+  - serve
+  - gpt-oss
+  - lora
+  - vllm
+import:
+  /lora_adapter/: vessl-model://{YOUR_ORGANIZATION}/gpt-oss-20b-multilingual-reasoner/1
+resources:
+  cluster: vessl-eu-h100-80g-sxm
+  preset: gpu-h100-80g-small
+image: vllm/vllm-openai:gptoss
+run:
+  - command: |-
+      vllm serve openai/gpt-oss-20b \
+        --enable-lora \
+        --lora-modules gpt-oss-fine-tuned=/lora_adapter \
+        --max-model-len 65536 \
+        --disable-frontend-multiprocessing \
+        --host 0.0.0.0 \
+        --port 8000
+    workdir: /
+ports:
+  - name: vllm
+    type: http
+    port: 8000

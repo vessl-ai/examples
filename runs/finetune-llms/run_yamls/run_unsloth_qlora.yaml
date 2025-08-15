@@ -39,7 +39,7 @@ run:
       --upload_model True \
       --repository_name $REPOSITORY_NAME \
       --use_unsloth True
-    workdir: /root/code/finetune-llms
+    workdir: /root/code/runs/finetune-llms
 env:
   HF_TOKEN:
     secret: HF_TOKEN

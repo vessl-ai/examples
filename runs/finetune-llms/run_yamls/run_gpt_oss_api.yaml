@@ -1,0 +1,29 @@
+name: serve-gpt-oss-merged-api
+description: Serve merged GPT-OSS model with vLLM API
+tags:
+  - serve
+  - gpt-oss
+  - api
+  - vllm
+import:
+  /model/: vessl-model://{YOUR_ORGANIZATION}/gpt-oss-20b-multilingual-reasoner-merged/1
+resources:
+  cluster: vessl-eu-h100-80g-sxm
+  preset: gpu-h100-80g-small
+image: vllm/vllm-openai:gptoss
+run:
+  - command: |-
+      vllm serve /model \
+        --max-model-len 65536 \
+        --disable-frontend-multiprocessing \
+        --host 0.0.0.0 \
+        --port 8000 \
+        --served-model-name gpt-oss-20b-multilingual-reasoner
+    workdir: /
+ports:
+  - name: vllm-api
+    type: http
+    port: 8000
+env:
+  HF_TOKEN:
+    secret: HF_TOKEN

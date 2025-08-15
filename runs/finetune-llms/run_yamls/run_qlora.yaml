@@ -36,7 +36,7 @@ run:
       --bnb_4bit_use_double_quant True \
       --upload_model True \
       --repository_name $REPOSITORY_NAME
-    workdir: /root/code/finetune-llms
+    workdir: /root/code/runs/finetune-llms
 env:
   HF_TOKEN:
     secret: HF_TOKEN
