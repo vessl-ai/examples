@@ -10,7 +10,7 @@ import:
   /root/code:
     git:
       url: https://github.com/vessl-ai/examples.git
-      ref: gpt-oss-ft
+      ref: main
   /lora_adapter/: vessl-model://demo2025/gpt-oss-20b-multilingual-reasoner/1
 resources:
   cluster: vessl-oci-sanjose

@@ -71,7 +71,7 @@ def stream_chat_response(model, tokenizer, input_ids, gen_kwargs, model_name) ->
         skip_special_tokens=True
     )
     gen_kwargs["streamer"] = streamer
-    
+
     # Ensure proper EOS handling for streaming
     if "eos_token_id" not in gen_kwargs:
         gen_kwargs["eos_token_id"] = tokenizer.eos_token_id
@@ -87,8 +87,15 @@ def stream_chat_response(model, tokenizer, input_ids, gen_kwargs, model_name) ->
 
     # Send each token as it's generated
     total_tokens = 0
+    max_tokens = gen_kwargs.get("max_new_tokens", 2048)
+
     for new_text in streamer:
         total_tokens += 1
+
+        # Force stop if we exceed max tokens
+        if total_tokens >= max_tokens:
+            break
+
         chunk = {
             "id": response_id,
             "object": "chat.completion.chunk",
@@ -169,7 +176,7 @@ def create_app(model, tokenizer):
                 return_tensors="pt",
             ).to(model.device)
 
-            # Generation parameters
+            # Generation parameters with penalties to prevent infinite generation
             gen_kwargs = {
                 "max_new_tokens": request.max_tokens,
                 "do_sample": True,
@@ -179,6 +186,9 @@ def create_app(model, tokenizer):
                 "pad_token_id": tokenizer.eos_token_id,
                 "eos_token_id": tokenizer.eos_token_id,
                 "early_stopping": True,
+                "length_penalty": 1.2,  # Encourage shorter responses
+                "repetition_penalty": 1.1,  # Reduce repetition
+                "no_repeat_ngram_size": 3,  # Prevent 3-gram repetition
             }
 
             # Handle streaming vs non-streaming
