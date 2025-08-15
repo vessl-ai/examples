@@ -3,12 +3,16 @@
 
 import argparse
 import json
-from typing import List, Dict, Any
+import time
+from typing import List, Dict, Any, Optional, Iterator
 import uvicorn
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from transformers import AutoModelForCausalLM, AutoTokenizer, TextIteratorStreamer
 from peft import PeftModel
+import torch
+import threading
 
 
 class ChatMessage(BaseModel):
@@ -23,6 +27,7 @@ class ChatRequest(BaseModel):
     temperature: float = 0.6
     top_p: float = None
     top_k: int = None
+    stream: bool = False
 
 
 class ChatResponse(BaseModel):
@@ -56,6 +61,70 @@ def load_gpt_oss_model(base_model_name: str, lora_adapter_path: str = None):
     return model, tokenizer
 
 
+def stream_chat_response(model, tokenizer, input_ids, gen_kwargs, model_name) -> Iterator[str]:
+    """Stream chat response using TextIteratorStreamer."""
+    # Setup streaming
+    streamer = TextIteratorStreamer(
+        tokenizer,
+        timeout=10.0,
+        skip_prompt=True,
+        skip_special_tokens=True
+    )
+    gen_kwargs["streamer"] = streamer
+
+    # Start generation in a separate thread
+    thread = threading.Thread(target=model.generate, args=(input_ids,), kwargs=gen_kwargs)
+    thread.start()
+
+    # Create a unique ID for this response
+    response_id = f"chatcmpl-{int(time.time())}"
+
+    # Send each token as it's generated
+    total_tokens = 0
+    for new_text in streamer:
+        total_tokens += 1
+        chunk = {
+            "id": response_id,
+            "object": "chat.completion.chunk",
+            "created": int(time.time()),
+            "model": model_name,
+            "choices": [
+                {
+                    "index": 0,
+                    "delta": {
+                        "content": new_text
+                    },
+                    "finish_reason": None
+                }
+            ]
+        }
+        yield f"data: {json.dumps(chunk)}\n\n"
+
+    # Send final chunk
+    final_chunk = {
+        "id": response_id,
+        "object": "chat.completion.chunk",
+        "created": int(time.time()),
+        "model": model_name,
+        "choices": [
+            {
+                "index": 0,
+                "delta": {},
+                "finish_reason": "stop"
+            }
+        ],
+        "usage": {
+            "prompt_tokens": input_ids.shape[1],
+            "completion_tokens": total_tokens,
+            "total_tokens": input_ids.shape[1] + total_tokens
+        }
+    }
+    yield f"data: {json.dumps(final_chunk)}\n\n"
+    yield "data: [DONE]\n\n"
+
+    thread.join()
+
+
 def create_app(model, tokenizer):
     """Create FastAPI app with GPT-OSS model."""
     app = FastAPI(title="GPT-OSS API Server", version="1.0.0")
@@ -78,7 +147,7 @@ def create_app(model, tokenizer):
             ]
         }
 
-    @app.post("/v1/chat/completions", response_model=ChatResponse)
+    @app.post("/v1/chat/completions")
     async def chat_completions(request: ChatRequest):
         try:
             # Convert messages to format expected by tokenizer
@@ -104,34 +173,41 @@ def create_app(model, tokenizer):
                 "pad_token_id": tokenizer.eos_token_id,
             }
 
-            # Generate response
-            output_ids = model.generate(input_ids, **gen_kwargs)
+            # Handle streaming vs non-streaming
+            if request.stream:
+                return StreamingResponse(
+                    stream_chat_response(model, tokenizer, input_ids, gen_kwargs, request.model),
+                    media_type="text/plain"
+                )
+            else:
+                # Generate response
+                output_ids = model.generate(input_ids, **gen_kwargs)
 
-            # Decode response
-            response_ids = output_ids[0][input_ids.shape[1]:]
-            response_text = tokenizer.decode(response_ids, skip_special_tokens=True)
+                # Decode response
+                response_ids = output_ids[0][input_ids.shape[1]:]
+                response_text = tokenizer.decode(response_ids, skip_special_tokens=True)
 
-            # Count tokens
-            input_tokens = input_ids.shape[1]
-            output_tokens = len(response_ids)
+                # Count tokens
+                input_tokens = input_ids.shape[1]
+                output_tokens = len(response_ids)
 
-            return ChatResponse(
-                choices=[
-                    {
-                        "index": 0,
-                        "message": {
-                            "role": "assistant",
-                            "content": response_text
-                        },
-                        "finish_reason": "stop"
+                return {
+                    "choices": [
+                        {
+                            "index": 0,
+                            "message": {
+                                "role": "assistant",
+                                "content": response_text
+                            },
+                            "finish_reason": "stop"
+                        }
+                    ],
+                    "usage": {
+                        "prompt_tokens": input_tokens,
+                        "completion_tokens": output_tokens,
+                        "total_tokens": input_tokens + output_tokens
                     }
-                ],
-                usage={
-                    "prompt_tokens": input_tokens,
-                    "completion_tokens": output_tokens,
-                    "total_tokens": input_tokens + output_tokens
                 }
-            )
 
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
