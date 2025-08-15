@@ -105,8 +105,7 @@ def create_app(model, tokenizer):
             }
 
             # Generate response
-            with tokenizer.chat_completion_assistant():
-                output_ids = model.generate(input_ids, **gen_kwargs)
+            output_ids = model.generate(input_ids, **gen_kwargs)
 
             # Decode response
             response_ids = output_ids[0][input_ids.shape[1]:]
