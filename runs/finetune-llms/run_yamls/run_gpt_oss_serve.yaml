@@ -1,4 +1,4 @@
-name: serve-gpt-oss-lora-fast
+name: gpt_oss_serve
 description: Fast GPT-OSS LoRA serving - merge and serve in one step
 tags:
   - gpt-oss
@@ -12,12 +12,12 @@ import:
       ref: gpt-oss-ft
   /lora_adapter/: vessl-model://demo2025/gpt-oss-20b-multilingual-reasoner/1
 resources:
-  cluster: vessl-eu-h100-80g-sxm
-  preset: gpu-h100-80g-small
+  cluster: vessl-kr-a100-80g-sxm
+  preset: gpu-a100-80g-small
 image: quay.io/vessl-ai/torch:2.8.0-cuda12.8
 run:
   - command: |-
-      pip install peft fastapi uvicorn
+      pip install peft fastapi uvicorn triton>=3.4.0
       python gpt_oss_serve.py \
         --base_model openai/gpt-oss-20b \
         --lora_adapter /lora_adapter \

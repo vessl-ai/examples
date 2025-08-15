@@ -62,7 +62,7 @@ def create_app(model, tokenizer):
 
     @app.get("/")
     async def root():
-        return {"message": "GPT-OSS API Server is running!"}
+        return {"message": "GPT-OSS API Server is running! Go do /docs to see the API docs."}
 
     @app.get("/v1/models")
     async def list_models():

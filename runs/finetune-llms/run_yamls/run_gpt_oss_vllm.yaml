@@ -10,7 +10,7 @@ tags:
 import:
   /lora_adapter/: vessl-model://{YOUR_ORGANIZATION}/gpt-oss-20b-multilingual-reasoner/1
 resources:
-  cluster: vessl-eu-h100-80g-sxm
+  cluster: vessl-kr-h100-80g-sxm
   preset: gpu-h100-80g-small
 image: vllm/vllm-openai:gptoss
 run:
