@@ -20,9 +20,7 @@ run:
       python model_merge.py \
         --base_model openai/gpt-oss-20b \
         --lora_adapter /lora_adapter \
-        --output_path /merged_model \
-        --torch_dtype bfloat16 \
-        --load_in_4bit
+        --output_path /merged_model
     workdir: /root/code/runs/finetune-llms
 export:
   /merged_model: vessl-model://gpt-oss-20b-multilingual-reasoner-merged
