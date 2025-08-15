@@ -38,8 +38,13 @@ def merge_lora_model(
     print(f"Saving merged model to: {output_path}")
     os.makedirs(output_path, exist_ok=True)
 
-    # Save merged model and tokenizer
-    merged_model.save_pretrained(output_path, safe_serialization=True)
+    # Save merged model and tokenizer with 5GB sharding
+    print("Saving model in 5GB chunks for better upload stability...")
+    merged_model.save_pretrained(
+        output_path,
+        safe_serialization=True,
+        max_shard_size="5GB"
+    )
     tokenizer.save_pretrained(output_path)
 
     print("✅ Model merge completed successfully!")

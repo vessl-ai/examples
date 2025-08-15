@@ -17,13 +17,10 @@ image: quay.io/vessl-ai/torch:2.8.0-cuda12.8
 run:
   - command: |-
       pip install peft
-      python model_merge.py \
+      python -u model_merge.py \
         --base_model openai/gpt-oss-20b \
         --lora_adapter /lora_adapter \
         --output_path /merged_model
     workdir: /root/code/runs/finetune-llms
 export:
-  /merged_model: vessl-model://gpt-oss-20b-multilingual-reasoner-merged
-env:
-  HF_TOKEN:
-    secret: HF_TOKEN
+  /merged_model: vessl-model://{YOUR_ORGANIZATION}/gpt-oss-20b-multilingual-reasoner-merged

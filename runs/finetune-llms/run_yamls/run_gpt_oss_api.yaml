@@ -6,7 +6,7 @@ tags:
   - api
   - vllm
 import:
-  /model/: vessl-model://{YOUR_ORGANIZATION}/gpt-oss-20b-multilingual-reasoner-merged/1
+  /model/: vessl-model://demo2025/gpt-oss-20b-multilingual-reasoner-merged/1
 resources:
   cluster: vessl-eu-h100-80g-sxm
   preset: gpu-h100-80g-small
@@ -24,6 +24,3 @@ ports:
   - name: vllm-api
     type: http
     port: 8000
-env:
-  HF_TOKEN:
-    secret: HF_TOKEN
