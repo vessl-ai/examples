@@ -1,0 +1,33 @@
+name: serve-gpt-oss-lora-fast
+description: Fast GPT-OSS LoRA serving - merge and serve in one step
+tags:
+  - gpt-oss
+  - lora
+  - fine-tuning
+  - api
+import:
+  /root/code:
+    git:
+      url: https://github.com/vessl-ai/examples.git
+      ref: gpt-oss-ft
+  /lora_adapter/: vessl-model://demo2025/gpt-oss-20b-multilingual-reasoner/1
+resources:
+  cluster: vessl-eu-h100-80g-sxm
+  preset: gpu-h100-80g-small
+image: quay.io/vessl-ai/torch:2.8.0-cuda12.8
+run:
+  - command: |-
+      pip install peft fastapi uvicorn
+      python gpt_oss_serve.py \
+        --base_model openai/gpt-oss-20b \
+        --lora_adapter /lora_adapter \
+        --host 0.0.0.0 \
+        --port 8000
+    workdir: /root/code/runs/finetune-llms
+ports:
+  - name: api
+    type: http
+    port: 8000
+env:
+  HF_TOKEN:
+    secret: HF_TOKEN
