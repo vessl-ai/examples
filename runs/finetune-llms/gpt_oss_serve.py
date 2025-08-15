@@ -66,11 +66,17 @@ def stream_chat_response(model, tokenizer, input_ids, gen_kwargs, model_name) ->
     # Setup streaming
     streamer = TextIteratorStreamer(
         tokenizer,
-        timeout=10.0,
+        timeout=30.0,
         skip_prompt=True,
         skip_special_tokens=True
     )
     gen_kwargs["streamer"] = streamer
+    
+    # Ensure proper EOS handling for streaming
+    if "eos_token_id" not in gen_kwargs:
+        gen_kwargs["eos_token_id"] = tokenizer.eos_token_id
+    if "early_stopping" not in gen_kwargs:
+        gen_kwargs["early_stopping"] = True
 
     # Start generation in a separate thread
     thread = threading.Thread(target=model.generate, args=(input_ids,), kwargs=gen_kwargs)
@@ -171,6 +177,8 @@ def create_app(model, tokenizer):
                 "top_p": request.top_p,
                 "top_k": request.top_k,
                 "pad_token_id": tokenizer.eos_token_id,
+                "eos_token_id": tokenizer.eos_token_id,
+                "early_stopping": True,
             }
 
             # Handle streaming vs non-streaming
