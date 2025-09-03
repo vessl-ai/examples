@@ -72,8 +72,7 @@ def main(args):
                 f"<h2>Chatbot with 🤗 {args.model_id} 🤗</h2>"
                 "<h3>Interact with LLM using chat interface!<br></h3>"
                 f"<h3>Original model: <a href='https://huggingface.co/{args.model_id}' target='_blank'>{args.model_id}</a></h3>")
-        cb = gr.Chatbot(type="messages", scale=20, render_markdown=False)
-        gr.ChatInterface(hdlr.chat_function, chatbot=cb)
+        gr.ChatInterface(hdlr.chat_function)
 
     demo.queue().launch(server_name="0.0.0.0", server_port=args.port)
 
