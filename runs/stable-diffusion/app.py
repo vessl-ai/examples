@@ -1,7 +1,7 @@
 import os
 
 import torch
-from diffusers import StableDiffusionPipeline
+from diffusers import StableDiffusion3Pipeline
 
 device = torch.device("cpu")
 if torch.backends.mps.is_available() and torch.backends.mps.is_built():
@@ -10,7 +10,7 @@ if torch.cuda.is_available():
     device = torch.device("cuda")
 print("RUNNING ON:", device)
 
-pipe = StableDiffusionPipeline.from_pretrained(os.environ.get("MODEL_NAME"))
+pipe = StableDiffusion3Pipeline.from_pretrained(os.environ.get("MODEL_NAME"))
 pipe = pipe.to(device)
 
 import random
