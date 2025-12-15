@@ -51,6 +51,40 @@ async def generate_math_questions(
     
     print("Generating math questions using run_math_pipeline...")
     
+    MACRO_TOPIC_PROMPT = """Generate exactly {n_macro_topics} macro topics that cover mathematics taught at {school_level} level.
+
+Output rules:
+- Return ONLY a YAML list of exactly {n_macro_topics} strings.
+- No subtopics, no descriptions, no extra text.
+- No markdown fences (no ```).
+
+Example:
+- Topic A
+- Topic B
+- Topic C
+"""
+
+    MATH_PROBLEM_TITLES = """Generate exactly {n_openlines} short mathematics problem TITLES related to "{topic}".
+
+Output ONLY a YAML list of double-quoted strings.
+No markdown. No code fences. Keep each title < 12 words.
+"""
+
+    QUOTED_YAML_CONVERSION = """Convert the document below into a YAML list of strings.
+
+Rules:
+- Output ONLY YAML.
+- Every list item MUST be a double-quoted string (escape internal quotes).
+- No markdown, no code fences, no prose.
+
+Example:
+- "item: with colon is OK"
+- "another item"
+
+Document:
+{llm_response}
+"""
+
     question_titles = await generator.run_math_pipeline(
         n_macro_topics=n_topics,
         school_level=school_level,
@@ -58,8 +92,11 @@ async def generate_math_questions(
         n_openlines=n_questions,
         model=model_name,
         base_model_kwargs=model_kwargs,
-        conversion_model_kwargs=model_kwargs,
-        ignore_conversion_failure=True
+        conversion_model_kwargs={**model_kwargs, "temperature": 0},  # helps formatting
+        macro_topic_prompt_template=MACRO_TOPIC_PROMPT,
+        math_problem_prompt_template=MATH_PROBLEM_TITLES,
+        yaml_conversion_prompt_template=QUOTED_YAML_CONVERSION,
+        ignore_conversion_failure=False,  # flip back to True once stable
     )
     
     print(f"Generated question titles: {question_titles}")
